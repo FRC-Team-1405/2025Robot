@@ -10,14 +10,16 @@ import edu.wpi.first.wpilibj.Preferences;
 import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Rotations;
 
+import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.CanID;
 
 public class Elavator extends SubsystemBase {
-  private TalonFX elavationMotor;
-  private enum Level {
+  private TalonFX elavationMotor = new TalonFX(CanID.ElevatorID);
+  public enum Level {
     home(0.0), l1(15.0), l2(30.0), l3(35.0), l4(40.0);
 
 
@@ -39,7 +41,7 @@ public class Elavator extends SubsystemBase {
 
   public void setlevel(Level level){
     targetLevel = level;
-    elavationMotor.setPosition(level.getposition());
+    elavationMotor.setControl(new  MotionMagicDutyCycle( level.getposition() ) );
   }
 
   public void stop(){

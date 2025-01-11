@@ -20,4 +20,8 @@ public final class Constants {
   public static class ElavationConstants{
     public static final double POSITIONACCURACY = 0.25;
   }
+
+  public static class CanID {
+    public static final int ElevatorID =9;
+  }
 }
