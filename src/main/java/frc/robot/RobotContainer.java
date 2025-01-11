@@ -4,13 +4,20 @@
 
 package frc.robot;
 
+import frc.robot.commands.RobotDriveCommand;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
+import java.util.Optional;
 import frc.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.SwerveDrive;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -19,17 +26,37 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  private SwerveDrive driveBase = new SwerveDrive(10, 2*Math.PI, "geared upright",  Constants.kinematics);
   // The robot's subsystems and commands are defined here...
+
+   private Optional<Alliance> alliance = DriverStation.getAlliance();
+  
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController driver = new CommandXboxController(0);
+  private final CommandXboxController operator = new CommandXboxController(1);
+
+
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    driveBase.setDefaultCommand(new SwerveDriveCommand(this::getXSpeed, this::getYSpeed, this::getRotationSpeed, this::getSlideValue, driveBase));
+  }
+
+  public void disabledInit() {
+    driveBase.brakeMode(false);
+  }
+  
+  public void autonomousInit() {
+    driveBase.brakeMode(true);
+  }
+
+  public void teleopInit() {
+    alliance = DriverStation.getAlliance();
+    driveBase.brakeMode(false);
   }
 
   /**
@@ -46,9 +73,12 @@ public class RobotContainer {
     new Trigger(m_exampleSubsystem::exampleCondition)
         .onTrue(new ExampleCommand(m_exampleSubsystem));
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+    operator.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
+        public boolean runsWhenDisabled() {
+          return true;
+        }    
+      });    
+
   }
 
   /**
@@ -59,5 +89,57 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     return Autos.exampleAuto(m_exampleSubsystem);
+  }
+
+  double getXSpeed() { 
+    double speedMultiplication = 0.6;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+
+    double finalX;
+    if (Math.abs(driver.getLeftY()) <= 0.1)
+      finalX = 0.0;
+    else
+      finalX = driver.getLeftY();
+    
+    return -finalX * speedMultiplication;
+  }
+
+  public double getYSpeed() { 
+    double speedMultiplication = 0.6;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+    
+    int pov = driver.getHID().getPOV();
+
+    double finalY;
+    if ( pov == 270 || pov == 315 || pov == 225)
+      finalY = -.5;
+    else if(pov == 90 || pov == 45 || pov == 135)
+      finalY = 0.5;
+    else if (Math.abs(driver.getLeftX()) <= 0.1)
+      finalY = 0.0;
+    else
+      finalY = driver.getLeftX();
+    
+    return -finalY * speedMultiplication; 
+  } 
+  
+  public double getRotationSpeed() { 
+    double finalRotation =  driver.getRightX();
+
+    if (Math.abs(finalRotation) < 0.15)
+        finalRotation = 0.0;
+    
+    return finalRotation;
+  }
+  
+  public double getSlideValue() {
+    int pov = driver.getHID().getPOV();
+    if (pov == 45 || pov == 90 || pov == 135) {
+      return 0.4 ;
+    } else if (pov == 225 || pov == 270 || pov == 315) {
+      return -0.4 ;
+    }
+
+    return 0.0;
   }
 }
