@@ -7,8 +7,10 @@ package frc.robot;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.lib.ReefSelecter;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -23,8 +25,10 @@ public class RobotContainer {
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
+
+  private final ReefSelecter reefSelecter = new ReefSelecter();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -48,8 +52,33 @@ public class RobotContainer {
 
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
-  }
+    driver.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+
+    operator.leftBumper()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
+            } ));
+     operator.rightBumper()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Right) ;
+            } ));       
+    operator.a()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_1) ;
+            } ));
+    operator.x()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_2) ;
+            } ));
+    operator.b()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_3) ;
+            } ));   
+    operator.y()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_4) ;
+            } ));
+    }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
