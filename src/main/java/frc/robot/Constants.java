@@ -5,6 +5,9 @@
 package frc.robot;
 
 import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -29,6 +32,12 @@ public final class Constants {
         new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(-15)), // Back Left
         new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(15))); // Back Right
   
+    public static final PPHolonomicDriveController SwerveDriveController = new PPHolonomicDriveController(
+      new PIDConstants(2.5, .75, 0.0), // Translation PID constants
+      //new PIDConstants(0.0, 0.0, 0.0), // Translation PID constants
+      new PIDConstants(10, 0.0, 0.0) // Rotation PID constants.
+    );
+
     public static class CanBus {
       public final static int DRIVEFRONTLEFT = 1;
       public final static int DRIVEFRONTRIGHT = 2;
