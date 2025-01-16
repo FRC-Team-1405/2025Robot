@@ -19,12 +19,16 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WrapperCommand;
 import frc.robot.Constants;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 //Class containing all functions and variables pertaining to the SwerveDrive
 public class SwerveDrive extends SubsystemBase 
@@ -51,7 +55,7 @@ public class SwerveDrive extends SubsystemBase
 
   //This switch is used as an external input to tell the SwerveDrive to reset the odometry
   private DigitalInput resetOdometry = new DigitalInput(1);
-  private DigitalInput normalizeSwitch = new DigitalInput(0);  
+  private Command normalize;
 
   /**
    * The constructor for the swerve drive
@@ -111,12 +115,12 @@ public class SwerveDrive extends SubsystemBase
 
       //This switch is used as an external input to tell the SwerveDrive to normalize the Swerve Modules
 
-      //Normalize the modules when the normalize switch is pressed (DIO switches are ACTIVE LOW)
-      // if(!normalizeSwitch.get()) {
-      //     normalizeModules();
-      // }
-      // normalizeSwitch.close();
-
+      normalize = new InstantCommand( () -> {
+        normalizeModules();
+      })
+        .ignoringDisable(true);
+      normalize.setName("Normalize Swerve");
+      SmartDashboard.putData(normalize);
   }
 
   /**
@@ -142,12 +146,7 @@ public class SwerveDrive extends SubsystemBase
 
   @Override 
   public void periodic() 
-    {
-      //Normalize the modules when the normalize switch is pressed (DIO switches are ACTIVE LOW)
-      if(!normalizeSwitch.get()) {
-          normalizeModules();
-      }
-      
+    {      
       // //Periodically update the swerve odometry
       updateOdometry(); 
 
