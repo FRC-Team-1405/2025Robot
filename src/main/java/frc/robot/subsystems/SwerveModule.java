@@ -13,6 +13,7 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -205,7 +206,7 @@ public class SwerveModule extends SubsystemBase
 public double getVelocityMetersPerSecond()
   { 
     BaseStatusSignal.refreshAll(driveMotorPosition, driveMotor.getAcceleration());
-    return (BaseStatusSignal.getLatencyCompensatedValue(driveMotorVelocity, driveMotor.getAcceleration()).in(DegreesPerSecond) / gearRatio) * SwerveConstants.WHEEL_CIRCUMFERENCE;//TODO: Verify that degrees per second is the correct unit
+    return (BaseStatusSignal.getLatencyCompensatedValue(driveMotorVelocity, driveMotor.getAcceleration()).in(RotationsPerSecond) / gearRatio) * SwerveConstants.WHEEL_CIRCUMFERENCE;//TODO: Verify that degrees per second is the correct unit
 
     //return (driveMotor.getRotorVelocity().getValueAsDouble() / gearRatio) * SwerveConstants.WHEEL_CIRCUMFERENCE;
   } 
@@ -226,7 +227,7 @@ public double getAngle()
 //Convert an angle in degrees to rotor rotations 
 private static double AngleToEncoder(double deg)
   {
-      return deg / 360.0;
+      return deg / 360.0; 
   }
 
 private static double AngleDelta(double current, double target)

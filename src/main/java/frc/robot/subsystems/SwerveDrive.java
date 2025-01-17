@@ -48,7 +48,7 @@ public class SwerveDrive extends SubsystemBase
   private final SwerveModule backRight  = new SwerveModule(SwerveConstants.DRIVEBACKRIGHT, SwerveConstants.ROTATIONBACKRIGHT, SwerveConstants.ENCODERBACKRIGHT, 45); 
   
   //The gyro used to determine the robot heading is a Kauli Labs NavX plugged into the MXP port on the roborio
-  private final AHRS gyro = new AHRS(NavXComType.kMXP_UART);
+  private final AHRS gyro = new AHRS(NavXComType.kMXP_SPI);
 
   //Odometry determines the robots position on the field
   private final SwerveDriveOdometry odometry; 
