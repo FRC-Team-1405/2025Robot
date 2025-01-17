@@ -4,6 +4,11 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.config.PIDConstants;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.util.Units;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -16,4 +21,28 @@ public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
+  public static final double POSITION_ERROR_DELTA = 0.25;
+
+    public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
+        new Translation2d(Units.inchesToMeters(-10), Units.inchesToMeters(-7)), // Front Left
+        new Translation2d(Units.inchesToMeters(-10), Units.inchesToMeters(7)), // Front Right
+        new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(-15)), // Back Left
+        new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(15))); // Back Right
+  
+    public static class CanBus {
+      public final static int DRIVEFRONTLEFT = 1;
+      public final static int DRIVEFRONTRIGHT = 2;
+      public final static int DRIVEBACKLEFT = 3;
+      public final static int DRIVEBACKRIGHT = 4;
+  
+      public final static int ROTATIONFRONTLEFT = 21;
+      public final static int ROTATIONFRONTRIGHT = 22;
+      public final static int ROTATIONBACKLEFT = 23;
+      public final static int ROTATIONBACKRIGHT = 24;
+  
+      public final static int ENCODERFRONTLEFT = 31;
+      public final static int ENCODERFRONTRIGHT = 32;
+      public final static int ENCODERBACKLEFT = 33;
+      public final static int ENCODERBACKRIGHT = 34;
+    }
 }
