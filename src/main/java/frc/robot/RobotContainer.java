@@ -8,11 +8,16 @@ import frc.robot.commands.RobotDriveCommand;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.commands.Autos;
+import frc.robot.commands.Climb;
 import frc.robot.commands.ExampleCommand;
 import java.util.Optional;
+
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -32,6 +37,7 @@ public class RobotContainer {
    private Optional<Alliance> alliance = DriverStation.getAlliance();
   
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  private final Climber climber = new Climber();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driver = new CommandXboxController(0);
@@ -78,6 +84,12 @@ public class RobotContainer {
           return true;
         }    
       });    
+    
+    Command climbCommand = new Climb(climber, () -> {
+      return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
+    });
+    climbCommand.setName("Climb Command");
+    SmartDashboard.putData(climbCommand);
 
   }
 

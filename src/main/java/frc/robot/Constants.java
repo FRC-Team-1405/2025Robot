@@ -44,5 +44,8 @@ public final class Constants {
       public final static int ENCODERFRONTRIGHT = 32;
       public final static int ENCODERBACKLEFT = 33;
       public final static int ENCODERBACKRIGHT = 34;
+
+      public final static int ClimberPrimary = 7;
+      public final static int ClimberSecondary = 8;
     }
 }
