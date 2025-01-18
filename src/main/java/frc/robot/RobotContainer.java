@@ -89,6 +89,7 @@ public class RobotContainer {
       return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
     });
     climbCommand.setName("Climb Command");
+    climber.setDefaultCommand(climbCommand);
     SmartDashboard.putData(climbCommand);
 
   }
