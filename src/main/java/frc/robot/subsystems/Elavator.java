@@ -20,7 +20,7 @@ import frc.robot.Constants.CanID;
 public class Elavator extends SubsystemBase {
   private TalonFX elavationMotor = new TalonFX(CanID.ElevatorID);
   public enum Level {
-    home(0.0), l1(15.0), l2(30.0), l3(35.0), l4(40.0);
+    Home(0.0), Level_1(15.0), Level_2(30.0), Level_3(35.0), Level_4(40.0);
 
 
     private double pos;

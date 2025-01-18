@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.Elavator;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -55,10 +56,10 @@ public class RobotContainer {
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
     driver.b().onTrue( new InstantCommand( () -> {
-      elavator.setlevel(Elavator.Level.l3);
+      elavator.setlevel(reefSelecter.getLevel());
     }));
     driver.a().onTrue( new InstantCommand( () -> {
-      elavator.setlevel(Elavator.Level.home);
+      elavator.setlevel(Elavator.Level.Home);
     }));
   
 
@@ -72,19 +73,19 @@ public class RobotContainer {
             } ));       
     operator.a()
             .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(ReefSelecter.Level.Level_1) ;
+              reefSelecter.setLevel(Elavator.Level.Level_1) ;
             } ));
     operator.x()
             .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(ReefSelecter.Level.Level_2) ;
+              reefSelecter.setLevel(Elavator.Level.Level_2) ;
             } ));
     operator.b()
             .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(ReefSelecter.Level.Level_3) ;
+              reefSelecter.setLevel(Elavator.Level.Level_3) ;
             } ));   
     operator.y()
             .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(ReefSelecter.Level.Level_4) ;
+              reefSelecter.setLevel(Elavator.Level.Level_4) ;
     } ));
   }
 

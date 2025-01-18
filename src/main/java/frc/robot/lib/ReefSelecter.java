@@ -4,8 +4,11 @@
 
 package frc.robot.lib;
 
+import java.lang.System.Logger.Level;
+
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.Elavator;
 
 /** Add your docs here. */
 public class ReefSelecter {
@@ -25,20 +28,17 @@ public class ReefSelecter {
         Right,
     }
 
-    public enum Level {
-        Level_1,
-        Level_2,
-        Level_3,
-        Level_4,
-    }
-
-    private Level level = Level.Level_4;
+    private Elavator.Level level = Elavator.Level.Level_4;
     private Direction direction = Direction.Left;
     private CoralPosition selected = updatePosition();
 
-    public CoralPosition setLevel(Level level){
+    public CoralPosition setLevel(Elavator.Level level){
         this.level = level;
         return updatePosition();
+    }
+
+    public Elavator.Level getLevel() {
+        return level;
     }
 
     public CoralPosition setDirection (Direction direction){
