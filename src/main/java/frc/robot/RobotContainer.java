@@ -90,11 +90,7 @@ public class RobotContainer {
       return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
     });
     climbCommand.setName("Climb Command");
-    Trigger climbTrigger = new Trigger( () -> {
-      return operator.getLeftTriggerAxis() > 0.1 || operator.getRightTriggerAxis() > 0.1; 
-    });
-    climbTrigger.onTrue(climbCommand)
-                .onFalse( new InstantCommand( climber::holdPosition ));
+    climber.setDefaultCommand(climbCommand);
     SmartDashboard.putData(climbCommand);
 
   }

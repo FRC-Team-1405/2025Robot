@@ -6,6 +6,7 @@ package frc.robot.commands;
 
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Climber;
 
@@ -13,6 +14,7 @@ import frc.robot.subsystems.Climber;
 public class Climb extends Command {
   private Climber climber;
   private DoubleSupplier distance;
+  private boolean holdPosition = false;
   /** Creates a new Climb. */
   public Climb(Climber climber, DoubleSupplier distance) {
     this.climber = climber;
@@ -27,9 +29,19 @@ public class Climb extends Command {
   }
 
   // Called every time the scheduler runs while the command is scheduled.
+  private static final double Deadband = 0.1;
   @Override
   public void execute() {
-    climber.move(distance.getAsDouble());
+    double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
+    if (MathUtil.isNear(0.0, distance, Deadband)){
+      if (!holdPosition){
+        climber.holdPosition();
+      }
+      holdPosition = true;
+    } else {
+        climber.move(distance);
+        holdPosition = false;
+    }
   }
 
   // Called once the command ends or is interrupted.
