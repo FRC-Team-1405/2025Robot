@@ -8,6 +8,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.Elavator;
+import frc.robot.lib.ReefSelecter;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -26,8 +27,10 @@ public class RobotContainer {
   private final Elavator elavator = new Elavator();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController driver =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
+
+  private final ReefSelecter reefSelecter = new ReefSelecter();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -57,6 +60,32 @@ public class RobotContainer {
     driver.a().onTrue( new InstantCommand( () -> {
       elavator.setlevel(Elavator.Level.home);
     }));
+  
+
+    operator.leftBumper()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
+            } ));
+     operator.rightBumper()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Right) ;
+            } ));       
+    operator.a()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_1) ;
+            } ));
+    operator.x()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_2) ;
+            } ));
+    operator.b()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_3) ;
+            } ));   
+    operator.y()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(ReefSelecter.Level.Level_4) ;
+    } ));
   }
 
   /**
