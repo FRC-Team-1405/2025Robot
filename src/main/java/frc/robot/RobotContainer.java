@@ -54,6 +54,7 @@ public class RobotContainer {
 
   public void disabledInit() {
     driveBase.brakeMode(false);
+    climber.stop();
   }
   
   public void autonomousInit() {
@@ -89,7 +90,11 @@ public class RobotContainer {
       return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
     });
     climbCommand.setName("Climb Command");
-    climber.setDefaultCommand(climbCommand);
+    Trigger climbTrigger = new Trigger( () -> {
+      return operator.getLeftTriggerAxis() > 0.1 || operator.getRightTriggerAxis() > 0.1; 
+    });
+    climbTrigger.onTrue(climbCommand)
+                .onFalse( new InstantCommand( climber::holdPosition ));
     SmartDashboard.putData(climbCommand);
 
   }
