@@ -7,12 +7,14 @@ package frc.robot;
 import frc.robot.commands.RobotDriveCommand;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
+import frc.robot.commands.VisionDrive;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
 import java.util.Optional;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -37,12 +39,13 @@ public class RobotContainer {
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController operator = new CommandXboxController(1);
 
-
+  private VisionDrive visionDrive = new VisionDrive(driveBase);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    configureSmartdashboard();
     driveBase.setDefaultCommand(new SwerveDriveCommand(this::getXSpeed, this::getYSpeed, this::getRotationSpeed, this::getSlideValue, driveBase));
   }
 
@@ -79,6 +82,11 @@ public class RobotContainer {
         }    
       });    
 
+  }
+
+  private void configureSmartdashboard() {
+      visionDrive.setName("Vision Drive");
+      SmartDashboard.putData(visionDrive);
   }
 
   /**
