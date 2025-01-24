@@ -36,12 +36,12 @@ public class RobotContainer {
 
    private Optional<Alliance> alliance = DriverStation.getAlliance();
   
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
-  private final Climber climber = new Climber();
+  // private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  // private final Climber climber = new Climber();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driver = new CommandXboxController(0);
-  private final CommandXboxController operator = new CommandXboxController(1);
+  // private final CommandXboxController operator = new CommandXboxController(1);
 
 
 
@@ -54,7 +54,7 @@ public class RobotContainer {
 
   public void disabledInit() {
     driveBase.brakeMode(false);
-    climber.stop();
+    // climber.stop();
   }
   
   public void autonomousInit() {
@@ -77,21 +77,21 @@ public class RobotContainer {
    */
   private void configureBindings() {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
+    // new Trigger(m_exampleSubsystem::exampleCondition)
+    //     .onTrue(new ExampleCommand(m_exampleSubsystem));
 
-    operator.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
+    driver.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
         public boolean runsWhenDisabled() {
           return true;
         }    
       });    
     
-    Command climbCommand = new Climb(climber, () -> {
-      return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
-    });
-    climbCommand.setName("Climb Command");
-    climber.setDefaultCommand(climbCommand);
-    SmartDashboard.putData(climbCommand);
+    // Command climbCommand = new Climb(climber, () -> {
+    //   return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
+    // });
+    // climbCommand.setName("Climb Command");
+    // climber.setDefaultCommand(climbCommand);
+    // SmartDashboard.putData(climbCommand);
 
   }
 
@@ -100,10 +100,10 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
-  }
+  // public Command getAutonomousCommand() {
+  //   // An example command will be run in autonomous
+  //   return Autos.exampleAuto(m_exampleSubsystem);
+  // }
 
   double getXSpeed() { 
     double speedMultiplication = 0.6;
