@@ -4,24 +4,22 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 
-import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.jni.StatusSignalJNI;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.CanID;
-import frc.robot.Constants.ElavationConstants;
 
 public class Elavator extends SubsystemBase {
   public enum Level {
@@ -39,60 +37,70 @@ public class Elavator extends SubsystemBase {
     }
   };
 
-  private TalonFX elavationMotor = new TalonFX(CanID.ElevatorID);
+  private TalonFX mainMotor = new TalonFX(CanID.ElevatorPrimaryID);
+  private TalonFX slaveMotor = new TalonFX(CanID.ElevatorSecondaryID);
   public enum ElevationControl {
     Home, Stopped, Zeroizing, Moving,
   };
-  private ElevationControl targetState;
-  private Level targetLevel;
-  private double position;
-  private StatusSignal<ReverseLimitValue> motorReverseLimit = elavationMotor.getReverseLimit();
+  private ElevationControl targetState = ElevationControl.Home;
+  private Level targetLevel = Level.Home;
+  private double position = targetLevel.getposition();
+  private StatusSignal<ReverseLimitValue> motorReverseLimit = mainMotor.getReverseLimit();
+  private Alert motorTorquewarning = new Alert("Elavator motor is using more power than permiter (possible stall)", AlertType.kWarning);
 
   public void setLevel(Level level) {
     targetLevel = level;
     moveTo(targetLevel.getposition());
+
+    if(targetLevel == Level.Home) {
+      targetState = ElevationControl.Home;
+    }
   }
 
   public void moveTo(double position) {
       this.position = position;
     
-      elavationMotor.setNeutralMode(NeutralModeValue.Brake);
+      motorTorquewarning.set(false);
+      mainMotor.setNeutralMode(NeutralModeValue.Brake);
       switch (targetState) {
       case Home:
         targetState = ElevationControl.Zeroizing;
-        elavationMotor.set(-0.01);
+        mainMotor.set(-0.1);
         break;
       case Zeroizing:
         break;
       case Stopped:
         targetState = ElevationControl.Moving;
-        elavationMotor.setControl(new MotionMagicVoltage(position));
+        mainMotor.setControl(new MotionMagicVoltage(position));
         break;
       case Moving:
-        elavationMotor.setControl(new MotionMagicVoltage(position));
+        mainMotor.setControl(new MotionMagicVoltage(position));
         break;
     }
 
   }
 
   public void stop(){
-    elavationMotor.set(0);
+    mainMotor.set(0);
   }
 
   public boolean isAtPosition(){
-    return Math.abs(position - elavationMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+    return Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
   }
 
   private void checkCurrentLimit(){
-    if (elavationMotor.getTorqueCurrent().getValueAsDouble() > Constants.ElavationConstants.CURRENTLIMIT){
-      elavationMotor.stopMotor();
-      elavationMotor.setNeutralMode(NeutralModeValue.Coast);
+    if (Math.abs(mainMotor.getTorqueCurrent().getValueAsDouble()) > Constants.ElavationConstants.CURRENTLIMIT){
+      mainMotor.stopMotor();
+      mainMotor.setNeutralMode(NeutralModeValue.Coast);
+      motorTorquewarning.set(true);
     }
   }
 
 
   /** Creates a new Elavator. */
-  public Elavator() {}
+  public Elavator() {
+    slaveMotor.setControl(new Follower(Constants.CanID.ElevatorPrimaryID, false));
+  }
 
   @Override
   public void periodic() {
@@ -105,14 +113,10 @@ public class Elavator extends SubsystemBase {
         break;
       case Zeroizing:
         motorReverseLimit.refresh();
-        if(motorReverseLimit.getValue() == ReverseLimitValue.Open){
-          elavationMotor.setPosition(0);
+        if(motorReverseLimit.getValue() == ReverseLimitValue.ClosedToGround){
+          mainMotor.setPosition(0);
           targetState = ElevationControl.Moving;
-          elavationMotor.setControl(new MotionMagicVoltage(position));
-        }
-
-        if(targetLevel == Level.Home) {
-          targetState = ElevationControl.Home;
+          moveTo(position);
         }
         break;
       case Stopped:
@@ -120,7 +124,7 @@ public class Elavator extends SubsystemBase {
         break;
       case Moving:
         if (isAtPosition()){
-          elavationMotor.stopMotor();
+          mainMotor.stopMotor();
           targetState = ElevationControl.Stopped;
         }
         break;

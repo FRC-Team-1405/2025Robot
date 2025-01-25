@@ -25,13 +25,12 @@ public final class Constants {
 
   public static class ElavationConstants{
     public static final double POSITIONACCURACY = 0.25;
-    public static final double CURRENTLIMIT = 5.0;
-    
-  
+    public static final double CURRENTLIMIT = 10.0;
   }
 
   public static class CanID {
-    public static final int ElevatorID =9;
+    public static final int ElevatorPrimaryID = 7;
+    public static final int ElevatorSecondaryID = 8;
   }
   public static final double POSITION_ERROR_DELTA = 0.25;
 
