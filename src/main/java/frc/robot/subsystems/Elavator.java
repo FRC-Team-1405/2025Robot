@@ -10,10 +10,13 @@ import edu.wpi.first.wpilibj.Preferences;
 import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Rotations;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.jni.StatusSignalJNI;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.ReverseLimitValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -43,6 +46,7 @@ public class Elavator extends SubsystemBase {
   private ElevationControl targetState;
   private Level targetLevel;
   private double position;
+  private StatusSignal<ReverseLimitValue> motorReverseLimit = elavationMotor.getReverseLimit();
 
   public void setLevel(Level level) {
     targetLevel = level;
@@ -100,8 +104,12 @@ public class Elavator extends SubsystemBase {
         
         break;
       case Zeroizing:
-        //TODO: check if limit switch is hit
-        targetState = ElevationControl.Moving;
+        motorReverseLimit.refresh();
+        if(motorReverseLimit.getValue() == ReverseLimitValue.Open){
+          elavationMotor.setPosition(0);
+          targetState = ElevationControl.Moving;
+          elavationMotor.setControl(new MotionMagicVoltage(position));
+        }
 
         if(targetLevel == Level.Home) {
           targetState = ElevationControl.Home;
