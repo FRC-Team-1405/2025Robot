@@ -34,7 +34,7 @@ public class SwerveDrive extends SubsystemBase
   double headingAdjustment = 0; //An adjustment to be applied to the gyro sensor if needed
   SwerveDriveKinematics kinematics; //A kinematics object used by the odometry object to determine wheel locations
   String moduleType; //The type of Swerve Module being utilized
-  boolean debugMode = true; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
+  boolean debugMode = false; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
   private boolean useStopAngle = false; //Command the wheels to a stop angle
 
   //Instantiate four Swerve Modules according to the class SwerveModule constructor
@@ -44,7 +44,7 @@ public class SwerveDrive extends SubsystemBase
   private final SwerveModule backRight  = new SwerveModule(SwerveConstants.DRIVEBACKRIGHT, SwerveConstants.ROTATIONBACKRIGHT, SwerveConstants.ENCODERBACKRIGHT, 45); 
   
   //The gyro used to determine the robot heading is a Kauli Labs NavX plugged into the MXP port on the roborio
-  private final AHRS gyro = new AHRS(NavXComType.kMXP_UART);
+  private final AHRS gyro = new AHRS(NavXComType.kMXP_SPI);
 
   //Odometry determines the robots position on the field
   private final SwerveDriveOdometry odometry; 
