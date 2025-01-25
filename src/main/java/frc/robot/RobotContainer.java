@@ -9,13 +9,16 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.commands.Autos;
 import frc.robot.commands.Climb;
+import frc.robot.commands.CoralOutput;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.PlaceCoral;
 import frc.robot.subsystems.Elavator;
 import frc.robot.lib.ReefSelecter;
 import java.util.Optional;
 
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Intake;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -44,6 +47,7 @@ public class RobotContainer {
   private final Elavator elavator = new Elavator();
   private final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
+  private final Intake intake = new Intake();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -56,6 +60,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    configureShuffboardCommands();
     driveBase.setDefaultCommand(new SwerveDriveCommand(this::getXSpeed, this::getYSpeed, this::getRotationSpeed, this::getSlideValue, driveBase));
   }
 
@@ -73,6 +78,12 @@ public class RobotContainer {
     driveBase.brakeMode(false);
   }
 
+  private void configureShuffboardCommands() {
+    Command outputCoral = new CoralOutput(intake);
+    outputCoral.setName("Output Coral");
+    SmartDashboard.putData(outputCoral);
+    
+  }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary

@@ -58,5 +58,8 @@ public final class Constants {
 
       public final static int ClimberPrimary = 7;
       public final static int ClimberSecondary = 8;
+      public final static int Intake = 9;
+
+      public final static int IntakeSensor = 17;
     }
 }
