@@ -5,7 +5,11 @@
 package frc.robot.subsystems;
 
 
+import java.util.function.Supplier;
+
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ForwardLimitValue;
 
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -18,6 +22,7 @@ public class Intake extends SubsystemBase {
   private final double CoralSpeed;
   private final double AlgeaSpeed;
   private final FusionTimeofFlight timeofFlight = new FusionTimeofFlight(CanBus.IntakeSensor);
+  private final Supplier<ForwardLimitValue> reefDetector = primary.getForwardLimit().asSupplier();
   private double sensorValue = 0;
 
   public Intake() {
@@ -56,5 +61,9 @@ public class Intake extends SubsystemBase {
 
   public void outtakeAlgae(){
     primary.set(-AlgeaSpeed);
+  }
+
+  public boolean reefDetected() {
+    return reefDetector.get() == ForwardLimitValue.ClosedToGround;
   }
 }

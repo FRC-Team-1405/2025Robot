@@ -82,6 +82,10 @@ public class RobotContainer {
     Command outputCoral = new CoralOutput(intake);
     outputCoral.setName("Output Coral");
     SmartDashboard.putData(outputCoral);
+
+
+    Trigger reefTrigger = new Trigger(intake::reefDetected);
+    reefTrigger.onTrue(outputCoral);
     
   }
   /**
