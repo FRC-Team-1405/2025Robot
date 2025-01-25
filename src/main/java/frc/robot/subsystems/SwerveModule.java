@@ -16,6 +16,7 @@ import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
@@ -191,8 +192,7 @@ public class SwerveModule extends SubsystemBase
           {
             //System.out.println("speed" + driveSpeed);
             steeringMotor.setControl(new MotionMagicVoltage(target)); 
-            driveMotor.setControl(new VelocityVoltage(driveSpeed));
-            //driveMotor.set(driveSpeed);
+            driveMotor.setControl(new MotionMagicVelocityVoltage(driveSpeed));
             
           }
        
