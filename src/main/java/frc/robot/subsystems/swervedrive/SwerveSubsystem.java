@@ -28,14 +28,18 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import java.io.File;
 import java.io.IOException;
@@ -71,10 +75,14 @@ public class SwerveSubsystem extends SubsystemBase
    * Enable vision odometry updates while driving.
    */
   private final boolean             visionDriveTest     = false;
+
+  private final boolean limelightDriveTest = true;
   /**
    * PhotonVision class to keep an accurate odometry.
    */
   private Vision vision;
+
+  StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("SwervePose", Pose2d.struct).publish();
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -91,6 +99,11 @@ public class SwerveSubsystem extends SubsystemBase
                                                                   new Pose2d(new Translation2d(Meter.of(1),
                                                                                                Meter.of(4)),
                                                                              Rotation2d.fromDegrees(0)));
+
+      // Currently these make it drive worse, maybe if you calibrate they will help?
+      // swerveDrive.setChassisDiscretization(true, 0.02);
+      swerveDrive.setAngularVelocityCompensation(true, true, -0.5);
+
       // Alternative method if you don't want to supply the conversion factor via JSON files.
       // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
     } catch (Exception e)
@@ -137,9 +150,17 @@ public class SwerveSubsystem extends SubsystemBase
     vision = new Vision(swerveDrive::getPose, swerveDrive.field);
   }
 
+  // public void updateVisionOdometry() {
+  //   LimelightHelpers.PoseEstimate limelightMeaurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+  //   if(limelightMeaurement.tagCount >= 1){
+  //     swerveDrive.addVisionMeasurement(limelightMeaurement.pose, limelightMeaurement.timestampSeconds, 0);
+  //   }
+  // }
+
   @Override
   public void periodic()
   {
+    publisher.set(swerveDrive.getPose());
     // When vision is enabled we must manually update odometry in SwerveDrive
     if (visionDriveTest)
     {
