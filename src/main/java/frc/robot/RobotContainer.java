@@ -10,6 +10,8 @@ import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.commands.Autos;
 import frc.robot.commands.Climb;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.subsystems.Elavator;
+import frc.robot.lib.ReefSelecter;
 import java.util.Optional;
 
 import frc.robot.subsystems.Climber;
@@ -22,7 +24,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.Elavator;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Elavator.ElevationControl;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -37,11 +41,14 @@ public class RobotContainer {
    private Optional<Alliance> alliance = DriverStation.getAlliance();
   
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  private final Elavator elavator = new Elavator();
+  private final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController driver = new CommandXboxController(0);
-  private final CommandXboxController operator = new CommandXboxController(1);
+  private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
+
 
 
 
@@ -80,6 +87,40 @@ public class RobotContainer {
     new Trigger(m_exampleSubsystem::exampleCondition)
         .onTrue(new ExampleCommand(m_exampleSubsystem));
 
+    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
+    // cancelling on release.
+    driver.b().onTrue( new InstantCommand( () -> {
+      elavator.setLevel(reefSelecter.getLevel());
+    }));
+    driver.a().onTrue( new InstantCommand( () -> {
+      elavator.setLevel(Elavator.Level.Home);
+    }));
+  
+
+    operator.leftBumper()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
+            } ));
+     operator.rightBumper()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Right) ;
+            } ));       
+    operator.a()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(Elavator.Level.Level_1) ;
+            } ));
+    operator.x()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(Elavator.Level.Level_2) ;
+            } ));
+    operator.b()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(Elavator.Level.Level_3) ;
+            } ));   
+    operator.y()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setLevel(Elavator.Level.Level_4) ;
+    } ));
     operator.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
         public boolean runsWhenDisabled() {
           return true;
