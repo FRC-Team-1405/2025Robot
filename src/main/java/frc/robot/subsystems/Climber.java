@@ -9,8 +9,13 @@ import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanBus;
+import frc.robot.lib.ConfigCheck;
 
 public class Climber extends SubsystemBase {
   private TalonFX primary = new TalonFX(CanBus.ClimberPrimary);
@@ -21,6 +26,24 @@ public class Climber extends SubsystemBase {
   /** Creates a new Climber. */
   public Climber() {
     secondary.setControl(new Follower(CanBus.ClimberPrimary, true));
+
+    {
+      ConfigCheck check = new ConfigCheck("Config/Climber/Secondary", secondary);
+      Command chkCommand = new InstantCommand( () -> {
+        check.SaveCheck();
+      }).ignoringDisable(true);
+      chkCommand.setName("Config/Climber/UpdateSecondary");
+      SmartDashboard.putData(chkCommand);
+    }
+
+    {
+      ConfigCheck check = new ConfigCheck("Config/Climber/Primary", primary);
+      Command chkCommand = new InstantCommand( () -> {
+        check.SaveCheck();
+      }).ignoringDisable(true);
+      chkCommand.setName("Config/Climber/UpdatePrimary");
+      SmartDashboard.putData(chkCommand);
+    }
   }
 
   @Override
