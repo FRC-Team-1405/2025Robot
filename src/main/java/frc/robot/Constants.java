@@ -29,10 +29,8 @@ public final class Constants {
   }
 
   public static class CanID {
-    public static final int ElevatorPrimaryID = 7;
-    public static final int ElevatorSecondaryID = 8;
   }
-  public static final double POSITION_ERROR_DELTA = 0.25;
+    public static final double POSITION_ERROR_DELTA = 0.25;
 
     public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
         new Translation2d(Units.inchesToMeters(-10), Units.inchesToMeters(-7)), // Front Left
@@ -56,7 +54,11 @@ public final class Constants {
       public final static int ENCODERBACKLEFT = 33;
       public final static int ENCODERBACKRIGHT = 34;
 
-      public final static int ClimberPrimary = 7;
-      public final static int ClimberSecondary = 8;
-    }
+      public final static int ClimberPrimary = 5;
+      public final static int ClimberSecondary = 6;
+
+      public static final int ElevatorPrimaryID = 7;
+      public static final int ElevatorSecondaryID = 8;
+      public static final int ArmMotorPrimaryID = 9;
+      }
 }
