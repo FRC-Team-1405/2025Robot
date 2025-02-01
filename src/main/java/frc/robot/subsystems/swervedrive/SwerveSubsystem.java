@@ -6,6 +6,8 @@ package frc.robot.subsystems.swervedrive;
 
 import static edu.wpi.first.units.Units.Meter;
 
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
@@ -102,7 +104,7 @@ public class SwerveSubsystem extends SubsystemBase
 
       // Currently these make it drive worse, maybe if you calibrate they will help?
       // swerveDrive.setChassisDiscretization(true, 0.02);
-      swerveDrive.setAngularVelocityCompensation(true, true, -0.5);
+      // swerveDrive.setAngularVelocityCompensation(true, true, -0.5);
 
       // Alternative method if you don't want to supply the conversion factor via JSON files.
       // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
@@ -160,6 +162,16 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
+    for (swervelib.SwerveModule module : swerveDrive.getModules()){
+      TalonFX fx = ((TalonFX)module.getDriveMotor().getMotor());
+      double error = fx.getClosedLoopError().getValueAsDouble();
+      double target = fx.getClosedLoopReference().getValueAsDouble();
+      double errorPercentage = Math.min(100.0, ( (error / target) * 100.0)) % 100; 
+      SmartDashboard.putNumber("PIDDebuging/module" + module.moduleNumber + "/Error", error);
+      SmartDashboard.putNumber("PIDDebuging/module" + module.moduleNumber + "/Target", target);
+      SmartDashboard.putNumber("PIDDebuging/module" + module.moduleNumber + "/Percentage", errorPercentage);
+    }
+
     publisher.set(swerveDrive.getPose());
     // When vision is enabled we must manually update odometry in SwerveDrive
     if (visionDriveTest)
