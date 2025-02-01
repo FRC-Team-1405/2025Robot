@@ -7,6 +7,7 @@ package frc.robot;
 import frc.robot.commands.RobotDriveCommand;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
+import frc.robot.commands.TurnToTarget;
 import frc.robot.commands.Autos;
 import frc.robot.commands.Climb;
 import frc.robot.commands.ExampleCommand;
@@ -16,6 +17,8 @@ import java.util.Optional;
 
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -23,6 +26,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.commands.TurnToTarget;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Elavator;
 import frc.robot.subsystems.SwerveDrive;
@@ -95,6 +99,9 @@ public class RobotContainer {
     driver.a().onTrue( new InstantCommand( () -> {
       elavator.setLevel(Elavator.Level.Home);
     }));
+
+    //TODO: remove me I am just a test
+    driver.x().onTrue(new TurnToTarget(this::getXSpeed, this::getYSpeed, new Pose2d(1, 1, new Rotation2d(90)), driveBase));
   
 
     operator.leftBumper()

@@ -34,7 +34,7 @@ public class SwerveDrive extends SubsystemBase
   double headingAdjustment = 0; //An adjustment to be applied to the gyro sensor if needed
   SwerveDriveKinematics kinematics; //A kinematics object used by the odometry object to determine wheel locations
   String moduleType; //The type of Swerve Module being utilized
-  boolean debugMode = false; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
+  boolean debugMode = true; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
   private boolean useStopAngle = false; //Command the wheels to a stop angle
 
   //Instantiate four Swerve Modules according to the class SwerveModule constructor
@@ -332,5 +332,20 @@ public class SwerveDrive extends SubsystemBase
   public static void useStopAngle(boolean b) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'useStopAngle'");
+  }
+
+  public SwerveDriveKinematics getKinematics(){
+
+      return this.kinematics;
+  }
+
+  public double getMaxAngularSpeed(){
+
+      return this.maxAngularSpeed;
+  }
+
+  public double getMaxAngularAcceleration() {
+
+      return Math.PI*2;
   }
 }
