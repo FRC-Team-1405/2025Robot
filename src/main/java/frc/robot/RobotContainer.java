@@ -19,6 +19,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -101,7 +102,7 @@ public class RobotContainer {
     }));
 
     //TODO: remove me I am just a test
-    driver.x().onTrue(new TurnToTarget(this::getXSpeed, this::getYSpeed, new Pose2d(1, 1, new Rotation2d(90)), driveBase));
+    driver.x().onTrue(new TurnToTarget(this::getXSpeed, this::getYSpeed, new Translation2d(1, 1), driveBase));
   
 
     operator.leftBumper()
@@ -140,7 +141,6 @@ public class RobotContainer {
     climbCommand.setName("Climb Command");
     climber.setDefaultCommand(climbCommand);
     SmartDashboard.putData(climbCommand);
-
   }
 
   /**
