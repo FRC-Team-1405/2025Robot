@@ -39,26 +39,28 @@ public class TurnToTarget extends Command {
   }
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    checkSmartdashboard();
+    zController.reset(swerve.getPose().getRotation().getRadians());    
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    checkSmartdashboard();
-
     double goal = getTargetAngle();
     double swerveRot = swerve.getPose().getRotation().getRadians();
     double rotationSpeed = MathUtil.clamp(zController.calculate( swerveRot, goal ), -1, 1);
 
     // This actualy takes into account the tolerance that we set earlier because the calculate() doesn't do it internally
     // Hopefully this should help with the death spins maybe
-    if(zController.atGoal()) {
+    if(!zController.atGoal()) {
       swerve.drive(getXSpeed.getAsDouble(), getYSpeed.getAsDouble(), -rotationSpeed, true);
     } else {
       swerve.drive(getXSpeed.getAsDouble(), getYSpeed.getAsDouble(), 0, true);
     }
 
     SmartDashboard.putNumber("TurnToTarget/PIDError", zController.getPositionError());
+    SmartDashboard.putNumber("TurnToTarget/Setpoint", zController.getSetpoint().position);
     SmartDashboard.putNumber("TurnToTarget/Target Angle", goal);
     SmartDashboard.putNumber("TurnToTarget/Current Angle", swerveRot);
     SmartDashboard.putNumber("TurnToTarget/Rot Speed", rotationSpeed);
@@ -98,7 +100,7 @@ public class TurnToTarget extends Command {
   }
 
   private void configPIDs(SwerveDrive swerve){
-    zController = new ProfiledPIDController(z_P, z_I, z_D, new TrapezoidProfile.Constraints(1,1));
+    zController = new ProfiledPIDController(z_P, z_I, z_D, new TrapezoidProfile.Constraints(4,4));
     zController.enableContinuousInput(-Math.PI, Math.PI); 
     zController.setTolerance((Math.PI*2)/100.0);
     zController.reset(swerve.getPose().getRotation().getRadians());
