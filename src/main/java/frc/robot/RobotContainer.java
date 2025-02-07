@@ -7,17 +7,14 @@ package frc.robot;
 import frc.robot.commands.RobotDriveCommand;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
-import frc.robot.commands.Autos;
 import frc.robot.commands.Climb;
 import frc.robot.commands.CoralOutput;
-import frc.robot.commands.ExampleCommand;
 import frc.robot.commands.PlaceCoral;
 import frc.robot.subsystems.Elavator;
 import frc.robot.lib.ReefSelecter;
 import java.util.Optional;
 
 import frc.robot.subsystems.Climber;
-import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.Intake;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -43,7 +40,6 @@ public class RobotContainer {
 
    private Optional<Alliance> alliance = DriverStation.getAlliance();
   
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final Elavator elavator = new Elavator();
   private final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
@@ -98,12 +94,6 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
     driver.b().onTrue( new InstantCommand( () -> {
       elavator.setLevel(reefSelecter.getLevel());
     }));
@@ -157,8 +147,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+    return null;
   }
 
   double getXSpeed() { 

@@ -13,12 +13,14 @@ import static edu.wpi.first.units.Units.Rotations;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.CanBus;
 import frc.robot.Constants.CanID;
 
 public class Elavator extends SubsystemBase {
@@ -37,8 +39,9 @@ public class Elavator extends SubsystemBase {
     }
   };
 
-  private TalonFX mainMotor = new TalonFX(CanID.ElevatorPrimaryID);
-  private TalonFX slaveMotor = new TalonFX(CanID.ElevatorSecondaryID);
+  private TalonFX mainMotor = new TalonFX(CanBus.ElevatorPrimaryID);
+  private TalonFX slaveMotor = new TalonFX(CanBus.ElevatorSecondaryID);
+  private TalonFX armMotor = new TalonFX(CanBus.ArmMotorPrimaryID);
   public enum ElevationControl {
     Home, Stopped, Zeroizing, Moving,
   };
@@ -99,11 +102,13 @@ public class Elavator extends SubsystemBase {
 
   /** Creates a new Elavator. */
   public Elavator() {
-    slaveMotor.setControl(new Follower(Constants.CanID.ElevatorPrimaryID, false));
+    slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, true));
   }
 
   @Override
   public void periodic() {
+
+    
     // This method will be called once per scheduler run
     checkCurrentLimit();
 
@@ -123,11 +128,35 @@ public class Elavator extends SubsystemBase {
 
         break;
       case Moving:
+        moveArm();
+        
         if (isAtPosition()){
-          mainMotor.stopMotor();
           targetState = ElevationControl.Stopped;
         }
         break;
     }
+  }
+
+  private void moveArm() {
+        // get position
+        double pos = mainMotor.getPosition().getValue().in(Rotations);
+
+        // convert it
+        pos = CalculateArmPosition(pos);
+        // set arm pos
+        armMotor.setControl(new PositionVoltage(pos));
+
+  }
+  private double CalculateArmPosition(double elevatorPosition) {
+    // if < 25 then 0
+    if(elevatorPosition < 25){
+      return 0;
+    } 
+
+    if(elevatorPosition > 50){
+      return 100;
+    }
+
+    return (elevatorPosition - 25.0) * 4.0;
   }
 }
