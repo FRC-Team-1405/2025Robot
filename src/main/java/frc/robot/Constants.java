@@ -60,5 +60,8 @@ public final class Constants {
       public static final int ElevatorPrimaryID = 7;
       public static final int ElevatorSecondaryID = 8;
       public static final int ArmMotorPrimaryID = 9;
-      }
+        public final static int Intake = 16;
+
+      public final static int IntakeSensor = 17;
+    }
 }
