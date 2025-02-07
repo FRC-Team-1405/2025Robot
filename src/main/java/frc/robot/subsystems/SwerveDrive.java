@@ -54,7 +54,7 @@ public class SwerveDrive extends SubsystemBase
   private final SwerveDriveOdometry odometry; 
 
   //This switch is used as an external input to tell the SwerveDrive to reset the odometry
-  private DigitalInput resetOdometry = new DigitalInput(1);
+  private Command resetOdometry;
   private Command normalize;
 
   /**
@@ -94,6 +94,13 @@ public class SwerveDrive extends SubsystemBase
         .ignoringDisable(true);
       normalize.setName("Normalize Swerve");
       SmartDashboard.putData(normalize);
+
+      resetOdometry = new InstantCommand( () -> {
+        zeroPose();
+      })
+        .ignoringDisable(true);
+      resetOdometry.setName("Reset Odometry");
+      SmartDashboard.putData(resetOdometry);
   }
 
   /**
@@ -122,12 +129,6 @@ public class SwerveDrive extends SubsystemBase
     {      
       // //Periodically update the swerve odometry
       updateOdometry(); 
-
-      // //Reset the odometry readings when reset odometry switch is pressed (DIO switches are ACTIVE LOW)
-      if(!resetOdometry.get())
-        {
-          zeroPose();
-        }
 
       if(debugMode)
         {
@@ -257,9 +258,10 @@ public class SwerveDrive extends SubsystemBase
   }
 
   //Zero out the pose of the robot to a location of x=0, y=0, and rotation = 0 
-  public void zeroPose()
+  private void zeroPose()
     {
       System.out.println("resetting pose");
+      gyro.reset();
       odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
     }
 
