@@ -17,6 +17,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
@@ -28,7 +29,11 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.lib.ConfigCheck;
 
 /* This class contains all variables and functions pertaining to a single Swerve Module. A 
  * Swerve Module is a two motor device that allows a wheel's speed and angle to be commanded 
@@ -90,7 +95,24 @@ public class SwerveModule extends SubsystemBase
       driveMotorPosition = driveMotor.getRotorPosition();
 
       driveMotorVelocity = driveMotor.getRotorVelocity();
+      
+      {
+        ConfigCheck check = new ConfigCheck("Config/SwerveDrive/"+driveMotorID, driveMotor);
+        Command chkCommand = new InstantCommand( () -> {
+          check.SaveCheck();
+        }).ignoringDisable(true);
+        chkCommand.setName("Config/SwerveDrive/"+driveMotorID+"_update");
+        SmartDashboard.putData(chkCommand);
+      }
 
+      {
+        ConfigCheck check = new ConfigCheck("Config/SwerveDrive/"+steeringMotorID, steeringMotor);
+        Command chkCommand = new InstantCommand( () -> {
+          check.SaveCheck();
+        }).ignoringDisable(true);
+        chkCommand.setName("Config/SwerveDrive/"+steeringMotorID+"_update");
+        SmartDashboard.putData(chkCommand);
+      }
       //BaseStatusSignal.waitForAll(0.1, steeringEncoderPosition, steeringEncoderVelocity, driveMotorPosition, driveMotorVelocity);
     } //End SwerveModule constructor
   
@@ -192,8 +214,7 @@ public class SwerveModule extends SubsystemBase
           {
             //System.out.println("speed" + driveSpeed);
             steeringMotor.setControl(new MotionMagicVoltage(target)); 
-            driveMotor.setControl(new VelocityVoltage(driveSpeed));
-            //driveMotor.set(driveSpeed);
+            driveMotor.setControl(new MotionMagicVelocityVoltage(driveSpeed));
             
           }
        

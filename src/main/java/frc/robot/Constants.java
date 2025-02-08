@@ -23,8 +23,17 @@ import edu.wpi.first.math.util.Units;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kOperatorPort = 1;   
   }
-  public static final double POSITION_ERROR_DELTA = 0.25;
+
+  public static class ElavationConstants{
+    public static final double POSITIONACCURACY = 0.25;
+    public static final double CURRENTLIMIT = 10.0;
+  }
+
+  public static class CanID {
+  }
+    public static final double POSITION_ERROR_DELTA = 0.25;
 
     public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
         new Translation2d(Units.inchesToMeters(-10), Units.inchesToMeters(-7)), // Front Left
@@ -53,5 +62,15 @@ public final class Constants {
       public final static int ENCODERFRONTRIGHT = 32;
       public final static int ENCODERBACKLEFT = 33;
       public final static int ENCODERBACKRIGHT = 34;
+
+      public final static int ClimberPrimary = 5;
+      public final static int ClimberSecondary = 6;
+
+      public static final int ElevatorPrimaryID = 7;
+      public static final int ElevatorSecondaryID = 8;
+      public static final int ArmMotorPrimaryID = 9;
+        public final static int Intake = 16;
+
+      public final static int IntakeSensor = 17;
     }
 }

@@ -38,7 +38,7 @@ public class SwerveDrive extends SubsystemBase
   double headingAdjustment = 0; //An adjustment to be applied to the gyro sensor if needed
   SwerveDriveKinematics kinematics; //A kinematics object used by the odometry object to determine wheel locations
   String moduleType; //The type of Swerve Module being utilized
-  boolean debugMode = true; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
+  boolean debugMode = false; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
   private boolean useStopAngle = false; //Command the wheels to a stop angle
 
   //Instantiate four Swerve Modules according to the class SwerveModule constructor
