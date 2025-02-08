@@ -12,6 +12,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.ForwardLimitValue;
 
 import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanBus;
 import frc.robot.lib.FusionTimeofFlight;
@@ -37,6 +38,8 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     sensorValue = timeofFlight.Measure();
+    SmartDashboard.putBoolean("Intake/HaveCoral", hasCoral());
+    SmartDashboard.putBoolean("Intake/HitReef", reefDetected());
   }
 
   public void stop(){

@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -53,6 +54,9 @@ public class SwerveDrive extends SubsystemBase
   private DigitalInput resetOdometry = new DigitalInput(1);
   private Command normalize;
 
+  private Field2d field = new Field2d();
+
+
   /**
    * The constructor for the swerve drive
    * @param maxVelocity The desired max velocity of the robot in meters per second
@@ -90,6 +94,8 @@ public class SwerveDrive extends SubsystemBase
         .ignoringDisable(true);
       normalize.setName("Normalize Swerve");
       SmartDashboard.putData(normalize);
+
+      SmartDashboard.putData(field);
   }
 
   /**
