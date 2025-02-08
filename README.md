@@ -2,6 +2,14 @@
 - A Button resets gyro
 
 
+# How to configure
+- Module Offsets:
+   - Phoenix Tuner > Encoder > Self Test > Refresh (Click)
+   - Copy the 'Absolute Position' rotations and multiply by 360deg
+   - <b>Please match the encoder to the ID not the name in the .json file!!!</b> We have swapped the modules for purposes of having the correct rotation and front/back of the robot. this means that although the json file is named frontleft.json the IDs contained inside are actually the IDs of the backright module. See wiki for more info: https://docs.yagsl.com/configuring-yagsl/when-to-invert
+- Module Location:
+   - because we needed to swap modules as described above, the locations do not match the IDs! so be sure the locations match the file name of the json file
+
 # Yet Another Generic Swerve Library (YAGSL) Example project
 
 YAGSL is intended to be an easy implementation of a generic swerve drive that should work for most
