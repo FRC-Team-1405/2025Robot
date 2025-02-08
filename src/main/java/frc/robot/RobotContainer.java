@@ -164,9 +164,9 @@ public class RobotContainer
   {
     // An example command will be run in autonomous
     // return drivebase.getAutonomousCommand("DriveStraight1m");
-    // return drivebase.getAutonomousCommand("DriveStraight3m");
+    return drivebase.getAutonomousCommand("DriveStraight3m");
     // return drivebase.getAutonomousCommand("CircleAuto");
-    return drivebase.getAutonomousCommand("DriveStraight3mTurn");
+    // return drivebase.getAutonomousCommand("DriveStraight3mTurn");
   }
 
   public void setMotorBrake(boolean brake)
