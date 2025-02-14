@@ -102,36 +102,30 @@ public class RobotContainer {
     }));
   
 
-    operator.leftBumper()
+    operator.povLeft()
             .onTrue( new InstantCommand( () -> { 
               reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
             } ));
-     operator.rightBumper()
+     operator.povRight()
             .onTrue( new InstantCommand( () -> { 
               reefSelecter.setDirection(ReefSelecter.Direction.Right) ;
             } ));       
-    operator.a()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_1) ;
-            } ));
-    operator.x()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_2) ;
-            } ));
-    operator.b()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_3) ;
-            } ));   
-    operator.y()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_4) ;
-    } ));
     operator.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
         public boolean runsWhenDisabled() {
           return true;
         }    
-      });    
-    
+      }); 
+      
+      operator.povUp()
+              .onTrue( new InstantCommand( () -> {
+                reefSelecter.levelUp();
+              } ));
+
+      operator.povDown()
+              .onTrue( new InstantCommand( () -> {
+                reefSelecter.levelDown();
+              }));
+  
     Command climbCommand = new Climb(climber, () -> {
       return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
     });

@@ -41,6 +41,26 @@ public class ReefSelecter {
         return level;
     }
 
+    public void levelUp() {
+        level = switch(level) {
+            case Level_1 -> Elavator.Level.Level_2;
+            case Level_2 -> Elavator.Level.Level_3;
+            case Level_3 -> Elavator.Level.Level_4;
+            default -> level;
+        };
+        updatePosition();
+    }
+    
+    public void levelDown(){
+        level = switch(level){
+            case Level_4 -> Elavator.Level.Level_3;
+            case Level_3 -> Elavator.Level.Level_2;
+            case Level_2 -> Elavator.Level.Level_1;
+            default -> level;
+        };
+        updatePosition();
+    }
+
     public CoralPosition setDirection (Direction direction){
         this.direction = direction;
         return updatePosition();
