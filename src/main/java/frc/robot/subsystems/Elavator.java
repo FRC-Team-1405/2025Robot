@@ -4,9 +4,14 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import static edu.wpi.first.units.Units.Rotations;
 
@@ -22,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.CanBus;
 import frc.robot.Constants.CanID;
+
 
 public class Elavator extends SubsystemBase {
   public enum Level {
@@ -50,6 +56,9 @@ public class Elavator extends SubsystemBase {
   private double position = targetLevel.getposition();
   private StatusSignal<ReverseLimitValue> motorReverseLimit = mainMotor.getReverseLimit();
   private Alert motorTorquewarning = new Alert("Elavator motor is using more power than permiter (possible stall)", AlertType.kWarning);
+  private Mechanism2d mechanism = new Mechanism2d(3, 3);
+  private MechanismLigament2d elavatorLigament;
+  private MechanismLigament2d armMechanismLigament;
 
   public void setLevel(Level level) {
     targetLevel = level;
@@ -103,6 +112,11 @@ public class Elavator extends SubsystemBase {
   /** Creates a new Elavator. */
   public Elavator() {
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, true));
+
+    MechanismRoot2d root = mechanism.getRoot("Root", 2, 0);
+    elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90));
+    armMechanismLigament = elavatorLigament.append( new MechanismLigament2d("Arm", 0.5, 90) );
+    SmartDashboard.putData("Elavator/Mech2d", mechanism);
   }
 
   @Override
@@ -135,6 +149,10 @@ public class Elavator extends SubsystemBase {
         }
         break;
     }
+
+    // ToDo convert to a min / max range and get encoder values
+    elavatorLigament.setLength(3*MathUtil.inverseInterpolate(0, 1000, 250));
+    armMechanismLigament.setAngle(45);
   }
 
   private void moveArm() {
