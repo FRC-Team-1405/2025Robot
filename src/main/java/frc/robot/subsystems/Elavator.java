@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 
 import static edu.wpi.first.units.Units.Rotations;
 
@@ -115,7 +117,7 @@ public class Elavator extends SubsystemBase {
 
     MechanismRoot2d root = mechanism.getRoot("Root", 2, 0);
     elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90));
-    armMechanismLigament = elavatorLigament.append( new MechanismLigament2d("Arm", 0.5, 90) );
+    armMechanismLigament = elavatorLigament.append( new MechanismLigament2d("Arm", 0.5, 90, 6, new Color8Bit(Color.kDarkGreen)));
     SmartDashboard.putData("Elavator/Mech2d", mechanism);
   }
 
@@ -152,7 +154,7 @@ public class Elavator extends SubsystemBase {
 
     // ToDo convert to a min / max range and get encoder values
     elavatorLigament.setLength(3*MathUtil.inverseInterpolate(0, 1000, 250));
-    armMechanismLigament.setAngle(45);
+    armMechanismLigament.setAngle(90);
   }
 
   private void moveArm() {
