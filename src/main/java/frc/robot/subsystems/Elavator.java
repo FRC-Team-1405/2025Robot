@@ -116,8 +116,8 @@ public class Elavator extends SubsystemBase {
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, true));
 
     MechanismRoot2d root = mechanism.getRoot("Root", 2, 0);
-    elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90));
-    armMechanismLigament = elavatorLigament.append( new MechanismLigament2d("Arm", 0.5, 90, 6, new Color8Bit(Color.kDarkGreen)));
+    elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90, 10, new Color8Bit(Color.kYellow)));
+    armMechanismLigament = elavatorLigament.append( new MechanismLigament2d("Arm", 0.5, 90, 10, new Color8Bit(Color.kDarkGreen)));
     SmartDashboard.putData("Elavator/Mech2d", mechanism);
   }
 
