@@ -411,6 +411,17 @@ public class SwerveSubsystem extends SubsystemBase
                            .forEach(it -> it.setAngle(0.0)));
   }
 
+  double debugAngle = 0;
+  public void turnModulesCommand()
+  {
+    debugAngle = debugAngle + 2;
+    if (debugAngle >= 360){
+      debugAngle = 0;
+    }
+    Arrays.asList(swerveDrive.getModules())
+                           .forEach(it -> it.setAngle(debugAngle));
+  }
+
   /**
    * Returns a Command that drives the swerve drive to a specific distance at a given speed.
    *
