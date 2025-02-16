@@ -1,3 +1,6 @@
+#TODO
+- Update drive motors to kraken 
+
 # Controls
 - A Button resets gyro
 
