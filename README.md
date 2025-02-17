@@ -1,5 +1,5 @@
-#TODO
-- Update drive motors to kraken 
+# TODO
+- The eight steps (https://docs.yagsl.com/configuring-yagsl/the-eight-steps) says we should be using driveFieldOrientedDirectAngle as our default command while following the eight steps. I have been using the yagsl-example repo's default command which is driveFieldOrientedAnglularVelocity. i'm not sure if following the wiki and changing this will fix it but worth a shot.
 
 # Controls
 - A Button resets gyro
