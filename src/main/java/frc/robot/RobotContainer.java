@@ -97,10 +97,19 @@ public class RobotContainer {
     driver.b().onTrue( new InstantCommand( () -> {
       elavator.setLevel(reefSelecter.getLevel());
     }));
+
     driver.a().onTrue( new InstantCommand( () -> {
       elavator.setLevel(Elavator.Level.Home);
     }));
   
+
+    driver.x().onTrue( new InstantCommand(() -> {
+      intake.outtakeCoral();
+    }));
+    
+    driver.x().onFalse( new InstantCommand(() -> {
+      intake.stop();
+    }));
 
     operator.povLeft()
             .onTrue( new InstantCommand( () -> { 
