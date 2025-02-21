@@ -106,7 +106,6 @@ public class RobotContainer {
     driver.x().onTrue( new InstantCommand(() -> {
       intake.outtakeCoral();
     }));
-    
     driver.x().onFalse( new InstantCommand(() -> {
       intake.stop();
     }));

@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -29,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.CanBus;
 import frc.robot.Constants.CanID;
+import frc.robot.Constants.DigitalIO;
 
 
 public class Elavator extends SubsystemBase {
@@ -50,6 +53,10 @@ public class Elavator extends SubsystemBase {
   private TalonFX mainMotor = new TalonFX(CanBus.ElevatorPrimaryID);
   private TalonFX slaveMotor = new TalonFX(CanBus.ElevatorSecondaryID);
   private TalonFX armMotor = new TalonFX(CanBus.ArmMotorPrimaryID);
+  private final DigitalInput forwardLimit = new DigitalInput(DigitalIO.ElevatorForwardLimit);
+  private final DigitalInput reverseLimit = new DigitalInput(DigitalIO.ElevatorReverseLimit);
+  private final DutyCycleOut dutyCycle = new DutyCycleOut(0.0);
+
   public enum ElevationControl {
     Home, Stopped, Zeroizing, Moving,
   };
@@ -114,6 +121,10 @@ public class Elavator extends SubsystemBase {
   /** Creates a new Elavator. */
   public Elavator() {
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, true));
+    mainMotor.setControl(dutyCycle.withOutput(0.5)
+                                  .withLimitForwardMotion(forwardLimit.get())
+                                  .withLimitReverseMotion(reverseLimit.get()));
+
 
     MechanismRoot2d root = mechanism.getRoot("Root", 2, 0);
     elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90, 10, new Color8Bit(Color.kYellow)));

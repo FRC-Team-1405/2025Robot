@@ -64,4 +64,9 @@ public final class Constants {
 
       public final static int IntakeSensor = 17;
     }
+
+    public static class DigitalIO {
+      public static final int ElevatorForwardLimit = 0;
+      public static final int ElevatorReverseLimit = 1;
+    }
 }
