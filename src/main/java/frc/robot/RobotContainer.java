@@ -4,13 +4,29 @@
 
 package frc.robot;
 
+import frc.robot.commands.RobotDriveCommand;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.commands.SwerveDriveCommand;
+import frc.robot.commands.Climb;
+import frc.robot.commands.CoralOutput;
+import frc.robot.commands.PlaceCoral;
+import frc.robot.subsystems.Elavator;
+import frc.robot.lib.ReefSelecter;
+import java.util.Optional;
+
+import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.Intake;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.Elavator;
+import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Elavator.ElevationControl;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -19,19 +35,55 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  private SwerveDrive driveBase = new SwerveDrive(10, 2*Math.PI, "geared upright",  Constants.kinematics);
   // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+
+   private Optional<Alliance> alliance = DriverStation.getAlliance();
+  
+  private final Elavator elavator = new Elavator();
+  private final ReefSelecter reefSelecter = new ReefSelecter();
+  private final Climber climber = new Climber();
+  private final Intake intake = new Intake();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
+
+
+
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    configureShuffboardCommands();
+    driveBase.setDefaultCommand(new SwerveDriveCommand(this::getXSpeed, this::getYSpeed, this::getRotationSpeed, this::getSlideValue, driveBase));
   }
 
+  public void disabledInit() {
+    driveBase.brakeMode(false);
+    climber.stop();
+  }
+  
+  public void autonomousInit() {
+    driveBase.brakeMode(true);
+  }
+
+  public void teleopInit() {
+    alliance = DriverStation.getAlliance();
+    driveBase.brakeMode(false);
+  }
+
+  private void configureShuffboardCommands() {
+    Command outputCoral = new CoralOutput(intake);
+    outputCoral.setName("Output Coral");
+    SmartDashboard.putData(outputCoral);
+
+
+    Trigger reefTrigger = new Trigger(intake::reefDetected);
+    reefTrigger.onTrue(outputCoral);
+    
+  }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -42,13 +94,53 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
+    driver.b().onTrue( new InstantCommand( () -> {
+      elavator.setLevel(reefSelecter.getLevel());
+    }));
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+    driver.a().onTrue( new InstantCommand( () -> {
+      elavator.setLevel(Elavator.Level.Home);
+    }));
+  
+
+    driver.x().onTrue( new InstantCommand(() -> {
+      intake.outtakeCoral();
+    }));
+    driver.x().onFalse( new InstantCommand(() -> {
+      intake.stop();
+    }));
+
+    operator.povLeft()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
+            } ));
+     operator.povRight()
+            .onTrue( new InstantCommand( () -> { 
+              reefSelecter.setDirection(ReefSelecter.Direction.Right) ;
+            } ));       
+    operator.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
+        public boolean runsWhenDisabled() {
+          return true;
+        }    
+      }); 
+      
+      operator.povUp()
+              .onTrue( new InstantCommand( () -> {
+                reefSelecter.levelUp();
+              } ));
+
+      operator.povDown()
+              .onTrue( new InstantCommand( () -> {
+                reefSelecter.levelDown();
+              }));
+  
+    Command climbCommand = new Climb(climber, () -> {
+      return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
+    });
+    climbCommand.setName("Climb Command");
+    climber.setDefaultCommand(climbCommand);
+    SmartDashboard.putData(climbCommand);
+
   }
 
   /**
@@ -57,7 +149,58 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+    return null;
+  }
+
+  double getXSpeed() { 
+    double speedMultiplication = 0.6;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+
+    double finalX;
+    if (Math.abs(driver.getLeftY()) <= 0.1)
+      finalX = 0.0;
+    else
+      finalX = driver.getLeftY();
+    
+    return -finalX * speedMultiplication;
+  }
+
+  public double getYSpeed() { 
+    double speedMultiplication = 0.6;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+    
+    int pov = driver.getHID().getPOV();
+
+    double finalY;
+    if ( pov == 270 || pov == 315 || pov == 225)
+      finalY = -.5;
+    else if(pov == 90 || pov == 45 || pov == 135)
+      finalY = 0.5;
+    else if (Math.abs(driver.getLeftX()) <= 0.1)
+      finalY = 0.0;
+    else
+      finalY = driver.getLeftX();
+    
+    return -finalY * speedMultiplication; 
+  } 
+  
+  public double getRotationSpeed() { 
+    double finalRotation =  driver.getRightX();
+
+    if (Math.abs(finalRotation) < 0.15)
+        finalRotation = 0.0;
+    
+    return finalRotation;
+  }
+  
+  public double getSlideValue() {
+    int pov = driver.getHID().getPOV();
+    if (pov == 45 || pov == 90 || pov == 135) {
+      return 0.4 ;
+    } else if (pov == 225 || pov == 270 || pov == 315) {
+      return -0.4 ;
+    }
+
+    return 0.0;
   }
 }
