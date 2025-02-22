@@ -5,9 +5,11 @@
 package frc.robot;
 
 import frc.robot.commands.RobotDriveCommand;
+import frc.robot.commands.ScoreCoral;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.commands.Climb;
+import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
 import frc.robot.commands.PlaceCoral;
 import frc.robot.subsystems.Elavator;
@@ -79,6 +81,9 @@ public class RobotContainer {
     outputCoral.setName("Output Coral");
     SmartDashboard.putData(outputCoral);
 
+    Command inputCoral = new CoralInput(intake);
+    inputCoral.setName("Input Coral");
+    SmartDashboard.putData(inputCoral);
 
     Trigger reefTrigger = new Trigger(intake::reefDetected);
     reefTrigger.onTrue(outputCoral);
@@ -94,12 +99,10 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    driver.b().onTrue( new InstantCommand( () -> {
-      elavator.setLevel(reefSelecter.getLevel());
-    }));
+    driver.b().onTrue( new ScoreCoral(elavator, reefSelecter::getLevel));
 
     driver.a().onTrue( new InstantCommand( () -> {
-      elavator.setLevel(Elavator.Level.Home);
+      elavator.setLevel(Elavator.ElevationLevel.Home);
     }));
   
 
@@ -185,7 +188,7 @@ public class RobotContainer {
   } 
   
   public double getRotationSpeed() { 
-    double finalRotation =  driver.getRightX();
+    double finalRotation =  -driver.getRightX();
 
     if (Math.abs(finalRotation) < 0.15)
         finalRotation = 0.0;

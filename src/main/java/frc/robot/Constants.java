@@ -25,7 +25,7 @@ public final class Constants {
 
   public static class ElavationConstants{
     public static final double POSITIONACCURACY = 0.25;
-    public static final double CURRENTLIMIT = 10.0;
+    public static final double CURRENTLIMIT = 70.0;
   }
 
   public static class CanID {

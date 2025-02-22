@@ -32,7 +32,7 @@ public class SwerveDrive extends SubsystemBase
 { 
   double maxVelocity; //The maximum linear speed of the robot in meters per second
   double maxAngularSpeed; //The maximum angular speed of the robot in radians per second
-  double headingAdjustment = 0; //An adjustment to be applied to the gyro sensor if needed
+  double headingAdjustment = -180; //An adjustment to be applied to the gyro sensor if needed
   SwerveDriveKinematics kinematics; //A kinematics object used by the odometry object to determine wheel locations
   String moduleType; //The type of Swerve Module being utilized
   boolean debugMode = false; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
@@ -261,10 +261,11 @@ public class SwerveDrive extends SubsystemBase
 
   //Zero out the pose of the robot to a location of x=0, y=0, and rotation = 0 
   public void zeroPose()
-    {
-      System.out.println("resetting pose");
-      odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
-    }
+  {
+    System.out.println("resetting pose");
+    resetGyro();
+    odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
+  }
 
   //A Pose2d consumer required for PathPlanner
   public void resetPose(Pose2d pose)

@@ -19,7 +19,7 @@ public class FusionTimeofFlight  {
         lidar.setRangingMode(RangingMode.Short,20);
     }
 
-    MedianFilter filter = new MedianFilter(10);
+    MedianFilter filter = new MedianFilter(3);
     public double Measure(){
         double distance = filter.calculate(lidar.getRange());
         SmartDashboard.putNumber("Lidar Distance", lidar.getRange());
