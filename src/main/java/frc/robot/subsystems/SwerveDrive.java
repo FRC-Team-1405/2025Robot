@@ -51,8 +51,8 @@ public class SwerveDrive extends SubsystemBase
   private final SwerveDriveOdometry odometry; 
 
   //This switch is used as an external input to tell the SwerveDrive to reset the odometry
-  private DigitalInput resetOdometry = new DigitalInput(1);
   private Command normalize;
+  private Command resetOdometry;
 
   private Field2d field = new Field2d();
 
@@ -87,13 +87,20 @@ public class SwerveDrive extends SubsystemBase
       odometry = new SwerveDriveOdometry(kinematics, gyro.getRotation2d(), getSwerveModulePositions());
           
       //This switch is used as an external input to tell the SwerveDrive to normalize the Swerve Modules
-
       normalize = new InstantCommand( () -> {
         normalizeModules();
       })
         .ignoringDisable(true);
       normalize.setName("Normalize Swerve");
       SmartDashboard.putData(normalize);
+
+      // Reset the odometry readings when reset odometry switch is pressed (DIO switches are ACTIVE LOW)
+      resetOdometry = new InstantCommand( () -> {
+        zeroPose();
+      })
+        .ignoringDisable(true);
+        resetOdometry.setName("Reset Odometry");
+      SmartDashboard.putData(resetOdometry);
 
       SmartDashboard.putData(field);
   }
@@ -124,12 +131,6 @@ public class SwerveDrive extends SubsystemBase
     {      
       // //Periodically update the swerve odometry
       updateOdometry(); 
-
-      // //Reset the odometry readings when reset odometry switch is pressed (DIO switches are ACTIVE LOW)
-      if(!resetOdometry.get())
-        {
-          zeroPose();
-        }
 
       if(debugMode)
         {
