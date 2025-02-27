@@ -4,48 +4,38 @@
 
 package frc.robot.commands;
 
-import java.util.function.Supplier;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
-
-import frc.robot.subsystems.Elavator;
+import frc.robot.subsystems.Intake;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class PlaceCoral extends Command {
-  private Elavator elavator;
-  private Supplier<Elavator.ElevationLevel> level;
-  /** Creates a new PlaceCoral. */
-  public PlaceCoral( Elavator elavator, Supplier<Elavator.ElevationLevel> level) {
-    this.elavator = elavator;
-    this.level = level;
-
-    addRequirements(elavator);
+public class CoralInput extends Command {
+  /** Creates a new CoralOutput. */
+  private Intake intake;
+  public CoralInput(Intake intake) {
+    this.intake = intake;
+    addRequirements(intake);
     // Use addRequirements() here to declare subsystem dependencies.
-
   }
 
-  // Tell the motor where to go
+  // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-      elavator.setLevel(level.get());
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-   }
-  // Stops if interrupted
-  @Override
-  public void end(boolean interrupted) {
-      if (interrupted) {
-        elavator.stop();
-      }
+      intake.intakeCoral();
   }
 
-  // Checks motor positoin and stops the elevator
+  // Called once the command ends or is interrupted.
+  @Override
+  public void end(boolean interrupted) {
+    intake.stop();
+  }
+
+  // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return elavator.isAtPosition();
+    return intake.hasCoral();
   }
 }

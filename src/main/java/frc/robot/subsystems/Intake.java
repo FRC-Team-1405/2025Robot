@@ -47,7 +47,7 @@ public class Intake extends SubsystemBase {
   }
 
   public void intakeCoral(){
-    primary.set(CoralSpeed);
+    primary.set(-CoralSpeed);
   }
 
   public void outtakeCoral(){

@@ -25,7 +25,7 @@ public final class Constants {
 
   public static class ElavationConstants{
     public static final double POSITIONACCURACY = 0.25;
-    public static final double CURRENTLIMIT = 10.0;
+    public static final double CURRENTLIMIT = 70.0;
   }
 
   public static class CanID {
@@ -63,5 +63,10 @@ public final class Constants {
         public final static int Intake = 16;
 
       public final static int IntakeSensor = 17;
+    }
+
+    public static class DigitalIO {
+      public static final int ElevatorForwardLimit = 0;
+      public static final int ElevatorReverseLimit = 1;
     }
 }

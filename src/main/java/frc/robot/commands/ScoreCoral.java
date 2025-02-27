@@ -9,15 +9,20 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Elavator;
+import frc.robot.subsystems.Elavator.ArmLevel;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class ScoreCoral extends SequentialCommandGroup {
-  public ScoreCoral(Elavator elavator, Supplier<Elavator.Level> level) {
+  public ScoreCoral(Elavator elavator, Supplier<Elavator.ElevationLevel> level) {
     addRequirements(elavator);
+    addCommands( new ArmPosition(elavator, ArmLevel.Travel));
     addCommands( new PlaceCoral(elavator, level));
+    addCommands( new ArmPosition(elavator, level.get() == Elavator.ElevationLevel.Level_4 ? ArmLevel.High_Score : ArmLevel.Low_Score) );
     addCommands( new PrintCommand("At Level " + level.get()));
-    addCommands( new PlaceCoral(elavator, () -> { return Elavator.Level.Home; }));
+    // addCommands( new ArmPosition(elavator, ArmLevel.Travel));
+    // addCommands( new PlaceCoral(elavator, () -> { return Elavator.ElevationLevel.Home; }));
+    // addCommands( new ArmPosition(elavator, ArmLevel.Home));
   }
 }

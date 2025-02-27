@@ -32,7 +32,7 @@ public class SwerveDrive extends SubsystemBase
 { 
   double maxVelocity; //The maximum linear speed of the robot in meters per second
   double maxAngularSpeed; //The maximum angular speed of the robot in radians per second
-  double headingAdjustment = 0; //An adjustment to be applied to the gyro sensor if needed
+  double headingAdjustment = -180; //An adjustment to be applied to the gyro sensor if needed
   SwerveDriveKinematics kinematics; //A kinematics object used by the odometry object to determine wheel locations
   String moduleType; //The type of Swerve Module being utilized
   boolean debugMode = false; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)
@@ -51,8 +51,8 @@ public class SwerveDrive extends SubsystemBase
   private final SwerveDriveOdometry odometry; 
 
   //This switch is used as an external input to tell the SwerveDrive to reset the odometry
-  private DigitalInput resetOdometry = new DigitalInput(1);
   private Command normalize;
+  private Command resetOdometry;
 
   private Field2d field = new Field2d();
 
@@ -87,13 +87,20 @@ public class SwerveDrive extends SubsystemBase
       odometry = new SwerveDriveOdometry(kinematics, gyro.getRotation2d(), getSwerveModulePositions());
           
       //This switch is used as an external input to tell the SwerveDrive to normalize the Swerve Modules
-
       normalize = new InstantCommand( () -> {
         normalizeModules();
       })
         .ignoringDisable(true);
       normalize.setName("Normalize Swerve");
       SmartDashboard.putData(normalize);
+
+      // Reset the odometry readings when reset odometry switch is pressed (DIO switches are ACTIVE LOW)
+      resetOdometry = new InstantCommand( () -> {
+        zeroPose();
+      })
+        .ignoringDisable(true);
+        resetOdometry.setName("Reset Odometry");
+      SmartDashboard.putData(resetOdometry);
 
       SmartDashboard.putData(field);
   }
@@ -124,12 +131,6 @@ public class SwerveDrive extends SubsystemBase
     {      
       // //Periodically update the swerve odometry
       updateOdometry(); 
-
-      // //Reset the odometry readings when reset odometry switch is pressed (DIO switches are ACTIVE LOW)
-      if(!resetOdometry.get())
-        {
-          zeroPose();
-        }
 
       if(debugMode)
         {
@@ -260,10 +261,11 @@ public class SwerveDrive extends SubsystemBase
 
   //Zero out the pose of the robot to a location of x=0, y=0, and rotation = 0 
   public void zeroPose()
-    {
-      System.out.println("resetting pose");
-      odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
-    }
+  {
+    System.out.println("resetting pose");
+    resetGyro();
+    odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
+  }
 
   //A Pose2d consumer required for PathPlanner
   public void resetPose(Pose2d pose)

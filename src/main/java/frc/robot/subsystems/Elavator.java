@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -29,17 +31,31 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.CanBus;
 import frc.robot.Constants.CanID;
+import frc.robot.Constants.DigitalIO;
 
 
 public class Elavator extends SubsystemBase {
-  public enum Level {
-    Home(0.0), Level_1(15.0), Level_2(30.0), Level_3(35.0), Level_4(40.0);
-
+  public enum ElevationLevel {
+    Home(0.0), Level_1(2.0), Level_2(6.0), Level_3(18.0), Level_4(38.0);
 
     private double pos;
-    private Level(Double pos) {
+    private ElevationLevel(Double pos) {
       Preferences.initDouble("Elavator/Position/" + this.name(), pos);
       this.pos = Preferences.getDouble("Elavator/Position/" + this.name(), pos);
+    }
+
+    public double getposition(){
+      return this.pos;
+    }
+  };
+
+  public enum ArmLevel {
+    Home(0.0), Travel(2.0), Low_Score(2.5), High_Score(5.0);
+
+    private double pos;
+    private ArmLevel(Double pos) {
+      Preferences.initDouble("Arm/Position/" + this.name(), pos);
+      this.pos = Preferences.getDouble("Arm/Position/" + this.name(), pos);
     }
 
     public double getposition(){
@@ -50,11 +66,15 @@ public class Elavator extends SubsystemBase {
   private TalonFX mainMotor = new TalonFX(CanBus.ElevatorPrimaryID);
   private TalonFX slaveMotor = new TalonFX(CanBus.ElevatorSecondaryID);
   private TalonFX armMotor = new TalonFX(CanBus.ArmMotorPrimaryID);
+  private final DigitalInput forwardLimit = new DigitalInput(DigitalIO.ElevatorForwardLimit);
+  private final DigitalInput reverseLimit = new DigitalInput(DigitalIO.ElevatorReverseLimit);
+  private final DutyCycleOut dutyCycle = new DutyCycleOut(0.0);
+
   public enum ElevationControl {
     Home, Stopped, Zeroizing, Moving,
   };
   private ElevationControl targetState = ElevationControl.Home;
-  private Level targetLevel = Level.Home;
+  private ElevationLevel targetLevel = ElevationLevel.Home;
   private double position = targetLevel.getposition();
   private StatusSignal<ReverseLimitValue> motorReverseLimit = mainMotor.getReverseLimit();
   private Alert motorTorquewarning = new Alert("Elavator motor is using more power than permiter (possible stall)", AlertType.kWarning);
@@ -62,11 +82,11 @@ public class Elavator extends SubsystemBase {
   private MechanismLigament2d elavatorLigament;
   private MechanismLigament2d armMechanismLigament;
 
-  public void setLevel(Level level) {
+  public void setLevel(ElevationLevel level) {
     targetLevel = level;
     moveTo(targetLevel.getposition());
 
-    if(targetLevel == Level.Home) {
+    if(targetLevel == ElevationLevel.Home) {
       targetState = ElevationControl.Home;
     }
   }
@@ -98,6 +118,14 @@ public class Elavator extends SubsystemBase {
     mainMotor.set(0);
   }
 
+  public void setArmlevel(ArmLevel level) {
+    armMotor.setControl(new MotionMagicVoltage(level.getposition()));
+  }
+
+  public boolean isArmAtLevel(ArmLevel level) {
+    return Math.abs(level.getposition() - armMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+  }
+
   public boolean isAtPosition(){
     return Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
   }
@@ -113,7 +141,7 @@ public class Elavator extends SubsystemBase {
 
   /** Creates a new Elavator. */
   public Elavator() {
-    slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, true));
+    slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, false));
 
     MechanismRoot2d root = mechanism.getRoot("Root", 2, 0);
     elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90, 10, new Color8Bit(Color.kYellow)));
@@ -123,8 +151,11 @@ public class Elavator extends SubsystemBase {
 
   @Override
   public void periodic() {
+    // mainMotor.setControl(dutyCycle.withOutput(0.5)
+    //                               .withLimitForwardMotion(forwardLimit.get())
+    //                               .withLimitReverseMotion(reverseLimit.get()));
 
-    
+     
     // This method will be called once per scheduler run
     checkCurrentLimit();
 
@@ -133,19 +164,17 @@ public class Elavator extends SubsystemBase {
         
         break;
       case Zeroizing:
-        motorReverseLimit.refresh();
-        if(motorReverseLimit.getValue() == ReverseLimitValue.ClosedToGround){
+        // motorReverseLimit.refresh();
+        // if(motorReverseLimit.getValue() == ReverseLimitValue.ClosedToGround){
           mainMotor.setPosition(0);
           targetState = ElevationControl.Moving;
           moveTo(position);
-        }
+        // }
         break;
       case Stopped:
 
         break;
-      case Moving:
-        moveArm();
-        
+      case Moving:        
         if (isAtPosition()){
           targetState = ElevationControl.Stopped;
         }
@@ -155,28 +184,5 @@ public class Elavator extends SubsystemBase {
     // ToDo convert to a min / max range and get encoder values
     elavatorLigament.setLength(3*MathUtil.inverseInterpolate(0, 1000, 250));
     armMechanismLigament.setAngle(90);
-  }
-
-  private void moveArm() {
-        // get position
-        double pos = mainMotor.getPosition().getValue().in(Rotations);
-
-        // convert it
-        pos = CalculateArmPosition(pos);
-        // set arm pos
-        armMotor.setControl(new PositionVoltage(pos));
-
-  }
-  private double CalculateArmPosition(double elevatorPosition) {
-    // if < 25 then 0
-    if(elevatorPosition < 25){
-      return 0;
-    } 
-
-    if(elevatorPosition > 50){
-      return 100;
-    }
-
-    return (elevatorPosition - 25.0) * 4.0;
   }
 }
