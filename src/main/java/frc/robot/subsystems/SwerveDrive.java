@@ -341,4 +341,13 @@ public class SwerveDrive extends SubsystemBase
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'useStopAngle'");
   }
+
+  public double getDistance() {
+    return  ( frontLeft.getSwerveModulePosition().distanceMeters
+             +frontRight.getSwerveModulePosition().distanceMeters
+             +backLeft.getSwerveModulePosition().distanceMeters
+             +backRight.getSwerveModulePosition().distanceMeters
+            ) / 4;
+
+  }
 }

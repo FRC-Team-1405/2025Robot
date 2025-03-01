@@ -54,8 +54,7 @@ public final class Constants {
       public final static int ENCODERBACKLEFT = 33;
       public final static int ENCODERBACKRIGHT = 34;
 
-      public final static int ClimberPrimary = 5;
-      public final static int ClimberSecondary = 6;
+      public final static int ClimberPrimary = 6;
 
       public static final int ElevatorPrimaryID = 7;
       public static final int ElevatorSecondaryID = 8;

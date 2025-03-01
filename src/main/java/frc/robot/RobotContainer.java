@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.commands.RobotDriveCommand;
 import frc.robot.commands.ScoreCoral;
+import frc.robot.commands.SlideRobot;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.commands.ArmPosition;
@@ -94,6 +95,10 @@ public class RobotContainer {
     Trigger reefTrigger = new Trigger(intake::reefDetected);
     reefTrigger.onTrue(outputCoral);
     
+    SmartDashboard.putNumber("SlideRobot/Distance", 0.5);
+    Command slideCommand = new SlideRobot(driveBase, () -> { return SmartDashboard.getNumber("SlideRobot/Distance", 0.5); });
+    slideCommand.setName("SlideRobot");
+    SmartDashboard.putData(slideCommand);
   }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the

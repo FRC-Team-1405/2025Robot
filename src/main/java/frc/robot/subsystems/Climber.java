@@ -19,31 +19,17 @@ import frc.robot.lib.ConfigCheck;
 
 public class Climber extends SubsystemBase {
   private TalonFX primary = new TalonFX(CanBus.ClimberPrimary);
-  private TalonFX secondary = new TalonFX(CanBus.ClimberSecondary);
   private MotionMagicDutyCycle magicSetPosition = new MotionMagicDutyCycle(0.0);
 
 
   /** Creates a new Climber. */
   public Climber() {
-    secondary.setControl(new Follower(CanBus.ClimberPrimary, true));
-
-    {
-      ConfigCheck check = new ConfigCheck("Config/Climber/Secondary", secondary);
-      Command chkCommand = new InstantCommand( () -> {
-        check.SaveCheck();
-      }).ignoringDisable(true);
-      chkCommand.setName("Config/Climber/UpdateSecondary");
-      SmartDashboard.putData(chkCommand);
-    }
-
-    {
-      ConfigCheck check = new ConfigCheck("Config/Climber/Primary", primary);
-      Command chkCommand = new InstantCommand( () -> {
-        check.SaveCheck();
-      }).ignoringDisable(true);
-      chkCommand.setName("Config/Climber/UpdatePrimary");
-      SmartDashboard.putData(chkCommand);
-    }
+    ConfigCheck check = new ConfigCheck("Config/Climber/Primary", primary);
+    Command chkCommand = new InstantCommand( () -> {
+      check.SaveCheck();
+    }).ignoringDisable(true);
+    chkCommand.setName("Config/Climber/UpdatePrimary");
+    SmartDashboard.putData(chkCommand);
   }
 
   @Override
