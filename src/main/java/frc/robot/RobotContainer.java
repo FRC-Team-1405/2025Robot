@@ -8,10 +8,12 @@ import frc.robot.commands.RobotDriveCommand;
 import frc.robot.commands.ScoreCoral;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
+import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
 import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
-import frc.robot.commands.PlaceCoral;
+import frc.robot.commands.MoveCoral;
+import frc.robot.commands.MoveElevator;
 import frc.robot.subsystems.Elavator;
 import frc.robot.lib.ReefSelecter;
 import java.util.Optional;
@@ -25,11 +27,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Elavator;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Elavator.ArmLevel;
 import frc.robot.subsystems.Elavator.ElevationControl;
+import frc.robot.subsystems.Elavator.ElevationLevel;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -100,20 +105,17 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    driver.b().onTrue( new ScoreCoral(elavator, reefSelecter::getLevel));
+    driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel) );
+    driver.b().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ));
+    driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
+    driver.x().toggleOnTrue( new CoralInput(intake) );
 
-    driver.a().onTrue( new InstantCommand( () -> {
-      elavator.setLevel(Elavator.ElevationLevel.Home);
-    }));
-  
-
-    driver.x().onTrue( new InstantCommand(() -> {
+    operator.x().onTrue( new InstantCommand(() -> {
       intake.outtakeCoral();
     }));
-    driver.x().onFalse( new InstantCommand(() -> {
+    operator.x().onFalse( new InstantCommand(() -> {
       intake.stop();
     }));
-
     operator.povLeft()
             .onTrue( new InstantCommand( () -> { 
               reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
@@ -171,7 +173,7 @@ public class RobotContainer {
     else
       finalX = driver.getLeftY();
     
-    return -finalX * speedMultiplication;
+    return finalX * speedMultiplication;
   }
 
   public double getYSpeed() { 
@@ -190,7 +192,7 @@ public class RobotContainer {
     else
       finalY = driver.getLeftX();
     
-    return -finalY * speedMultiplication; 
+    return finalY * speedMultiplication; 
   } 
   
   public double getRotationSpeed() { 

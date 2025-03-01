@@ -32,7 +32,7 @@ public class SwerveDrive extends SubsystemBase
 { 
   double maxVelocity; //The maximum linear speed of the robot in meters per second
   double maxAngularSpeed; //The maximum angular speed of the robot in radians per second
-  double headingAdjustment = -180; //An adjustment to be applied to the gyro sensor if needed
+  double headingAdjustment = 0; //An adjustment to be applied to the gyro sensor if needed
   SwerveDriveKinematics kinematics; //A kinematics object used by the odometry object to determine wheel locations
   String moduleType; //The type of Swerve Module being utilized
   boolean debugMode = false; //Whether or not to enable debug features (DISABLE FOR COMPETITIONS)

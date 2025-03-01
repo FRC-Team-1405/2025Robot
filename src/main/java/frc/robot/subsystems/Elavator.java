@@ -50,7 +50,7 @@ public class Elavator extends SubsystemBase {
   };
 
   public enum ArmLevel {
-    Home(0.0), Travel(2.0), Low_Score(0.0), Middle_Score(2.5), High_Score(5.0);
+    Home(0.0), Travel(2.0), Low_Score(0.0), Middle_Score(1.8), High_Score(5.5);
 
     private double pos;
     private ArmLevel(Double pos) {
@@ -114,8 +114,12 @@ public class Elavator extends SubsystemBase {
 
   }
 
-  public void stop(){
+  public void stopElevator(){
     mainMotor.set(0);
+  }
+
+  public void stopArm(){
+    armMotor.set(0);
   }
 
   public void setArmlevel(ArmLevel level) {
