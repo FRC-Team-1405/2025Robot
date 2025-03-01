@@ -36,7 +36,7 @@ import frc.robot.Constants.DigitalIO;
 
 public class Elavator extends SubsystemBase {
   public enum ElevationLevel {
-    Home(0.0), Level_1(0.0), Level_2(6.0), Level_3(18.0), Level_4(38.0);
+    Home(0.0), Level_1(0.0), Level_2(7.25), Level_3(18.0), Level_4(37.0);
 
     private double pos;
     private ElevationLevel(Double pos) {
