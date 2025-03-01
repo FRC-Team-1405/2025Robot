@@ -16,10 +16,19 @@ import frc.robot.subsystems.Elavator.ArmLevel;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class ScoreCoral extends SequentialCommandGroup {
   public ScoreCoral(Elavator elavator, Supplier<Elavator.ElevationLevel> level) {
+    ArmLevel armLevel = switch((level.get())){
+        case  Home -> ArmLevel.Home;
+        case  Level_1 -> ArmLevel.Low_Score;
+        case  Level_2 -> ArmLevel.Middle_Score;
+        case  Level_3 -> ArmLevel.Middle_Score;
+        case  Level_4 -> ArmLevel.High_Score;
+        default -> ArmLevel.Home;
+    };
+    
     addRequirements(elavator);
     addCommands( new ArmPosition(elavator, ArmLevel.Travel));
     addCommands( new PlaceCoral(elavator, level));
-    addCommands( new ArmPosition(elavator, level.get() == Elavator.ElevationLevel.Level_4 ? ArmLevel.High_Score : ArmLevel.Low_Score) );
+    addCommands( new ArmPosition(elavator, armLevel) );
     addCommands( new PrintCommand("At Level " + level.get()));
     // addCommands( new ArmPosition(elavator, ArmLevel.Travel));
     // addCommands( new PlaceCoral(elavator, () -> { return Elavator.ElevationLevel.Home; }));
