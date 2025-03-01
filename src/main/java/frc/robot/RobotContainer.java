@@ -110,6 +110,9 @@ public class RobotContainer {
     driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
     driver.x().toggleOnTrue( new CoralInput(intake) );
 
+    driver.rightBumper().onTrue( new CoralInput(intake) );
+    driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
+
     operator.x().onTrue( new InstantCommand(() -> {
       intake.outtakeCoral();
     }));
@@ -196,12 +199,15 @@ public class RobotContainer {
   } 
   
   public double getRotationSpeed() { 
+    double speedMultiplication = 0.6;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+
     double finalRotation =  -driver.getRightX();
 
     if (Math.abs(finalRotation) < 0.15)
         finalRotation = 0.0;
     
-    return finalRotation;
+    return finalRotation * speedMultiplication;
   }
   
   public double getSlideValue() {
