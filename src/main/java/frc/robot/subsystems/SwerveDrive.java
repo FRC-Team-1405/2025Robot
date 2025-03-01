@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -54,8 +55,11 @@ public class SwerveDrive extends SubsystemBase
   private final SwerveDriveOdometry odometry; 
 
   //This switch is used as an external input to tell the SwerveDrive to reset the odometry
-  private Command resetOdometry;
   private Command normalize;
+  private Command resetOdometry;
+
+  private Field2d field = new Field2d();
+
 
   /**
    * The constructor for the swerve drive
@@ -87,7 +91,6 @@ public class SwerveDrive extends SubsystemBase
       odometry = new SwerveDriveOdometry(kinematics, gyro.getRotation2d(), getSwerveModulePositions());
           
       //This switch is used as an external input to tell the SwerveDrive to normalize the Swerve Modules
-
       normalize = new InstantCommand( () -> {
         normalizeModules();
       })
@@ -95,12 +98,15 @@ public class SwerveDrive extends SubsystemBase
       normalize.setName("Normalize Swerve");
       SmartDashboard.putData(normalize);
 
+      // Reset the odometry readings when reset odometry switch is pressed (DIO switches are ACTIVE LOW)
       resetOdometry = new InstantCommand( () -> {
         zeroPose();
       })
         .ignoringDisable(true);
-      resetOdometry.setName("Reset Odometry");
+        resetOdometry.setName("Reset Odometry");
       SmartDashboard.putData(resetOdometry);
+
+      SmartDashboard.putData(field);
   }
 
   /**
@@ -258,12 +264,12 @@ public class SwerveDrive extends SubsystemBase
   }
 
   //Zero out the pose of the robot to a location of x=0, y=0, and rotation = 0 
-  private void zeroPose()
-    {
-      System.out.println("resetting pose");
-      gyro.reset();
-      odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
-    }
+  public void zeroPose()
+  {
+    System.out.println("resetting pose");
+    resetGyro();
+    odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
+  }
 
   //A Pose2d consumer required for PathPlanner
   public void resetPose(Pose2d pose)

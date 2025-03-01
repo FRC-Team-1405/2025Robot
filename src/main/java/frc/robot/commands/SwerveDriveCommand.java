@@ -15,7 +15,7 @@ public class SwerveDriveCommand extends Command {
   private SwerveDrive driveBase;
   private DoubleSupplier getXSpeed, getYSpeed, getRotationSpeed; 
   private DoubleSupplier getSlide;
-  protected boolean fieldOriented = false;
+  protected boolean fieldOriented = true;
 
   public SwerveDriveCommand(DoubleSupplier getXSpeed, 
                             DoubleSupplier getYSpeed, 

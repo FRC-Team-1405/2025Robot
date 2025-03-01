@@ -5,18 +5,22 @@
 package frc.robot;
 
 import frc.robot.commands.RobotDriveCommand;
+import frc.robot.commands.ScoreCoral;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.commands.TurnToTarget;
-import frc.robot.commands.Autos;
+import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
-import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.CoralInput;
+import frc.robot.commands.CoralOutput;
+import frc.robot.commands.MoveCoral;
+import frc.robot.commands.MoveElevator;
 import frc.robot.subsystems.Elavator;
 import frc.robot.lib.ReefSelecter;
 import java.util.Optional;
 
 import frc.robot.subsystems.Climber;
-import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Intake;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -26,12 +30,16 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.TurnToTarget;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Elavator;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Elavator.ArmLevel;
 import frc.robot.subsystems.Elavator.ElevationControl;
+import frc.robot.subsystems.Elavator.ElevationLevel;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -45,10 +53,10 @@ public class RobotContainer {
 
    private Optional<Alliance> alliance = DriverStation.getAlliance();
   
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final Elavator elavator = new Elavator();
   private final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
+  private final Intake intake = new Intake();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -61,6 +69,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    configureShuffboardCommands();
     driveBase.setDefaultCommand(new SwerveDriveCommand(this::getXSpeed, this::getYSpeed, this::getRotationSpeed, this::getSlideValue, driveBase));
   }
 
@@ -78,6 +87,19 @@ public class RobotContainer {
     driveBase.brakeMode(false);
   }
 
+  private void configureShuffboardCommands() {
+    Command outputCoral = new CoralOutput(intake);
+    outputCoral.setName("Output Coral");
+    SmartDashboard.putData(outputCoral);
+
+    Command inputCoral = new CoralInput(intake);
+    inputCoral.setName("Input Coral");
+    SmartDashboard.putData(inputCoral);
+
+    Trigger reefTrigger = new Trigger(intake::reefDetected);
+    reefTrigger.onTrue(outputCoral);
+    
+  }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -88,59 +110,57 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
+    driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel) );
+    driver.b().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ));
+    driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
+    driver.x().toggleOnTrue( new CoralInput(intake) );
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    driver.b().onTrue( new InstantCommand( () -> {
-      elavator.setLevel(reefSelecter.getLevel());
+    driver.rightBumper().onTrue( new CoralInput(intake) );
+    driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
+
+    operator.x().onTrue( new InstantCommand(() -> {
+      intake.outtakeCoral();
     }));
-    driver.a().onTrue( new InstantCommand( () -> {
-      elavator.setLevel(Elavator.Level.Home);
+    operator.x().onFalse( new InstantCommand(() -> {
+      intake.stop();
     }));
 
-    //TODO: remove me I am just a test
-    driver.x().onTrue(new TurnToTarget(this::getXSpeed, this::getYSpeed, new Translation2d(1, 1), driveBase));
-  
-
-    operator.leftBumper()
+    operator.povLeft()
             .onTrue( new InstantCommand( () -> { 
               reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
             } ));
-     operator.rightBumper()
+     operator.povRight()
             .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setDirection(ReefSelecter.Direction.Right) ;
+              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
             } ));       
-    operator.a()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_1) ;
-            } ));
-    operator.x()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_2) ;
-            } ));
-    operator.b()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_3) ;
-            } ));   
-    operator.y()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setLevel(Elavator.Level.Level_4) ;
-    } ));
     operator.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
         public boolean runsWhenDisabled() {
           return true;
         }    
-      });    
-    
+      }); 
+      
+      operator.povUp()
+              .or(operator.povUpLeft())
+              .or(operator.povUpRight())
+              .onTrue( new InstantCommand( () -> {
+                reefSelecter.levelUp();
+              } ));
+
+      operator.povDown()
+              .or(operator.povDownLeft())
+              .or(operator.povDownRight())
+              .onTrue( new InstantCommand( () -> {
+                reefSelecter.levelDown();
+              }));
+  
     Command climbCommand = new Climb(climber, () -> {
       return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
     });
     climbCommand.setName("Climb Command");
-    climber.setDefaultCommand(climbCommand);
     SmartDashboard.putData(climbCommand);
+
+    operator.start().and(operator.back()).onTrue(climbCommand);
+
   }
 
   /**
@@ -149,8 +169,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+    return null;
   }
 
   double getXSpeed() { 
@@ -163,7 +182,7 @@ public class RobotContainer {
     else
       finalX = driver.getLeftY();
     
-    return -finalX * speedMultiplication;
+    return finalX * speedMultiplication;
   }
 
   public double getYSpeed() { 
@@ -182,16 +201,19 @@ public class RobotContainer {
     else
       finalY = driver.getLeftX();
     
-    return -finalY * speedMultiplication; 
+    return finalY * speedMultiplication; 
   } 
   
   public double getRotationSpeed() { 
-    double finalRotation =  driver.getRightX();
+    double speedMultiplication = 0.6;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+
+    double finalRotation =  -driver.getRightX();
 
     if (Math.abs(finalRotation) < 0.15)
         finalRotation = 0.0;
     
-    return finalRotation;
+    return finalRotation * speedMultiplication;
   }
   
   public double getSlideValue() {

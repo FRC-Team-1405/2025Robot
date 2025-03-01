@@ -6,19 +6,17 @@ package frc.robot.commands;
 
 import java.util.function.Supplier;
 
-import frc.robot.Constants.ElavationConstants;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 
 import frc.robot.subsystems.Elavator;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class PlaceCoral extends Command {
+public class MoveElevator extends Command {
   private Elavator elavator;
-  private Supplier<Elavator.Level> level;
+  private Supplier<Elavator.ElevationLevel> level;
   /** Creates a new PlaceCoral. */
-  public PlaceCoral( Elavator elavator, Supplier<Elavator.Level> level) {
+  public MoveElevator( Elavator elavator, Supplier<Elavator.ElevationLevel> level) {
     this.elavator = elavator;
     this.level = level;
 
@@ -41,7 +39,7 @@ public class PlaceCoral extends Command {
   @Override
   public void end(boolean interrupted) {
       if (interrupted) {
-        elavator.stop();
+        elavator.stopElevator();
       }
   }
 
