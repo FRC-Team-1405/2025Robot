@@ -21,7 +21,7 @@ public class TurnToTarget extends Command {
   private static double z_I = 0.0 ;
   private static double z_D = 0.0 ;
   private Translation2d target;
-  private SwerveDrive swerve;
+  protected SwerveDrive swerve;
   private ProfiledPIDController zController;
   private DoubleSupplier getXSpeed;
   private DoubleSupplier getYSpeed;

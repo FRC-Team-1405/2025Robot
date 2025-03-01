@@ -8,6 +8,7 @@ import frc.robot.commands.RobotDriveCommand;
 import frc.robot.commands.ScoreCoral;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SwerveDriveCommand;
+import frc.robot.commands.TurnToTag;
 import frc.robot.commands.TurnToTarget;
 import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
@@ -18,6 +19,8 @@ import frc.robot.commands.MoveElevator;
 import frc.robot.subsystems.Elavator;
 import frc.robot.lib.ReefSelecter;
 import java.util.Optional;
+
+import org.photonvision.PhotonCamera;
 
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
@@ -62,8 +65,7 @@ public class RobotContainer {
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
-
-
+  PhotonCamera camera = new PhotonCamera("OV9281");
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -114,6 +116,8 @@ public class RobotContainer {
     driver.b().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ));
     driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
     driver.x().toggleOnTrue( new CoralInput(intake) );
+
+    driver.start().toggleOnTrue( new TurnToTag(camera, this::getXSpeed, this::getYSpeed, driveBase) );
 
     driver.rightBumper().onTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
