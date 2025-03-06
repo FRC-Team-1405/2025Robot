@@ -185,8 +185,34 @@ public class Elavator extends SubsystemBase {
         break;
     }
 
+    setArmPosition();
     // ToDo convert to a min / max range and get encoder values
     elavatorLigament.setLength(3*MathUtil.inverseInterpolate(0, 1000, 250));
     armMechanismLigament.setAngle(90);
+  }
+
+
+  private void setArmPosition(){
+    double elevatorPos = mainMotor.getPosition().getValue().in(Rotations);
+    double armPos = 0.0;
+    
+    double armTarget = switch(targetLevel){
+      case  Home -> ArmLevel.Home.getposition();
+      case  Level_1 -> ArmLevel.Low_Score.getposition();
+      case  Level_2 -> ArmLevel.Middle_Score.getposition();
+      case  Level_3 -> ArmLevel.Middle_Score.getposition();
+      case  Level_4 -> ArmLevel.High_Score.getposition();
+      default -> ArmLevel.Home.getposition();
+    };
+
+    if (elevatorPos < 1)
+      armPos = 0.0;
+    else if (elevatorPos <= 5)
+      armPos = MathUtil.inverseInterpolate(1, 5, elevatorPos) * ArmLevel.Travel.getposition() ;
+    else if (elevatorPos > (targetLevel.getposition()-10))
+      armPos = MathUtil.inverseInterpolate(targetLevel.getposition()-10, targetLevel.getposition(), elevatorPos) 
+              * (armTarget - ArmLevel.Travel.getposition()) + ArmLevel.Travel.getposition();
+
+    System.out.printf("Arm Position %f\n",armPos);
   }
 }
