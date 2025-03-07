@@ -50,7 +50,12 @@ public class Elavator extends SubsystemBase {
   };
 
   public enum ArmLevel {
-    Home(0.0), Travel(2.0), Low_Score(0.0), Middle_Score(1.8), High_Score(5.5);
+    Home(0.0), 
+    Travel(2.0), 
+    Low_Score(0.0), 
+    Middle_Score(1.8), 
+    High_Score(5.5),
+    Max_Value(30.8);
 
     private double pos;
     private ArmLevel(Double pos) {
@@ -89,6 +94,15 @@ public class Elavator extends SubsystemBase {
     if(targetLevel == ElevationLevel.Home) {
       targetState = ElevationControl.Home;
     }
+  }
+
+
+  public double getElevatorPos(){
+      return mainMotor.getPosition().getValue().in(Rotations)/ElevationLevel.Level_4.getposition();
+  }
+
+  public double getArmPosition(){
+     return armMotor.getPosition().getValue().in(Rotations)/ArmLevel.Max_Value.getposition();
   }
 
   public void moveTo(double position) {
@@ -185,8 +199,7 @@ public class Elavator extends SubsystemBase {
         break;
     }
 
-    // ToDo convert to a min / max range and get encoder values
-    elavatorLigament.setLength(3*MathUtil.inverseInterpolate(0, 1000, 250));
-    armMechanismLigament.setAngle(90);
+    SmartDashboard.putNumber("Elevator/Position", getElevatorPos());
+    SmartDashboard.putNumber("Elevator/Arm Position", getArmPosition());
   }
 }
