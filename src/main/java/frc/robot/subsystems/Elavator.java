@@ -101,8 +101,10 @@ public class Elavator extends SubsystemBase {
       return mainMotor.getPosition().getValue().in(Rotations)/ElevationLevel.Level_4.getposition();
   }
 
+
   public double getArmPosition(){
-     return armMotor.getPosition().getValue().in(Rotations)/ArmLevel.Max_Value.getposition();
+   return armMotor.getPosition().getValue().in(Rotations)/ArmLevel.Max_Value.getposition();
+
   }
 
   public void moveTo(double position) {
@@ -200,6 +202,6 @@ public class Elavator extends SubsystemBase {
     }
 
     SmartDashboard.putNumber("Elevator/Position", getElevatorPos());
-    SmartDashboard.putNumber("Elevator/Arm Position", getArmPosition());
+    SmartDashboard.putNumber("Elevator/Arm Position", getArmPosition()*-180.0);
   }
 }
