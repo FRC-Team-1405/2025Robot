@@ -106,13 +106,15 @@ public class RobotContainer {
    */
   private void configureBindings() {
     driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel) );
-    driver.b().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ));
     driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
     driver.x().toggleOnTrue( new CoralInput(intake) );
 
     driver.rightBumper().onTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
 
+
+    operator.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel) );
+    operator.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
     operator.x().onTrue( new InstantCommand(() -> {
       intake.outtakeCoral();
     }));
@@ -132,7 +134,6 @@ public class RobotContainer {
           return true;
         }    
       }); 
-      
       operator.povUp()
               .or(operator.povUpLeft())
               .or(operator.povUpRight())
