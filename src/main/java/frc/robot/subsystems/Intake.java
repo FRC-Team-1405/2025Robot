@@ -5,6 +5,8 @@
 package frc.robot.subsystems;
 
 
+import static edu.wpi.first.units.Units.Rotations;
+
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.StatusSignal;
@@ -45,7 +47,14 @@ public class Intake extends SubsystemBase {
   public void stop(){
     primary.set(0.0);
   }
+  
+  public void pushCoral(){
+    primary.setPosition(primary.getPosition().getValue().in(Rotations)+1);
+  }
+  public void pullCoral(){
+    primary.setPosition(primary.getPosition().getValue().in(Rotations)-1);
 
+  }
   public void intakeCoral(){
     primary.set(-CoralSpeed);
   }
