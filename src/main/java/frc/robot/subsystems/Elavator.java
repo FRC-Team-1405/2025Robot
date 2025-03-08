@@ -55,7 +55,8 @@ public class Elavator extends SubsystemBase {
     Low_Score(0.0), 
     Middle_Score(1.8), 
     High_Score(5.5),
-    Max_Value(30.8);
+    Max_Value(30.8),
+    Algae(30.8);
 
     private double pos;
     private ArmLevel(Double pos) {

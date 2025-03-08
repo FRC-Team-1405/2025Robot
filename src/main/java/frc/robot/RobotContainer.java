@@ -107,7 +107,8 @@ public class RobotContainer {
   private void configureBindings() {
     driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel) );
     driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
-    driver.x().toggleOnTrue( new CoralInput(intake) );
+    driver.x().onTrue( intake.runOnce( () -> intake.outtakeCoral() ) );
+    driver.x().onFalse( intake.runOnce( () -> intake.stop() ) );
 
     driver.rightBumper().onTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );

@@ -37,8 +37,8 @@ public class Intake extends SubsystemBase {
       Preferences.initDouble("Intake/CoralImputSpeed", -15.0);
       CoralImputSpeed = Preferences.getDouble("Intake/CoralImputSpeed/", -15.0);
 
-      Preferences.initDouble("Output/CoralOutputSpeed", -60.0);
-      CoralOutputSpeed = Preferences.getDouble("Output/CoralOutputSpeed/", -60.0);
+      Preferences.initDouble("Output/CoralOutputSpeed", -30.0);
+      CoralOutputSpeed = Preferences.getDouble("Output/CoralOutputSpeed/", -30.0);
       
       Preferences.initDouble("Intake/AlgeaSpeed", 0.25);
       AlgeaSpeed = Preferences.getDouble("Elavator/Position/", -0.25);

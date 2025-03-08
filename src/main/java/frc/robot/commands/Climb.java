@@ -31,7 +31,6 @@ public class Climb extends Command {
   @Override
   public void execute() {
     double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
-    System.out.println("Distance: "+distance);
     if (!MathUtil.isNear(0.0, distance, Deadband)){
         climber.move(distance);
     }
