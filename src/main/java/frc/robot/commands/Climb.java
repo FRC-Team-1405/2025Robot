@@ -14,7 +14,6 @@ import frc.robot.subsystems.Climber;
 public class Climb extends Command {
   private Climber climber;
   private DoubleSupplier distance;
-  private boolean holdPosition = false;
   /** Creates a new Climb. */
   public Climb(Climber climber, DoubleSupplier distance) {
     this.climber = climber;
@@ -25,7 +24,6 @@ public class Climb extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    climber.holdPosition();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -33,14 +31,9 @@ public class Climb extends Command {
   @Override
   public void execute() {
     double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
-    if (MathUtil.isNear(0.0, distance, Deadband)){
-      if (!holdPosition){
-        climber.holdPosition();
-      }
-      holdPosition = true;
-    } else {
+    System.out.println("Distance: "+distance);
+    if (!MathUtil.isNear(0.0, distance, Deadband)){
         climber.move(distance);
-        holdPosition = false;
     }
   }
 
@@ -49,8 +42,6 @@ public class Climb extends Command {
   public void end(boolean interrupted) {
     if (interrupted)
       climber.stop();
-    else
-      climber.holdPosition();
   }
 
   // Returns true when the command should end.

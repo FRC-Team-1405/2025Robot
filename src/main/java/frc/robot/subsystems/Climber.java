@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
@@ -19,23 +20,11 @@ import frc.robot.lib.ConfigCheck;
 
 public class Climber extends SubsystemBase {
   private TalonFX primary = new TalonFX(CanBus.ClimberPrimary);
-  private TalonFX secondary = new TalonFX(CanBus.ClimberSecondary);
-  private MotionMagicDutyCycle magicSetPosition = new MotionMagicDutyCycle(0.0);
+  private MotionMagicVoltage magicSetPosition = new MotionMagicVoltage(0.0);
 
 
   /** Creates a new Climber. */
   public Climber() {
-    secondary.setControl(new Follower(CanBus.ClimberPrimary, true));
-
-    {
-      ConfigCheck check = new ConfigCheck("Config/Climber/Secondary", secondary);
-      Command chkCommand = new InstantCommand( () -> {
-        check.SaveCheck();
-      }).ignoringDisable(true);
-      chkCommand.setName("Config/Climber/UpdateSecondary");
-      SmartDashboard.putData(chkCommand);
-    }
-
     {
       ConfigCheck check = new ConfigCheck("Config/Climber/Primary", primary);
       Command chkCommand = new InstantCommand( () -> {
@@ -53,11 +42,6 @@ public class Climber extends SubsystemBase {
 
   public void stop() {
     primary.set(0);
-  }
-
-  public void holdPosition() {
-    double currentPosition = primary.getPosition().getValueAsDouble();
-    primary.setControl(magicSetPosition.withPosition(currentPosition));
   }
 
   private double MAX_DISTANCE = 10.0;

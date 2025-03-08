@@ -10,6 +10,9 @@ import static edu.wpi.first.units.Units.Rotations;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.compound.Diff_DutyCycleOut_Velocity;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.ForwardLimitValue;
 
@@ -22,15 +25,21 @@ import frc.robot.lib.FusionTimeofFlight;
 public class Intake extends SubsystemBase {
   /** Creates a new Intake. */
   private TalonFX primary = new TalonFX(CanBus.Intake);
-  private final double CoralSpeed;
+  private final VelocityDutyCycle velocityVoltage = new VelocityDutyCycle(0).withSlot(1);
+  private final double CoralImputSpeed;
+  private final double CoralOutputSpeed;
   private final double AlgeaSpeed;
   private final FusionTimeofFlight timeofFlight = new FusionTimeofFlight(CanBus.IntakeSensor);
   private final Supplier<ForwardLimitValue> reefDetector = primary.getForwardLimit().asSupplier();
   private double sensorValue = 0;
 
   public Intake() {
-      Preferences.initDouble("Intake/CoralSpeed", 0.25);
-      CoralSpeed = Preferences.getDouble("Elavator/Position/", 0.25);
+      Preferences.initDouble("Intake/CoralImputSpeed", -15.0);
+      CoralImputSpeed = Preferences.getDouble("Intake/CoralImputSpeed/", -15.0);
+
+      Preferences.initDouble("Output/CoralOutputSpeed", -60.0);
+      CoralOutputSpeed = Preferences.getDouble("Output/CoralOutputSpeed/", -60.0);
+      
       Preferences.initDouble("Intake/AlgeaSpeed", 0.25);
       AlgeaSpeed = Preferences.getDouble("Elavator/Position/", -0.25);
 
@@ -56,11 +65,11 @@ public class Intake extends SubsystemBase {
 
   }
   public void intakeCoral(){
-    primary.set(-CoralSpeed);
+    primary.setControl(velocityVoltage.withVelocity(CoralImputSpeed));
   }
 
   public void outtakeCoral(){
-    primary.set(-CoralSpeed);
+    primary.setControl(velocityVoltage.withVelocity(CoralOutputSpeed));
   }
 
   public boolean hasCoral(){
