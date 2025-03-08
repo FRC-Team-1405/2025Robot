@@ -9,13 +9,11 @@ import java.util.Optional;
 import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.lib.ReefSelecter;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
 import frc.robot.commands.Climb;
-import frc.robot.commands.ExampleCommand;
 import frc.robot.commands.ScoreCoral;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Elavator;
-import frc.robot.subsystems.ExampleSubsystem;
+
 import frc.robot.subsystems.SwerveDrive;
 import frc.robot.commands.RobotDriveCommand;
 import frc.robot.commands.ScoreCoral;
@@ -46,8 +44,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import frc.robot.subsystems.Elavator;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Elavator.ArmLevel;
 import frc.robot.subsystems.Elavator.ElevationControl;
 import frc.robot.subsystems.Elavator.ElevationLevel;
 
@@ -177,9 +178,14 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     String autoName = selectedAuto.getSelected();
-    if (autoName == NO_SELECTED_AUTO)
-    else 
+    if (autoName == NO_SELECTED_AUTO){
+      return null;
+    }else{ 
       return new PathPlannerAuto(autoName);
+    }
+  }
+
+  public double getXSpeed(){
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
 
