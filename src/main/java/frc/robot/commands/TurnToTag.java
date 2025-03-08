@@ -12,8 +12,10 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.SwerveDrive;
 
 /** Add your docs here. */
@@ -35,10 +37,15 @@ public class TurnToTag extends TurnToTarget {
     var result = camera.getLatestResult();
     if(result.hasTargets()) {
         PhotonTrackedTarget target = result.getBestTarget();
-        double targetYaw =  Units.degreesToRadians(target.getYaw());
+        Transform3d targetSpace = target.getBestCameraToTarget();
+        double targetYaw =  targetSpace.getRotation().getZ() + Math.PI;
 
-        angle = swerveRot + targetYaw;
+        angle = swerveRot - targetYaw;
+        SmartDashboard.putNumber("TurnToTarget/angle", Units.radiansToDegrees(angle));
+        SmartDashboard.putNumber("TurnToTarget/actual Angle", Units.radiansToDegrees(swerveRot));
+        SmartDashboard.putNumber("TurnToTarget/targetYaw", Units.radiansToDegrees(targetYaw));
     }
+
     // Counter-Clockwise positive
     return angle;
   }
