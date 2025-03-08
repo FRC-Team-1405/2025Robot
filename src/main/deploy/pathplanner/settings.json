@@ -4,11 +4,15 @@
   "holonomicMode": true,
   "pathFolders": [
     "Blue_Position",
+    "Left_Feeder_Station",
     "Middle_Position",
+    "Right_Feeder_Station",
     "Red_Position"
   ],
   "autoFolders": [
-    "Middle_Position"
+    "Blue_Position",
+    "Middle_Position",
+    "Red_Position"
   ],
   "defaultMaxVel": 3.0,
   "defaultMaxAccel": 3.0,
