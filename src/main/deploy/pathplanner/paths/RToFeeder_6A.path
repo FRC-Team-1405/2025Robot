@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.1654381793478255,
-        "y": 4.153167459239129
+        "x": 3.7138756793478263,
+        "y": 2.966873301630434
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.304113228404133,
-        "y": 4.36118003282359
+        "x": 3.5301748181909525,
+        "y": 2.7973032759471694
       },
       "isLocked": false,
       "linkedName": null
@@ -48,7 +48,7 @@
   "folder": "Right_Feeder_Station",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 60.80251395393556
   },
   "useDefaultConstraints": true
 }

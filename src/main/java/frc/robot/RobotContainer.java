@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -112,6 +113,7 @@ public class RobotContainer {
     Trigger reefTrigger = new Trigger(intake::reefDetected);
     reefTrigger.onTrue(outputCoral);
     
+    SmartDashboard.putBoolean("Auto Mode Enable", false);
   }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
@@ -176,13 +178,18 @@ public class RobotContainer {
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
 
   }
-
+  
   public Command getAutonomousCommand() {
-    String autoName = selectedAuto.getSelected();
-    if (autoName == NO_SELECTED_AUTO){
-      return null;
-    }else{ 
-      return new PathPlannerAuto(autoName);
+    if(DriverStation.isFMSAttached() || SmartDashboard.getBoolean("Auto Mode Enable", false)){
+      SmartDashboard.putBoolean("Auto Mode Enable", false);
+      String autoName = selectedAuto.getSelected();
+      if (autoName == NO_SELECTED_AUTO){
+        return Commands.none();
+      }else{ 
+        return new PathPlannerAuto(autoName);
+      }
+    } else{
+        return Commands.print("Auto Disabled");
     }
   }
 
