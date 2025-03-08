@@ -9,6 +9,12 @@
           "data": {
             "pathName": "Blue_4B"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score Level4 Coral"
+          }
         }
       ]
     }
