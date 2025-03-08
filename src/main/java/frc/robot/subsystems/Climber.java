@@ -44,6 +44,10 @@ public class Climber extends SubsystemBase {
     primary.set(0);
   }
 
+  public void zeroize() {
+    primary.setPosition(0);
+  }
+  
   private double MAX_DISTANCE = 10.0;
   public void move(double distance) {
     distance = MAX_DISTANCE * MathUtil.clamp(distance, -1.0, 1.0);

@@ -94,6 +94,11 @@ public class RobotContainer {
     Trigger reefTrigger = new Trigger(intake::reefDetected);
     reefTrigger.onTrue(outputCoral);
     
+    Command zeroizeClimber = climber.runOnce(() -> { 
+      climber.zeroize();
+    });
+    zeroizeClimber.setName("zeroize Climber");
+    SmartDashboard.putData(zeroizeClimber);
   }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
@@ -110,7 +115,7 @@ public class RobotContainer {
     driver.x().onTrue( intake.runOnce( () -> intake.outtakeCoral() ) );
     driver.x().onFalse( intake.runOnce( () -> intake.stop() ) );
 
-    driver.rightBumper().onTrue( new CoralInput(intake) );
+    driver.rightBumper().toggleOnTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
 
 
