@@ -147,14 +147,15 @@ public class RobotContainer {
               .onTrue( new InstantCommand( () -> {
                 reefSelecter.levelDown();
               }));
-  
+
+
     Command climbCommand = new Climb(climber, () -> {
       return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
     });
     climbCommand.setName("Climb Command");
     SmartDashboard.putData(climbCommand);
 
-    operator.start().and(operator.back()).onTrue(climbCommand);
+    operator.start().and(operator.back()).toggleOnTrue(climbCommand);
 
   }
 
