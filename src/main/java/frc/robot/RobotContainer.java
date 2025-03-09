@@ -119,8 +119,6 @@ public class RobotContainer {
     driver.rightBumper().toggleOnTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
 
-    driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel, intake) );
-    driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home, intake));
     driver.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
       public boolean runsWhenDisabled() {
         return true;
