@@ -77,11 +77,11 @@ public class Intake extends SubsystemBase {
   }
 
   public void intakeAlgae(){
-    primary.set(AlgeaSpeed);
+    primary.set(-AlgeaSpeed);
   }
 
   public void outtakeAlgae(){
-    primary.set(-AlgeaSpeed);
+    primary.set(AlgeaSpeed);
   }
 
   public boolean reefDetected() {

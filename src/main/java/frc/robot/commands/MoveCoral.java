@@ -20,10 +20,11 @@ public class MoveCoral extends SequentialCommandGroup {
 
   private Supplier<Elavator.ElevationLevel> level;
 
-  public MoveCoral(Elavator elavator, Supplier<Elavator.ElevationLevel> level) {
+  public MoveCoral(Elavator elavator, Supplier<Elavator.ElevationLevel> level, Intake intake) {
     this.level = level;
     
     addRequirements(elavator);
+    addCommands( intake.runOnce( intake::stop ));
     addCommands( new ArmPosition(elavator, () -> ArmLevel.Travel));
     addCommands( new MoveElevator(elavator, level));
     addCommands( new ArmPosition(elavator, this::armLevel) );

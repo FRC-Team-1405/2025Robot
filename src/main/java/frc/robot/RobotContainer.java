@@ -12,6 +12,8 @@ import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
 import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
+import frc.robot.commands.DropAlgae;
+import frc.robot.commands.GrabAlgae;
 import frc.robot.commands.MoveCoral;
 import frc.robot.commands.MoveElevator;
 import frc.robot.subsystems.Elavator;
@@ -21,10 +23,12 @@ import java.util.Optional;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -99,8 +103,9 @@ public class RobotContainer {
     });
     zeroizeClimber.setName("zeroize Climber");
     SmartDashboard.putData(zeroizeClimber);
-  }
-  /**
+}
+
+/**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
    * predicate, or via the named factories in {@link
@@ -109,24 +114,42 @@ public class RobotContainer {
    * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
    * joysticks}.
    */
+  private boolean highAlgae = true;
   private void configureBindings() {
-    driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel) );
-    driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
-    driver.x().onTrue( intake.runOnce( () -> intake.outtakeCoral() ) );
-    driver.x().onFalse( intake.runOnce( () -> intake.stop() ) );
-
     driver.rightBumper().toggleOnTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
 
+    driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel, intake) );
+    driver.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home, intake));
+    driver.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
+      public boolean runsWhenDisabled() {
+        return true;
+      }    
+    }); 
 
-    operator.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel) );
-    operator.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home));
+    SmartDashboard.putBoolean("Algae/High", highAlgae);
+    SmartDashboard.putBoolean("Algae/Low", !highAlgae);
+    operator.rightBumper().onTrue( Commands.runOnce( () -> { 
+        highAlgae = true;
+        SmartDashboard.putBoolean("Algae/High", highAlgae);
+        SmartDashboard.putBoolean("Algae/Low", !highAlgae);
+      } )) ;
+    operator.leftBumper().onTrue( Commands.runOnce( () -> { 
+        highAlgae = false; 
+        SmartDashboard.putBoolean("Algae/High", highAlgae);
+        SmartDashboard.putBoolean("Algae/Low", !highAlgae);
+      } )) ;
+    operator.b().onTrue( new GrabAlgae(elavator, intake, () -> {return highAlgae;}) );
+
+    operator.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel, intake) );
+    operator.a().onTrue( new MoveCoral(elavator, () -> ElevationLevel.Home, intake));
     operator.x().onTrue( new InstantCommand(() -> {
       intake.outtakeCoral();
     }));
     operator.x().onFalse( new InstantCommand(() -> {
       intake.stop();
     }));
+
     operator.povLeft()
             .onTrue( new InstantCommand( () -> { 
               reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
@@ -135,11 +158,6 @@ public class RobotContainer {
             .onTrue( new InstantCommand( () -> { 
               reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
             } ));       
-    operator.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
-        public boolean runsWhenDisabled() {
-          return true;
-        }    
-      }); 
       operator.povUp()
               .or(operator.povUpLeft())
               .or(operator.povUpRight())
