@@ -116,7 +116,17 @@ public class RobotContainer {
    */
   private boolean highAlgae = true;
   private void configureBindings() {
-    driver.rightBumper().toggleOnTrue( new CoralInput(intake) );
+    driver.rightBumper().toggleOnTrue( 
+      Commands.either(
+        new CoralInput(intake), 
+        Commands.sequence(
+          intake.runOnce( intake::intakeAlgae ),
+          Commands.waitSeconds(1.0),
+          intake.runOnce( intake::stop )
+          ),
+        () -> { return reefSelecter.getLevel() != ElevationLevel.Level_1; } )
+    );
+
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
 
     driver.y().onTrue( new MoveCoral(elavator, reefSelecter::getLevel, intake) );
