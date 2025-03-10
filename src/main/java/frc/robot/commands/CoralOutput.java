@@ -4,48 +4,38 @@
 
 package frc.robot.commands;
 
-import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.Intake;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class Climb extends Command {
-  private Climber climber;
-  private DoubleSupplier distance;
-  /** Creates a new Climb. */
-  public Climb(Climber climber, DoubleSupplier distance) {
-    this.climber = climber;
-    this.distance = distance;
-    addRequirements(climber);
+public class CoralOutput extends Command {
+  /** Creates a new CoralOutput. */
+  private Intake intake;
+  public CoralOutput(Intake intake) {
+    this.intake = intake;
+    addRequirements(intake);
+    // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
-  private static final double Deadband = 0.1;
   @Override
   public void execute() {
-    double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
-    if (!MathUtil.isNear(0.0, distance, Deadband)){
-        climber.move(distance);
-    }
+      intake.outtakeCoral();
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if (interrupted)
-      climber.stop();
+    intake.stop();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return !intake.hasCoral();
   }
 }
