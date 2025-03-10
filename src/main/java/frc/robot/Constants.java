@@ -36,10 +36,10 @@ public final class Constants {
     public static final double POSITION_ERROR_DELTA = 0.25;
 
     public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
-        new Translation2d(Units.inchesToMeters(-10), Units.inchesToMeters(-7)), // Front Left
-        new Translation2d(Units.inchesToMeters(-10), Units.inchesToMeters(7)), // Front Right
-        new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(-15)), // Back Left
-        new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(15))); // Back Right
+        new Translation2d(Units.inchesToMeters(-11), Units.inchesToMeters(-11)), // Front Left
+        new Translation2d(Units.inchesToMeters(-11), Units.inchesToMeters(11)), // Front Right
+        new Translation2d(Units.inchesToMeters(11), Units.inchesToMeters(-11)), // Back Left
+        new Translation2d(Units.inchesToMeters(11), Units.inchesToMeters(11))); // Back Right
   
     public static final PPHolonomicDriveController SwerveDriveController = new PPHolonomicDriveController(
       new PIDConstants(2.5, .75, 0.0), // Translation PID constants
