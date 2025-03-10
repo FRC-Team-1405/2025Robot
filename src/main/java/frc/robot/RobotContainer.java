@@ -271,16 +271,16 @@ public class RobotContainer {
 
   void configurePathPlanner() {
     NamedCommands.registerCommand("Score Level4 Coral", 
-                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4), 
+                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)));
     NamedCommands.registerCommand("Score Level3 Coral", 
-                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_3), 
+                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_3, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
-                  new MoveCoral(elavator, () -> ElevationLevel.Home)));
+                  new MoveCoral(elavator, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Score Level2 Coral", 
-                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_2), 
+                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_2, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
-                  new MoveCoral(elavator, () -> ElevationLevel.Home)));
+                  new MoveCoral(elavator, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));
 
     var autoNames = AutoBuilder.getAllAutoNames();
