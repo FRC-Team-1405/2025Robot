@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.3219970599258732,
-        "y": 4.086961282823589
+        "x": 3.3219970599258737,
+        "y": 4.08696128282359
       },
       "isLocked": false,
       "linkedName": null
@@ -37,12 +37,12 @@
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
-    "nominalVoltage": 12.0,
+    "nominalVoltage": 12.7,
     "unlimited": false
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 52.56142842766704
+    "rotation": 52.561428427667046
   },
   "reversed": false,
   "folder": "Right_Feeder_Station",

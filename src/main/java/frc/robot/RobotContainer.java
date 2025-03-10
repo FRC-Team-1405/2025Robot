@@ -251,8 +251,7 @@ public class RobotContainer {
   void configurePathPlanner() {
     NamedCommands.registerCommand("Score Level4 Coral", 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4), 
-                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
-                  new MoveCoral(elavator, () -> ElevationLevel.Home)));
+                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)));
     NamedCommands.registerCommand("Score Level3 Coral", 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_3), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 

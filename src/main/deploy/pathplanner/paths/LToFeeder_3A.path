@@ -20,7 +20,7 @@
         "y": 7.169
       },
       "prevControl": {
-        "x": 1.610364733989717,
+        "x": 1.6103647339897171,
         "y": 7.06289153094232
       },
       "nextControl": null,
@@ -37,7 +37,7 @@
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
-    "nominalVoltage": 12.0,
+    "nominalVoltage": 12.7,
     "unlimited": false
   },
   "goalEndState": {
