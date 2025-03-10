@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Middle_4B"
+            "pathName": "Middle_4A"
           }
         },
         {
@@ -19,7 +19,7 @@
       ]
     }
   },
-  "resetOdom": true,
+  "resetOdom": false,
   "folder": "Middle_Position",
   "choreoAuto": false
 }

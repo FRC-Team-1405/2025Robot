@@ -8,6 +8,14 @@ import java.util.Optional;
 
 import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.lib.ReefSelecter;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.Climb;
+import frc.robot.commands.ScoreCoral;
+import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.Elavator;
+
+import frc.robot.subsystems.SwerveDrive;
+import frc.robot.commands.RobotDriveCommand;
 import frc.robot.commands.ScoreCoral;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ArmPosition;
@@ -40,10 +48,14 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import frc.robot.subsystems.Elavator.ArmLevel;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+
+import frc.robot.subsystems.Elavator;
+import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Elavator.ArmLevel;
+import frc.robot.subsystems.Elavator.ElevationControl;
 import frc.robot.subsystems.Elavator.ElevationLevel;
 
 /**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
@@ -72,6 +84,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    configurePathPlanner();
     configureShuffboardCommands();
     configurePathPlanner();
     driveBase.setDefaultCommand(new SwerveDriveCommand(this::getXSpeed, this::getYSpeed, this::getRotationSpeed, this::getSlideValue, driveBase));
@@ -108,6 +121,7 @@ public class RobotContainer {
     });
     zeroizeClimber.setName("zeroize Climber");
     SmartDashboard.putData(zeroizeClimber);
+    SmartDashboard.putBoolean("Auto Mode Enable", false);
 }
 
 /**
@@ -185,16 +199,22 @@ public class RobotContainer {
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
 
   }
-
+  
   public Command getAutonomousCommand() {
-    String autoName = selectedAuto.getSelected();
-    if (autoName == NO_SELECTED_AUTO)
-      return new PrintCommand("No Auto Selected");
-    else 
-      return new PathPlannerAuto(autoName);
+    if(DriverStation.isFMSAttached() || SmartDashboard.getBoolean("Auto Mode Enable", false)){
+      SmartDashboard.putBoolean("Auto Mode Enable", false);
+      String autoName = selectedAuto.getSelected();
+      if (autoName == NO_SELECTED_AUTO){
+        return Commands.none();
+      }else{ 
+        return new PathPlannerAuto(autoName);
+      }
+    } else{
+        return Commands.print("Auto Disabled");
+    }
   }
 
-  double getXSpeed() { 
+  public double getXSpeed(){
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
 
@@ -250,6 +270,19 @@ public class RobotContainer {
   }
 
   void configurePathPlanner() {
+    NamedCommands.registerCommand("Score Level4 Coral", 
+                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4), 
+                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)));
+    NamedCommands.registerCommand("Score Level3 Coral", 
+                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_3), 
+                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
+                  new MoveCoral(elavator, () -> ElevationLevel.Home)));
+    NamedCommands.registerCommand("Score Level2 Coral", 
+                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_2), 
+                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
+                  new MoveCoral(elavator, () -> ElevationLevel.Home)));
+    NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));
+
     var autoNames = AutoBuilder.getAllAutoNames();
     selectedAuto.addOption(NO_SELECTED_AUTO, NO_SELECTED_AUTO);
     autoNames.forEach((name) -> {

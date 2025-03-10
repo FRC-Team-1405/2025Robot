@@ -162,10 +162,11 @@ public class SwerveDrive extends SubsystemBase
     {      
       // //Periodically update the swerve odometry
       updateOdometry(); 
+      SmartDashboard.putNumber("Raw Gyro Angle", gyro.getAngle());
 
       if(debugMode)
         {
-          SmartDashboard.putNumber("Raw Gyro Angle", gyro.getAngle());
+          
         
           SmartDashboard.putNumber("SwerveModuleAngle/frontLeft", frontLeft.getAngle()); 
           SmartDashboard.putNumber("SwerveModuleAngle/frontRight", frontRight.getAngle()); 
