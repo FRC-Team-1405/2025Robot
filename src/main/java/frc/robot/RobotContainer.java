@@ -31,6 +31,8 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Elavator;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SwerveDrive;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -79,6 +81,7 @@ public class RobotContainer {
   private static final SendableChooser<String> autos = new SendableChooser<>();
   private SendableChooser<String> selectedAuto = new SendableChooser<String>();
   private static final String NO_SELECTED_AUTO = "None";
+  private static final String SimpleDrive = "Simple Drive";
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -206,7 +209,14 @@ public class RobotContainer {
       String autoName = selectedAuto.getSelected();
       if (autoName == NO_SELECTED_AUTO){
         return Commands.none();
-      }else{ 
+      } else if (autoName == SimpleDrive) {
+        return Commands.sequence(
+          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
+          Commands.waitSeconds(1.0),
+          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  )
+        );
+      }
+      else{ 
         return new PathPlannerAuto(autoName);
       }
     } else{
@@ -270,6 +280,9 @@ public class RobotContainer {
   }
 
   void configurePathPlanner() {
+     NamedCommands.registerCommand("Set Middle Start", (driveBase.runOnce( () -> {
+      driveBase.resetPose( new Pose2d(7.124, 3.861, Rotation2d.fromDegrees(0.0)) );
+    })));
     NamedCommands.registerCommand("Score Level4 Coral", 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)));
@@ -285,6 +298,7 @@ public class RobotContainer {
 
     var autoNames = AutoBuilder.getAllAutoNames();
     selectedAuto.addOption(NO_SELECTED_AUTO, NO_SELECTED_AUTO);
+    selectedAuto.addOption(SimpleDrive, SimpleDrive);
     autoNames.forEach((name) -> {
       selectedAuto.addOption(name, name);
     });
