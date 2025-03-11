@@ -13,7 +13,7 @@ public class CoralInput extends Command {
   private Intake intake;
   public CoralInput(Intake intake) {
     this.intake = intake;
-    addRequirements(intake);
+//    addRequirements(intake);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 

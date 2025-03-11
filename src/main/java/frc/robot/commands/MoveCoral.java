@@ -40,10 +40,6 @@ public class MoveCoral extends SequentialCommandGroup {
       case  Level_4 -> ArmLevel.High_Score;
       default -> ArmLevel.Home;
   };
-
-    System.out.println("==================");
-    System.out.println("moving arm postion "+(int)value.getposition());
-    System.out.println("===================");
     return value;
   }
 }
