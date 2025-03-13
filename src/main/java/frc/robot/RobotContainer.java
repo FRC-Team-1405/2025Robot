@@ -24,6 +24,7 @@ import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
 import frc.robot.commands.DropAlgae;
 import frc.robot.commands.GrabAlgae;
+import frc.robot.commands.LowScore;
 import frc.robot.commands.MoveCoral;
 import frc.robot.commands.MoveElevator;
 import frc.robot.commands.ScoreCoral;
@@ -82,6 +83,10 @@ public class RobotContainer {
   private SendableChooser<String> selectedAuto = new SendableChooser<String>();
   private static final String NO_SELECTED_AUTO = "None";
   private static final String SimpleDrive = "Simple Drive";
+  private static final String InvertedScore = "Inverted Score";
+  private static final String DriveToReef = "Drive To Reef";
+  private static final String DriveAndScoreLow = "Drive And Score Low";
+  private static final String DriveAndScoreHigh = "Drive And Score High";
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -125,6 +130,13 @@ public class RobotContainer {
     zeroizeClimber.setName("zeroize Climber");
     SmartDashboard.putData(zeroizeClimber);
     SmartDashboard.putBoolean("Auto Mode Enable", false);
+
+    Command lowScore = new LowScore(elavator, intake);
+    lowScore.setName("Low Score");
+    SmartDashboard.putData(lowScore);
+
+    SmartDashboard.putNumber("Test/Short Drive Time", 0.5);
+    SmartDashboard.putNumber("Test/Reef Drive", 2.0);
 }
 
 /**
@@ -204,6 +216,9 @@ public class RobotContainer {
   }
   
   public Command getAutonomousCommand() {
+    double shortDriveTime = SmartDashboard.getNumber("Test/Short Drive Time", 0.5);
+    double reefDrive = SmartDashboard.getNumber("Test/Reef Drive", 2.5);
+    
     if(DriverStation.isFMSAttached() || SmartDashboard.getBoolean("Auto Mode Enable", false)){
       SmartDashboard.putBoolean("Auto Mode Enable", false);
       String autoName = selectedAuto.getSelected();
@@ -212,9 +227,38 @@ public class RobotContainer {
       } else if (autoName == SimpleDrive) {
         return Commands.sequence(
           driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds(1.0),
+          Commands.waitSeconds( shortDriveTime ), 
           driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  )
         );
+      } else if (autoName == InvertedScore) {
+        return Commands.sequence(
+          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
+          Commands.waitSeconds(reefDrive), 
+          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
+          new LowScore(elavator, intake)
+        );
+      } else if (autoName == DriveToReef) {
+        return Commands.sequence(
+          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
+          Commands.waitSeconds(reefDrive), 
+          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  )
+        );
+      } else if (autoName == DriveAndScoreLow) {
+        return Commands.sequence(
+          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
+          Commands.waitSeconds(reefDrive), 
+          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
+          new MoveCoral(elavator, () -> ElevationLevel.Level_1, intake), 
+          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
+          new MoveCoral(elavator, () -> ElevationLevel.Home, intake));
+      } else if (autoName == DriveAndScoreHigh) {
+        return Commands.sequence(
+          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
+          Commands.waitSeconds(reefDrive), 
+          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
+          new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
+          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
+          new MoveCoral(elavator, () -> ElevationLevel.Home, intake));
       }
       else{ 
         return new PathPlannerAuto(autoName);
@@ -299,6 +343,10 @@ public class RobotContainer {
     var autoNames = AutoBuilder.getAllAutoNames();
     selectedAuto.addOption(NO_SELECTED_AUTO, NO_SELECTED_AUTO);
     selectedAuto.addOption(SimpleDrive, SimpleDrive);
+    selectedAuto.addOption(DriveToReef, DriveToReef);
+    selectedAuto.addOption(InvertedScore, InvertedScore);
+    selectedAuto.addOption(DriveAndScoreLow, DriveAndScoreLow);
+    selectedAuto.addOption(DriveAndScoreHigh, DriveAndScoreHigh);
     autoNames.forEach((name) -> {
       selectedAuto.addOption(name, name);
     });

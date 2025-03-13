@@ -71,6 +71,11 @@ public class Intake extends SubsystemBase {
   public void outtakeCoral(){
     primary.setControl(velocityVoltage.withVelocity(CoralOutputSpeed));
   }
+  public void slowScore(){
+    primary.setControl(velocityVoltage.withVelocity(-CoralImputSpeed));
+  }
+
+ 
 
   public boolean hasCoral(){
     return (sensorValue <= 100);
