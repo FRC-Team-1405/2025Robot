@@ -266,7 +266,7 @@ public class RobotContainer {
       } else if (autoName == DiagonalScore) {
         return Commands.sequence(
           driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds(4.0), 
+          Commands.waitSeconds(6.0), 
           driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
           new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
           new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) 
