@@ -48,6 +48,8 @@ public class Climber extends SubsystemBase {
 
   @Override
   public void periodic() {
+    SmartDashboard.putBoolean("Climber/Upper Limit", primary.getFault_ForwardSoftLimit().getValue());
+    SmartDashboard.putBoolean("Climber/Lower Limit", primary.getFault_ReverseSoftLimit().getValue());
     // This method will be called once per scheduler run
   }
 

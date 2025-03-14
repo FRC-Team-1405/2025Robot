@@ -87,6 +87,7 @@ public class RobotContainer {
   private static final String DriveToReef = "Drive To Reef";
   private static final String DriveAndScoreLow = "Drive And Score Low";
   private static final String DriveAndScoreHigh = "Drive And Score High";
+  private static final String DiagonalScore = "Diagonal Score";
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -236,6 +237,7 @@ public class RobotContainer {
           Commands.waitSeconds(reefDrive), 
           driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
           new LowScore(elavator, intake)
+        
         );
       } else if (autoName == DriveToReef) {
         return Commands.sequence(
@@ -249,18 +251,28 @@ public class RobotContainer {
           Commands.waitSeconds(reefDrive), 
           driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
           new MoveCoral(elavator, () -> ElevationLevel.Level_1, intake), 
-          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
-          new MoveCoral(elavator, () -> ElevationLevel.Home, intake));
+          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)
+//          new MoveCoral(elavator, () -> ElevationLevel.Home, intake)
+        );
       } else if (autoName == DriveAndScoreHigh) {
         return Commands.sequence(
           driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
           Commands.waitSeconds(reefDrive), 
           driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
           new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
-          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
-          new MoveCoral(elavator, () -> ElevationLevel.Home, intake));
-      }
-      else{ 
+          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) 
+//          new MoveCoral(elavator, () -> ElevationLevel.Home, intake)
+        );
+      } else if (autoName == DiagonalScore) {
+        return Commands.sequence(
+          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
+          Commands.waitSeconds(4.0), 
+          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
+          new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
+          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) 
+//          new MoveCoral(elavator, () -> ElevationLevel.Home, intake)
+        );
+      } else{ 
         return new PathPlannerAuto(autoName);
       }
     } else{
@@ -347,6 +359,7 @@ public class RobotContainer {
     selectedAuto.addOption(InvertedScore, InvertedScore);
     selectedAuto.addOption(DriveAndScoreLow, DriveAndScoreLow);
     selectedAuto.addOption(DriveAndScoreHigh, DriveAndScoreHigh);
+    selectedAuto.addOption(DiagonalScore, DiagonalScore);
     autoNames.forEach((name) -> {
       selectedAuto.addOption(name, name);
     });
