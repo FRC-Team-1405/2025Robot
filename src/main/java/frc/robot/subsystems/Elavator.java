@@ -57,6 +57,7 @@ public class Elavator extends SubsystemBase {
     High_Score(6.5),
     Max_Value(30.8),
     Inverted_Low(27.0),
+    Climb(15.0),
     Algae(15.0),
     Algae_Output(20.0);
 
