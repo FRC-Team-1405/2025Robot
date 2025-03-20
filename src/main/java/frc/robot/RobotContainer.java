@@ -64,7 +64,7 @@ import frc.robot.subsystems.Elavator.ElevationLevel;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  private SwerveDrive driveBase = new SwerveDrive(10, 2*Math.PI, "geared upright",  Constants.kinematics);
+  private SwerveDrive driveBase = new SwerveDrive(6, 2*Math.PI, "geared upright",  Constants.kinematics);
   // The robot's subsystems and commands are defined here...
 
   private Optional<Alliance> alliance = DriverStation.getAlliance();

@@ -212,8 +212,22 @@ public class SwerveDrive extends SubsystemBase
     setModuleStates(targetStates);
   }
 
+  private double maxXSpeed = 0.0;
+  private double maxYSpeed = 0.0;
   public void drive(double xSpeed, double ySpeed, double rotationSpeed, boolean fieldOriented)
     {
+      double tmpXSpeed;
+      tmpXSpeed = Math.abs(xSpeed * maxVelocity);
+      if (tmpXSpeed > maxXSpeed) {
+        maxXSpeed = tmpXSpeed;
+      }
+      double tmpYSpeed;
+      tmpYSpeed = Math.abs(ySpeed * maxVelocity);
+      if (tmpYSpeed > maxYSpeed) {
+        maxYSpeed = tmpYSpeed;
+      }
+      SmartDashboard.putNumber("Max Y Speed", maxYSpeed);
+      SmartDashboard.putNumber("Max X Speed", maxXSpeed);
 
       SwerveModuleState[] swerveModuleStates = kinematics.toSwerveModuleStates(
         (fieldOriented && gyro != null)
