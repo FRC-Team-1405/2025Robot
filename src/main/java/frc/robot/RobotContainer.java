@@ -4,9 +4,9 @@
 
 package frc.robot;
 
+import java.io.File;
 import java.util.Optional;
 
-import frc.robot.commands.SwerveDriveCommand;
 import frc.robot.lib.ReefSelecter;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Climb;
@@ -14,8 +14,6 @@ import frc.robot.commands.ScoreCoral;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Elavator;
 
-import frc.robot.subsystems.SwerveDrive;
-import frc.robot.commands.RobotDriveCommand;
 import frc.robot.commands.ScoreCoral;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ArmPosition;
@@ -31,12 +29,14 @@ import frc.robot.commands.ScoreCoral;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Elavator;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.SwerveSubsystem;
+import swervelib.SwerveInputStream;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -51,9 +51,9 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import frc.robot.subsystems.Elavator.ArmLevel;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import swervelib.SwerveInputStream;
 
 import frc.robot.subsystems.Elavator;
-import frc.robot.subsystems.SwerveDrive;
 import frc.robot.subsystems.Elavator.ArmLevel;
 import frc.robot.subsystems.Elavator.ElevationControl;
 import frc.robot.subsystems.Elavator.ElevationLevel;
@@ -64,8 +64,8 @@ import frc.robot.subsystems.Elavator.ElevationLevel;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  private SwerveDrive driveBase = new SwerveDrive(10, 2*Math.PI, "geared upright",  Constants.kinematics);
-  // The robot's subsystems and commands are defined here...
+  private final SwerveSubsystem driveBase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+                                                                          "swerve/falcon"));
 
   private Optional<Alliance> alliance = DriverStation.getAlliance();
   
@@ -78,6 +78,16 @@ public class RobotContainer {
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
+  /*
+   * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
+   */
+  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(driveBase.getSwerveDrive(),
+                                                                () -> driver.getLeftY() * -1,
+                                                                () -> driver.getLeftX() * -1)
+                                                            .withControllerRotationAxis(() -> driver.getRightX() * -1)
+                                                            .deadband(OperatorConstants.DEADBAND)
+                                                            .scaleTranslation(0.8)
+                                                            .allianceRelativeControl(true);
 
   private static final SendableChooser<String> autos = new SendableChooser<>();
   private SendableChooser<String> selectedAuto = new SendableChooser<String>();
@@ -96,21 +106,20 @@ public class RobotContainer {
     configurePathPlanner();
     configureShuffboardCommands();
     configurePathPlanner();
-    driveBase.setDefaultCommand(new SwerveDriveCommand(this::getXSpeed, this::getYSpeed, this::getRotationSpeed, this::getSlideValue, driveBase));
+
+
+    driveBase.setDefaultCommand(driveBase.driveFieldOriented(driveAngularVelocity));
   }
 
   public void disabledInit() {
-    driveBase.brakeMode(false);
     climber.stop();
   }
   
   public void autonomousInit() {
-    driveBase.brakeMode(true);
   }
 
   public void teleopInit() {
     alliance = DriverStation.getAlliance();
-    driveBase.brakeMode(false);
   }
 
   private void configureShuffboardCommands() {
@@ -154,11 +163,7 @@ public class RobotContainer {
     driver.rightBumper().toggleOnTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elavator, () -> ArmLevel.Climb)));
-    driver.back().onTrue( new InstantCommand( driveBase::resetGyro ) {
-      public boolean runsWhenDisabled() {
-        return true;
-      }    
-    }); 
+    driver.back().onTrue((Commands.runOnce(driveBase::zeroGyro)).ignoringDisable(true)); 
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
     SmartDashboard.putBoolean("Algae/Low", !highAlgae);
@@ -217,67 +222,7 @@ public class RobotContainer {
   }
   
   public Command getAutonomousCommand() {
-    double shortDriveTime = SmartDashboard.getNumber("Test/Short Drive Time", 0.5);
-    double reefDrive = SmartDashboard.getNumber("Test/Reef Drive", 2.5);
-    
-    if(DriverStation.isFMSAttached() || SmartDashboard.getBoolean("Auto Mode Enable", false)){
-      SmartDashboard.putBoolean("Auto Mode Enable", false);
-      String autoName = selectedAuto.getSelected();
-      if (autoName == NO_SELECTED_AUTO){
-        return Commands.none();
-      } else if (autoName == SimpleDrive) {
-        return Commands.sequence(
-          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds( shortDriveTime ), 
-          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  )
-        );
-      } else if (autoName == InvertedScore) {
-        return Commands.sequence(
-          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds(reefDrive), 
-          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
-          new LowScore(elavator, intake)
-        
-        );
-      } else if (autoName == DriveToReef) {
-        return Commands.sequence(
-          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds(reefDrive), 
-          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  )
-        );
-      } else if (autoName == DriveAndScoreLow) {
-        return Commands.sequence(
-          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds(reefDrive), 
-          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
-          new MoveCoral(elavator, () -> ElevationLevel.Level_1, intake), 
-          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)
-//          new MoveCoral(elavator, () -> ElevationLevel.Home, intake)
-        );
-      } else if (autoName == DriveAndScoreHigh) {
-        return Commands.sequence(
-          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds(reefDrive), 
-          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
-          new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
-          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) 
-//          new MoveCoral(elavator, () -> ElevationLevel.Home, intake)
-        );
-      } else if (autoName == DiagonalScore) {
-        return Commands.sequence(
-          driveBase.runOnce( () -> driveBase.drive(-0.1, 0.0, 0.0, false) ),
-          Commands.waitSeconds(6.0), 
-          driveBase.runOnce( () -> driveBase.drive(0.0, 0.0, 0.0, false)  ),
-          new MoveCoral(elavator, () -> ElevationLevel.Level_1, intake), 
-          new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) 
-//          new MoveCoral(elavator, () -> ElevationLevel.Home, intake)
-        );
-      } else{ 
-        return new PathPlannerAuto(autoName);
-      }
-    } else{
-        return Commands.print("Auto Disabled");
-    }
+    return driveBase.getAutonomousCommand("CircleAuto");
   }
 
   public double getXSpeed(){
@@ -312,33 +257,12 @@ public class RobotContainer {
     return finalY * speedMultiplication; 
   } 
   
-  public double getRotationSpeed() { 
-    double speedMultiplication = 0.6;
-    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
-
-    double finalRotation =  -driver.getRightX();
-
-    if (Math.abs(finalRotation) < 0.15)
-        finalRotation = 0.0;
-    
-    return finalRotation * speedMultiplication;
-  }
-  
-  public double getSlideValue() {
-    int pov = driver.getHID().getPOV();
-    if (pov == 45 || pov == 90 || pov == 135) {
-      return 0.4 ;
-    } else if (pov == 225 || pov == 270 || pov == 315) {
-      return -0.4 ;
-    }
-
-    return 0.0;
+  public void setMotorBrake(boolean brake) {
+    driveBase.setMotorBrake(brake);
   }
 
   void configurePathPlanner() {
-     NamedCommands.registerCommand("Set Middle Start", (driveBase.runOnce( () -> {
-      driveBase.resetPose( new Pose2d(7.124, 3.861, Rotation2d.fromDegrees(0.0)) );
-    })));
+
     NamedCommands.registerCommand("Score Level4 Coral", 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)));

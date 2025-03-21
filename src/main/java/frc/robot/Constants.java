@@ -21,7 +21,15 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static final double MAX_SPEED  = Units.feetToMeters(14.3856); //i estimated this number from the max rpm of the motor,
+
   public static class OperatorConstants {
+    // Joystick Deadband
+    public static final double DEADBAND        = 0.1;
+    public static final double LEFT_Y_DEADBAND = 0.1;
+    public static final double RIGHT_X_DEADBAND = 0.1;
+    public static final double TURN_CONSTANT    = 6;
+
     public static final int kDriverControllerPort = 0;
     public static final int kOperatorPort = 1;   
   }
