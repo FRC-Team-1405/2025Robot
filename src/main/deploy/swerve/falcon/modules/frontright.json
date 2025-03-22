@@ -1,6 +1,6 @@
 {
   "drive": {
-    "type": "falcon",
+    "type": "krakenx60",
     "id": 2,
     "canbus": null
   },
@@ -18,9 +18,9 @@
     "drive": false,
     "angle": false
   },
-  "absoluteEncoderOffset": 106.43544,
+  "absoluteEncoderOffset": 333.10548,
   "location": {
-    "front": 9.5,
-    "left": -9.5
+    "front": 11,
+    "left": -11.25
   }
 }

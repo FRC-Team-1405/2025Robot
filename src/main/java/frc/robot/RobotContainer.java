@@ -224,14 +224,14 @@ public class RobotContainer {
     return driveBase.getAutonomousCommand("CircleAuto");
   }
 
-  public double getYSpeed(){
+  public double getXSpeed(){
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
 
     return driver.getLeftY() * speedMultiplication;
   }
 
-  public double getXSpeed() { 
+  public double getYSpeed() { 
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
     
