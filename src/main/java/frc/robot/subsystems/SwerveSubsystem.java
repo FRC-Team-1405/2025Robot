@@ -74,7 +74,7 @@ public class SwerveSubsystem extends SubsystemBase {
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean             visionOdometryEnable     = true;
+  private final boolean             visionOdometryEnable     = false;
 
   /**
    * PhotonVision class to keep an accurate odometry.
@@ -159,12 +159,15 @@ public class SwerveSubsystem extends SubsystemBase {
       SmartDashboard.putNumber("PIDDebuging/module" + module.moduleNumber + "/Percentage", errorPercentage);
     }
 
-    publisher.set(swerveDrive.getPose());
     if (visionOdometryEnable)
     {
       swerveDrive.updateOdometry();
       vision.updatePoseEstimation(swerveDrive);
+      vision.updateVisionField();
+
+      SmartDashboard.putData(swerveDrive.field);
     }
+    publisher.set(swerveDrive.getPose());
   }
 
   @Override
