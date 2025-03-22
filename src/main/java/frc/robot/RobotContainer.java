@@ -84,9 +84,8 @@ public class RobotContainer {
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(driveBase.getSwerveDrive(),
                                                                 this::getXSpeed,
                                                                 this::getYSpeed)
-                                                            .withControllerRotationAxis(() -> driver.getRightX() * -1)
+                                                            .withControllerRotationAxis(this::getRotationSpeed)
                                                             .deadband(OperatorConstants.DEADBAND)
-                                                            .scaleTranslation(0.8)
                                                             .allianceRelativeControl(true);
 
   private static final SendableChooser<String> autos = new SendableChooser<>();
@@ -227,20 +226,14 @@ public class RobotContainer {
 
   public double getYSpeed(){
     double speedMultiplication = 0.6;
-    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
 
-    double finalX;
-    if (Math.abs(driver.getLeftY()) <= 0.1)
-      finalX = 0.0;
-    else
-      finalX = driver.getLeftY();
-    
-    return finalX * speedMultiplication;
+    return driver.getLeftY() * speedMultiplication;
   }
 
   public double getXSpeed() { 
     double speedMultiplication = 0.6;
-    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
     
     int pov = driver.getHID().getPOV();
 
@@ -249,13 +242,18 @@ public class RobotContainer {
       finalY = -.5;
     else if(pov == 90 || pov == 45 || pov == 135)
       finalY = 0.5;
-    else if (Math.abs(driver.getLeftX()) <= 0.1)
-      finalY = 0.0;
     else
       finalY = driver.getLeftX();
     
     return finalY * speedMultiplication; 
   } 
+
+  public double getRotationSpeed() { 
+    double speedMultiplication = 0.6;
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
+
+    return driver.getRightX() * speedMultiplication;
+  }
   
   public void setMotorBrake(boolean brake) {
     driveBase.setMotorBrake(brake);
