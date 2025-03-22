@@ -166,8 +166,11 @@ public class RobotContainer
     // return drivebase.getAutonomousCommand("DriveStraight1m");
     // return drivebase.getAutonomousCommand("DriveStraight3m");
     // return drivebase.getAutonomousCommand("CircleAuto");
-    return drivebase.getAutonomousCommand("CircleRotate");
+    // return drivebase.getAutonomousCommand("CircleRotate");
+    // return drivebase.getAutonomousCommand("CirclePoint");
+    // return drivebase.getAutonomousCommand("DriveStraight3mSpin");
     // return drivebase.getAutonomousCommand("DriveStraight3mTurn");
+    return drivebase.getAutonomousCommand("Red_5B");
   }
 
   public void setMotorBrake(boolean brake)
