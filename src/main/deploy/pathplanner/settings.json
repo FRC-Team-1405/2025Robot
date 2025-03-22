@@ -4,18 +4,18 @@
   "holonomicMode": true,
   "pathFolders": [
     "Blue_Position",
-    "Left_Feeder_Station",
+    "Blue_Feeder_Station",
     "Middle_Position",
-    "Right_Feeder_Station",
-    "Red_Position"
+    "Red_Position",
+    "Red_Feeder_Station"
   ],
   "autoFolders": [
     "Blue_Position",
     "Middle_Position",
     "Red_Position"
   ],
-  "defaultMaxVel": 1.0,
-  "defaultMaxAccel": 1.0,
+  "defaultMaxVel": 1.5,
+  "defaultMaxAccel": 1.5,
   "defaultMaxAngVel": 540.0,
   "defaultMaxAngAccel": 720.0,
   "defaultNominalVoltage": 12.7,

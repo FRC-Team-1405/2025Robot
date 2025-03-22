@@ -189,11 +189,11 @@ public class RobotContainer {
             } ));
      operator.povRight()
             .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
+              reefSelecter.setDirection(ReefSelecter.Direction.Right) ;
             } ));       
       operator.povUp()
               .or(operator.povUpLeft())
-              .or(operator.povUpRight())
+              .or(operator.povUpRight())  
               .onTrue( new InstantCommand( () -> {
                 reefSelecter.levelUp();
               } ));
@@ -350,7 +350,7 @@ public class RobotContainer {
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_2, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
                   new MoveCoral(elavator, () -> ElevationLevel.Home, intake)));
-    NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));
+    NamedCommands.registerCommand("IntakeCoral", new CoralInput(intake));
 
     var autoNames = AutoBuilder.getAllAutoNames();
     selectedAuto.addOption(NO_SELECTED_AUTO, NO_SELECTED_AUTO);
