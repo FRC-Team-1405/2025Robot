@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import org.photonvision.EstimatedRobotPose;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -12,6 +14,9 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 //WPILIB Dependencies
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -31,6 +36,8 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 
 //Class containing all functions and variables pertaining to the SwerveDrive
 public class SwerveDrive extends SubsystemBase 
@@ -53,7 +60,10 @@ public class SwerveDrive extends SubsystemBase
   private final AHRS gyro = new AHRS(NavXComType.kMXP_SPI);
 
   //Odometry determines the robots position on the field
-  private final SwerveDriveOdometry odometry; 
+  //private final SwerveDriveOdometry odometry; 
+
+  //Pose estimator to update odometry
+  private final SwerveDrivePoseEstimator estimator; 
 
   //This switch is used as an external input to tell the SwerveDrive to reset the odometry
   private Command normalize;
@@ -61,7 +71,8 @@ public class SwerveDrive extends SubsystemBase
 
   private Field2d field = new Field2d();
 
-
+  private final Vision vision;
+  
   /**
    * The constructor for the swerve drive
    * @param maxVelocity The desired max velocity of the robot in meters per second
@@ -89,8 +100,9 @@ public class SwerveDrive extends SubsystemBase
       * Initialize the odometry (if this is done outside of the constructor it will pass garbage values 
       * for the distances of the Swerve Modules). 
       */
-      odometry = new SwerveDriveOdometry(kinematics, gyro.getRotation2d(), getSwerveModulePositions());
-          
+      //estimator = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(), getSwerveModulePositions());
+      estimator = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(), getSwerveModulePositions(), Pose2d.kZero);          
+      vision = new Vision(this::getPose, field);
       try{
         RobotConfig config = RobotConfig.fromGUISettings();
 
@@ -133,8 +145,6 @@ public class SwerveDrive extends SubsystemBase
         .ignoringDisable(true);
         resetOdometry.setName("Reset Odometry");
       SmartDashboard.putData(resetOdometry);
-
-      SmartDashboard.putData(field);
   }
 
   /**
@@ -189,9 +199,9 @@ public class SwerveDrive extends SubsystemBase
           SmartDashboard.putNumber("SwerveModuleAngleBL", backLeft.getSwerveModulePosition().angle.getDegrees());
           SmartDashboard.putNumber("SwerveModuleAngleBR", backRight.getSwerveModulePosition().angle.getDegrees());
   
-          SmartDashboard.putNumber("SwerveDrive/Pose/X", odometry.getPoseMeters().getX());
-          SmartDashboard.putNumber("SwerveDrive/Pose/Y", odometry.getPoseMeters().getY());
-          SmartDashboard.putNumber("SwerveDrive/Pose/Z", odometry.getPoseMeters().getRotation().getDegrees());
+          SmartDashboard.putNumber("SwerveDrive/Pose/X", estimator.getEstimatedPosition().getX());
+          SmartDashboard.putNumber("SwerveDrive/Pose/Y", estimator.getEstimatedPosition().getY());
+          SmartDashboard.putNumber("SwerveDrive/Pose/Z", estimator.getEstimatedPosition().getRotation().getDegrees());
         }
     }
 
@@ -246,7 +256,12 @@ public class SwerveDrive extends SubsystemBase
   //Update the odometry values using the latest reported SwerveModule postitions and robot heading
   private void updateOdometry()
     { 
-       odometry.update( gyro.getRotation2d(), getSwerveModulePositions());
+      estimator.update( gyro.getRotation2d(), getSwerveModulePositions());
+      vision.updatePoseEstimation(this);
+
+      field.setRobotPose(getPose());
+      vision.updateVisionField();
+      SmartDashboard.putData(field);
     }
 
   /**
@@ -256,7 +271,7 @@ public class SwerveDrive extends SubsystemBase
   public void setStartLocation(Pose2d pose) 
     {
       gyro.setAngleAdjustment(pose.getRotation().getDegrees() - getGyroAngle());
-      odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), getPose());
+      estimator.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), getPose());
     }  
 
   /**
@@ -264,9 +279,9 @@ public class SwerveDrive extends SubsystemBase
    * @return The pose of the robot as a Pose2d
    */
   public Pose2d getPose()
-    { 
-      return new Pose2d(odometry.getPoseMeters().getX(), odometry.getPoseMeters().getY(), odometry.getPoseMeters().getRotation());   
-    } 
+  { 
+    return new Pose2d(estimator.getEstimatedPosition().getX(), estimator.getEstimatedPosition().getY(), estimator.getEstimatedPosition().getRotation());   
+  } 
 
   /* 
    * Command each swerve module to a SwerveModuleState (velocity and angle) based on an array of states passed in.
@@ -311,18 +326,22 @@ public class SwerveDrive extends SubsystemBase
   {
     System.out.println("resetting pose");
     resetGyro();
-    odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
+    estimator.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, gyro.getRotation2d()));
   }
 
   //A Pose2d consumer required for PathPlanner
   public void resetPose(Pose2d pose)
   {
-    odometry.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), pose);
+    estimator.resetPosition(gyro.getRotation2d(), getSwerveModulePositions(), pose);
   }
 
   //A getter of the robot's speed relative to itself
   public ChassisSpeeds getChassisSpeeds() {
     return kinematics.toChassisSpeeds(getSwerveModuleStates());
+  }
+
+  public void addVisionMeasurement(Pose2d pos, double seconds, Matrix<N3,N1> stdevs){
+    estimator.addVisionMeasurement(pos, seconds, stdevs); 
   }
 
   /*
