@@ -350,7 +350,7 @@ public class RobotContainer {
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_2, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
                   new MoveCoral(elavator, () -> ElevationLevel.Home, intake)));
-    NamedCommands.registerCommand("IntakeCoral", new CoralInput(intake));
+    NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));
 
     var autoNames = AutoBuilder.getAllAutoNames();
     selectedAuto.addOption(NO_SELECTED_AUTO, NO_SELECTED_AUTO);
