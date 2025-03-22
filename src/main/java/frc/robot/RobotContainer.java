@@ -341,7 +341,8 @@ public class RobotContainer {
     })));
     NamedCommands.registerCommand("Score Level4 Coral", 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
-                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)));
+                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel),
+                  new MoveCoral(elavator, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Score Level3 Coral", 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_3, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
