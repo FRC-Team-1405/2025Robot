@@ -316,7 +316,7 @@ public class RobotContainer {
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * 0.4;
 
-    double finalRotation =  -driver.getRightX();
+    double finalRotation =  driver.getRightX();
 
     if (Math.abs(finalRotation) < 0.15)
         finalRotation = 0.0;
