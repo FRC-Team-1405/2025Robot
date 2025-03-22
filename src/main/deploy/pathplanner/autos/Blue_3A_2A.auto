@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Red_5A"
+            "pathName": "Blue_3A"
           }
         },
         {
@@ -19,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RToFeeder_5A"
+            "pathName": "BToFeeder_3A"
           }
         },
         {
@@ -31,19 +31,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RFromFeeder_6A"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Score Level4 Coral"
+            "pathName": "BFromFeeder_2A"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Red_Position",
+  "folder": "Blue_Position",
   "choreoAuto": false
 }

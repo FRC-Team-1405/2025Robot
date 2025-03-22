@@ -7,13 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": null
+            "pathName": "Red_5A"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score Level4 Coral"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "Red_Position",
   "choreoAuto": false
 }
