@@ -83,8 +83,8 @@ public class RobotContainer {
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(driveBase.getSwerveDrive(),
-                                                                this::getXSpeed,
-                                                                this::getYSpeed)
+  () -> driver.getLeftY(),
+  () -> driver.getLeftX())
                                                             .withControllerRotationAxis(this::getRotationSpeed)
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .allianceRelativeControl(true);
@@ -226,7 +226,8 @@ public class RobotContainer {
   }
   
   public Command getAutonomousCommand() {
-    return driveBase.getAutonomousCommand("CircleAuto");
+    // return driveBase.getAutonomousCommand("CircleAuto");
+    return driveBase.getAutonomousCommand("DriveStraight1m");
   }
 
   public double getXSpeed(){
