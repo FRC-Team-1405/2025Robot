@@ -6,8 +6,11 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,6 +19,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTablesJNI;
@@ -127,7 +131,7 @@ public class Vision
    *
    * @param swerveDrive {@link SwerveDrive} instance.
    */
-  public void updatePoseEstimation(SwerveDrive swerveDrive)
+  public List<Optional<EstimatedRobotPose>> updatePoseEstimation(SwerveDrive swerveDrive)
   {
     if (SwerveDriveTelemetry.isSimulation && swerveDrive.getSimulationDriveTrainPose().isPresent())
     {
@@ -140,18 +144,25 @@ public class Vision
        */
       visionSim.update(swerveDrive.getSimulationDriveTrainPose().get());
     }
+    List<Optional<EstimatedRobotPose>> estimatedPoses = new ArrayList<>();
     for (Cameras camera : Cameras.values())
     {
       Optional<EstimatedRobotPose> poseEst = getEstimatedGlobalPose(camera);
+      estimatedPoses.add(poseEst);
       if (poseEst.isPresent())
       {
         var pose = poseEst.get();
+        
+        Matrix<N3, N1> curStdDevs = Robot.isReal() ? camera.curStdDevs :
+          MatBuilder.fill(Nat.N3(), Nat.N1(), 4, 5, 6);
+
         swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
                                          pose.timestampSeconds,
-                                         camera.curStdDevs);
+                                         curStdDevs);
       }
     }
 
+    return estimatedPoses;
   }
 
   /**
@@ -497,6 +508,14 @@ public class Vision
      */
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose()
     {
+      if (Robot.isSimulation()) {
+        Optional<EstimatedRobotPose> mockedRobotPose = Optional.of(
+          new EstimatedRobotPose(
+            new Pose3d(3, 3, 1, new Rotation3d(0,0,45)
+            ),
+            lastReadTimestamp, null, null));
+        return mockedRobotPose;
+      }
       updateUnreadResults();
       return estimatedRobotPose;
     }

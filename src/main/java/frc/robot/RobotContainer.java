@@ -83,11 +83,11 @@ public class RobotContainer {
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(driveBase.getSwerveDrive(),
-  () -> driver.getLeftY(),
-  () -> driver.getLeftX())
-                                                            .withControllerRotationAxis(this::getRotationSpeed)
-                                                            .deadband(OperatorConstants.DEADBAND)
-                                                            .allianceRelativeControl(true);
+      this::getXSpeed,
+      this::getYSpeed)
+      .withControllerRotationAxis(this::getRotationSpeed)
+      .deadband(OperatorConstants.DEADBAND)
+      .allianceRelativeControl(true);
 
   private static final SendableChooser<String> autos = new SendableChooser<>();
   private SendableChooser<String> selectedAuto = new SendableChooser<String>();

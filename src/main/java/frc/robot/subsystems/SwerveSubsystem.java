@@ -46,11 +46,13 @@ import frc.robot.subsystems.Vision.Cameras;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.json.simple.parser.ParseException;
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.targeting.PhotonPipelineResult;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
@@ -74,7 +76,7 @@ public class SwerveSubsystem extends SubsystemBase {
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean             visionOdometryEnable     = false;
+  private final boolean             visionOdometryEnable     = true;
 
   /**
    * PhotonVision class to keep an accurate odometry.
@@ -162,8 +164,16 @@ public class SwerveSubsystem extends SubsystemBase {
     if (visionOdometryEnable)
     {
       swerveDrive.updateOdometry();
-      vision.updatePoseEstimation(swerveDrive);
+      List<Optional<EstimatedRobotPose>> estimatedPoses = vision.updatePoseEstimation(swerveDrive);
+      List<Pose2d> poses = estimatedPoses.stream()
+          .flatMap(optionalPose -> optionalPose.stream().map(pose -> pose.estimatedPose.toPose2d())).toList();
       vision.updateVisionField();
+
+      for (int i = 0; i < poses.size(); i++) {
+        StructPublisher<Pose2d> estimatedPosePublisher = NetworkTableInstance.getDefault().getStructTopic("EstimatedPose_" + i, Pose2d.struct).publish();
+        estimatedPosePublisher.set(poses.get(i));
+    }
+    
 
       SmartDashboard.putData(swerveDrive.field);
     }
