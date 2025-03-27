@@ -20,6 +20,7 @@ import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
 import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
+import frc.robot.commands.CoralSonar;
 import frc.robot.commands.DropAlgae;
 import frc.robot.commands.GrabAlgae;
 import frc.robot.commands.LowScore;
@@ -218,6 +219,10 @@ public class RobotContainer {
 
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
 
+
+    Command coralSonar = new CoralSonar( driveBase::getPose, driver );
+    Trigger hasCoral = new Trigger( intake::hasCoral ); 
+    hasCoral.onTrue( coralSonar );
   }
   
   public Command getAutonomousCommand() {
