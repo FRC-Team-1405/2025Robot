@@ -45,6 +45,7 @@ import frc.robot.Constants;
 import frc.robot.subsystems.Vision.Cameras;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -84,6 +85,9 @@ public class SwerveSubsystem extends SubsystemBase {
   private Vision vision;
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("SwervePose", Pose2d.struct).publish();
+  StructPublisher<Pose2d> estimatedPosePublisher1 = NetworkTableInstance.getDefault().getStructTopic("EstimatedPose_0", Pose2d.struct).publish();
+  StructPublisher<Pose2d> estimatedPosePublisher2 = NetworkTableInstance.getDefault().getStructTopic("EstimatedPose_1", Pose2d.struct).publish();
+  List<StructPublisher<Pose2d>> estimatedPosesPublisher = new ArrayList<>();
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -92,6 +96,8 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   public SwerveSubsystem(File directory)
   {
+    estimatedPosesPublisher.add(estimatedPosePublisher1);
+    estimatedPosesPublisher.add(estimatedPosePublisher2);
     // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary objects being created.
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
     try
@@ -133,6 +139,8 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   public SwerveSubsystem(SwerveDriveConfiguration driveCfg, SwerveControllerConfiguration controllerCfg)
   {
+    estimatedPosesPublisher.add(estimatedPosePublisher1);
+    estimatedPosesPublisher.add(estimatedPosePublisher2);
     swerveDrive = new SwerveDrive(driveCfg,
                                   controllerCfg,
                                   Constants.MAX_SPEED,
@@ -164,14 +172,14 @@ public class SwerveSubsystem extends SubsystemBase {
     if (visionOdometryEnable)
     {
       swerveDrive.updateOdometry();
+      vision.updatePoseEstimation(swerveDrive);
       List<Optional<EstimatedRobotPose>> estimatedPoses = vision.updatePoseEstimation(swerveDrive);
       List<Pose2d> poses = estimatedPoses.stream()
           .flatMap(optionalPose -> optionalPose.stream().map(pose -> pose.estimatedPose.toPose2d())).toList();
       vision.updateVisionField();
 
       for (int i = 0; i < poses.size(); i++) {
-        StructPublisher<Pose2d> estimatedPosePublisher = NetworkTableInstance.getDefault().getStructTopic("EstimatedPose_" + i, Pose2d.struct).publish();
-        estimatedPosePublisher.set(poses.get(i));
+        estimatedPosesPublisher.get(i).set(poses.get(i));
     }
     
 

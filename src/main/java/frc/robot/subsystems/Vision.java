@@ -103,6 +103,10 @@ public class Vision
 
       openSimCameraViews();
     }
+
+    for (Cameras camera : Cameras.values()){
+      camera.resetResultsList();
+    }
   }
 
   /**
@@ -151,6 +155,7 @@ public class Vision
       estimatedPoses.add(poseEst);
       if (poseEst.isPresent())
       {
+        System.out.println("getEstimatedGlobalPose, IS present");
         var pose = poseEst.get();
         
         Matrix<N3, N1> curStdDevs = Robot.isReal() ? camera.curStdDevs :
@@ -159,6 +164,8 @@ public class Vision
         swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
                                          pose.timestampSeconds,
                                          curStdDevs);
+      } else {
+        System.out.println("getEstimatedGlobalPose, not present");
       }
     }
 
@@ -222,19 +229,19 @@ public class Vision
       }
 
       //est pose is very far from recorded robot pose
-      if (PhotonUtils.getDistanceToPose(currentPose.get(), pose.get().estimatedPose.toPose2d()) > 1)
-      {
-        longDistangePoseEstimationCount++;
+      // if (PhotonUtils.getDistanceToPose(currentPose.get(), pose.get().estimatedPose.toPose2d()) > 1)
+      // {
+      //   longDistangePoseEstimationCount++;
 
-        //if it calculates that were 10 meter away for more than 10 times in a row its probably right
-        if (longDistangePoseEstimationCount < 10)
-        {
-          return Optional.empty();
-        }
-      } else
-      {
-        longDistangePoseEstimationCount = 0;
-      }
+      //   //if it calculates that were 10 meter away for more than 10 times in a row its probably right
+      //   if (longDistangePoseEstimationCount < 10)
+      //   {
+      //     return Optional.empty();
+      //   }
+      // } else
+      // {
+      //   longDistangePoseEstimationCount = 0;
+      // }
       return pose;
     }
     return Optional.empty();
@@ -347,16 +354,17 @@ public class Vision
   enum Cameras
   {
     LEFT_CAM("Left",
-             new Rotation3d(0, Math.toRadians(15), Math.toRadians(135)),
-             new Translation3d(Units.inchesToMeters(12.254),
-                               Units.inchesToMeters(-12.84),
-                               Units.inchesToMeters(7.558)),
+             new Rotation3d(0, Math.toRadians(-15), Math.toRadians(135)),
+             new Translation3d(
+                               Units.inchesToMeters(-12.767),
+                               Units.inchesToMeters(-12.327),
+                               Units.inchesToMeters(7.588)),
              VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
     RIGHT_CAM("Right",
-              new Rotation3d(0, Math.toRadians(25), Math.toRadians(-135)),
-              new Translation3d(Units.inchesToMeters(-12.413),
-                                Units.inchesToMeters(-12.682),
-                                Units.inchesToMeters(7.646)),
+              new Rotation3d(0, Math.toRadians(-15), Math.toRadians(-135)),
+              new Translation3d(Units.inchesToMeters(-12.754),
+                                Units.inchesToMeters(12.326),
+                                Units.inchesToMeters(7.588)),
               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
     /**
      * Latency alert to use when high latency is detected.
@@ -527,7 +535,7 @@ public class Vision
     {
       double mostRecentTimestamp = resultsList.isEmpty() ? 0.0 : resultsList.get(0).getTimestampSeconds();
       double currentTimestamp    = Microseconds.of(NetworkTablesJNI.now()).in(Seconds);
-      double debounceTime        = Milliseconds.of(15).in(Seconds);
+      double debounceTime        = Milliseconds.of(45).in(Seconds);
       for (PhotonPipelineResult result : resultsList)
       {
         mostRecentTimestamp = Math.max(mostRecentTimestamp, result.getTimestampSeconds());
@@ -537,14 +545,20 @@ public class Vision
       {
         resultsList = Robot.isReal() ? camera.getAllUnreadResults() : cameraSim.getCamera().getAllUnreadResults();
         lastReadTimestamp = currentTimestamp;
+        System.out.println("resultsList.size(): " + resultsList.size());
         resultsList.sort((PhotonPipelineResult a, PhotonPipelineResult b) -> {
           return a.getTimestampSeconds() >= b.getTimestampSeconds() ? 1 : -1;
         });
+        System.out.println("made it out...");
         if (!resultsList.isEmpty())
         {
           updateEstimatedGlobalPose();
         }
       }
+    }
+
+    public void resetResultsList() {
+      // resultsList.clear();
     }
 
     /**
@@ -559,6 +573,7 @@ public class Vision
      */
     private void updateEstimatedGlobalPose()
     {
+      System.out.println("\nUPDATED: updateEstimatedGlobalPose");
       Optional<EstimatedRobotPose> visionEst = Optional.empty();
       for (var change : resultsList)
       {

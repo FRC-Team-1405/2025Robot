@@ -87,7 +87,7 @@ public class RobotContainer {
       this::getYSpeed)
       .withControllerRotationAxis(this::getRotationSpeed)
       .deadband(OperatorConstants.DEADBAND)
-      .allianceRelativeControl(true);
+      .allianceRelativeControl(false);
 
   private static final SendableChooser<String> autos = new SendableChooser<>();
   private SendableChooser<String> selectedAuto = new SendableChooser<String>();
@@ -227,14 +227,15 @@ public class RobotContainer {
   
   public Command getAutonomousCommand() {
     // return driveBase.getAutonomousCommand("CircleAuto");
-    return driveBase.getAutonomousCommand("DriveStraight1m");
+    return driveBase.getAutonomousCommand("Red_5B");
+    // return driveBase.getAutonomousCommand("DriveStraight3mTurn");
   }
 
   public double getXSpeed(){
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
 
-    return driver.getLeftY() * speedMultiplication;
+    return driver.getLeftY() * speedMultiplication * -1;
   }
 
   public double getYSpeed() { 
@@ -251,14 +252,14 @@ public class RobotContainer {
     else
       finalY = driver.getLeftX();
     
-    return finalY * speedMultiplication; 
+    return finalY * speedMultiplication * -1; 
   } 
 
   public double getRotationSpeed() { 
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
 
-    return driver.getRightX() * speedMultiplication;
+    return driver.getRightX() * speedMultiplication * -1;
   }
   
   public void setMotorBrake(boolean brake) {
