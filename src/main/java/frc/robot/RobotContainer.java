@@ -89,6 +89,15 @@ public class RobotContainer {
    */
 
    private final String SCORE_LEVEL_4_CORAL = "Score Level4 Coral";
+   private final String ELEVATOR_TO_LEVEL_4 = "Elevator To Level4";
+   private final String ELEVATOR_TO_HOME = "Elevator To Home";
+   private final String OUTPUT_CORAL = "Output Coral";
+
+   /*
+    * Feature Switches
+    */
+    public static final boolean AMBIGUITY_FILTER = true;
+    public static final boolean LONG_DISTANCE_FILTER = true;
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -293,6 +302,18 @@ public class RobotContainer {
 
   void configurePathPlanner() {
 
+    NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4, 
+                  new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake))
+                  );
+
+    NamedCommands.registerCommand(ELEVATOR_TO_HOME, 
+      new MoveCoral(elavator, () -> ElevationLevel.Home, intake)
+                  );
+    
+    NamedCommands.registerCommand(OUTPUT_CORAL, 
+      new CoralOutput(intake)
+                  );
+                  
     NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL, 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel),
