@@ -164,6 +164,15 @@ public class RobotContainer {
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elavator, () -> ArmLevel.Climb)));
     driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true)); 
+    driver.b()
+      .onTrue( new SequentialCommandGroup(
+        new CoralSonar(driveBase::getPose),
+        new CoralOutput(intake)
+        ))
+      .onFalse( new SequentialCommandGroup(
+        new CoralOutput(intake),
+        new ArmPosition(elavator, () -> ArmLevel.Travel)
+        ));
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
     SmartDashboard.putBoolean("Algae/Low", !highAlgae);
@@ -218,11 +227,6 @@ public class RobotContainer {
     SmartDashboard.putData(climbCommand);
 
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
-
-
-    Command coralSonar = new CoralSonar( driveBase::getPose, driver );
-    Trigger hasCoral = new Trigger( intake::hasCoral ); 
-    hasCoral.onTrue( coralSonar );
   }
   
   public Command getAutonomousCommand() {
