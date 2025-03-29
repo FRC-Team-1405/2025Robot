@@ -217,27 +217,22 @@ public class RobotContainer {
       intake.stop();
     }));
 
-    operator.povLeft()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
-            } ));
-     operator.povRight()
-            .onTrue( new InstantCommand( () -> { 
-              reefSelecter.setDirection(ReefSelecter.Direction.Left) ;
-            } ));       
-      operator.povUp()
-              .or(operator.povUpLeft())
-              .or(operator.povUpRight())
-              .onTrue( new InstantCommand( () -> {
-                reefSelecter.levelUp();
-              } ));
+    operator.povLeft().onTrue( Commands.runOnce(reefSelecter::selectLeft) );
+    operator.povRight().onTrue( Commands.runOnce(reefSelecter::selectRight));       
 
-      operator.povDown()
-              .or(operator.povDownLeft())
-              .or(operator.povDownRight())
-              .onTrue( new InstantCommand( () -> {
+    operator.povUp()
+            .or(operator.povUpLeft())
+            .or(operator.povUpRight())
+            .onTrue( new InstantCommand( () -> {
+                reefSelecter.levelUp();
+            } ));
+
+    operator.povDown()
+            .or(operator.povDownLeft())
+            .or(operator.povDownRight())
+            .onTrue( new InstantCommand( () -> {
                 reefSelecter.levelDown();
-              }));
+            }));
 
 
     Command climbCommand = new Climb(climber, () -> {

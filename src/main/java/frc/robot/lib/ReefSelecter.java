@@ -12,16 +12,27 @@ import frc.robot.subsystems.Elavator;
 
 /** Add your docs here. */
 public class ReefSelecter {
-    public enum CoralPosition {
-        Level_1_Left,
-        Level_2_Left,
-        Level_3_Left,
-        Level_4_Left,
-        Level_1_Right,
-        Level_2_Right,
-        Level_3_Right,
-        Level_4_Right,
+    public enum CoralLevel {
+        Level_1,
+        Level_2,
+        Level_3,
+        Level_4,
     };
+
+    public enum Coral {
+        Position_1,
+        Position_2,
+        Position_3,
+        Position_4,
+        Position_5,
+        Position_6,
+        Position_7,
+        Position_8,
+        Position_9,
+        Position_10,
+        Position_11,
+        Position_12,
+    }
 
     public enum Direction {
         Left,
@@ -29,12 +40,15 @@ public class ReefSelecter {
     }
 
     private Elavator.ElevationLevel level = Elavator.ElevationLevel.Level_4;
-    private Direction direction = Direction.Left;
-    private CoralPosition selected = updatePosition();
+    private CoralLevel coralLevel = CoralLevel.Level_4;
+    private Coral coralSelected = Coral.Position_1;
 
-    public CoralPosition setLevel(Elavator.ElevationLevel level){
+    public ReefSelecter(){
+        updatePosition();
+    }
+    public void setLevel(Elavator.ElevationLevel level){
         this.level = level;
-        return updatePosition();
+        updatePosition();
     }
 
     public Elavator.ElevationLevel getLevel() {
@@ -61,44 +75,87 @@ public class ReefSelecter {
         updatePosition();
     }
 
-    public CoralPosition setDirection (Direction direction){
-        this.direction = direction;
-        return updatePosition();
+    public void selectLeft (){
+        this.coralSelected = switch(this.coralSelected){
+            case Position_1  -> Coral.Position_12;
+            case Position_2  -> Coral.Position_1;
+            case Position_3  -> Coral.Position_2;
+            case Position_4  -> Coral.Position_3;
+            case Position_5  -> Coral.Position_4;
+            case Position_6  -> Coral.Position_5;
+            case Position_7  -> Coral.Position_6;
+            case Position_8  -> Coral.Position_7;
+            case Position_9  -> Coral.Position_8;
+            case Position_10 -> Coral.Position_9;
+            case Position_11 -> Coral.Position_10;
+            case Position_12 -> Coral.Position_11;
+            default -> this.coralSelected;
+        };
+        updatePosition();
     }
 
-    public CoralPosition getPosition() {
-            return selected;
+    public void selectRight(){
+        this.coralSelected = switch(this.coralSelected){
+            case Position_1  -> Coral.Position_2;
+            case Position_2  -> Coral.Position_3;
+            case Position_3  -> Coral.Position_4;
+            case Position_4  -> Coral.Position_5;
+            case Position_5  -> Coral.Position_6;
+            case Position_6  -> Coral.Position_7;
+            case Position_7  -> Coral.Position_8;
+            case Position_8  -> Coral.Position_9;
+            case Position_9  -> Coral.Position_10;
+            case Position_10 -> Coral.Position_11;
+            case Position_11 -> Coral.Position_12;
+            case Position_12 -> Coral.Position_1;
+            default -> this.coralSelected;
+        };
+        updatePosition();
     }
 
-    public CoralPosition updatePosition() {
+    public void setCoralPosition(Coral position){
+        this.coralSelected = position;
+    }
+
+    public Coral getCoralPosition(){
+        return this.coralSelected;
+    }
+
+    public void updatePosition() {
         switch (level) {
             case Level_1:
-                selected = (direction == Direction.Left) ? (CoralPosition.Level_1_Left) : (CoralPosition.Level_1_Right);
+                coralLevel = CoralLevel.Level_1;
                 break;
             case Level_2:
-                selected = (direction == Direction.Left) ? (CoralPosition.Level_2_Left) : (CoralPosition.Level_2_Right);
+                coralLevel = CoralLevel.Level_2;
                 break;
             case Level_3:
-                selected = (direction == Direction.Left) ? (CoralPosition.Level_3_Left) : (CoralPosition.Level_3_Right);
+                coralLevel = CoralLevel.Level_3;
                 break;
             case Level_4:
-                selected = (direction == Direction.Left) ? (CoralPosition.Level_4_Left) : (CoralPosition.Level_4_Right);
+                coralLevel = CoralLevel.Level_4;
                 break;
             default:
-                selected =  (direction == Direction.Left) ? (CoralPosition.Level_1_Left) : (CoralPosition.Level_1_Right);
+                coralLevel = CoralLevel.Level_1;
                 break;            
         }
 
         // update shuffleboard
-        SmartDashboard.putBoolean("Reef/Left L1", selected == CoralPosition.Level_1_Left);
-        SmartDashboard.putBoolean("Reef/Right L1", selected == CoralPosition.Level_1_Right);
-        SmartDashboard.putBoolean("Reef/Left L2", selected == CoralPosition.Level_2_Left);
-        SmartDashboard.putBoolean("Reef/Right L2", selected == CoralPosition.Level_2_Right);
-        SmartDashboard.putBoolean("Reef/Left L3", selected == CoralPosition.Level_3_Left);
-        SmartDashboard.putBoolean("Reef/Right L3", selected == CoralPosition.Level_3_Right);
-        SmartDashboard.putBoolean("Reef/Left L4", selected == CoralPosition.Level_4_Left);
-        SmartDashboard.putBoolean("Reef/Right L4", selected == CoralPosition.Level_4_Right);
-        return selected;
-
+        SmartDashboard.putBoolean("Reef/L1", coralLevel == CoralLevel.Level_1);
+        SmartDashboard.putBoolean("Reef/L2", coralLevel == CoralLevel.Level_2);
+        SmartDashboard.putBoolean("Reef/L3", coralLevel == CoralLevel.Level_3);
+        SmartDashboard.putBoolean("Reef/L4", coralLevel == CoralLevel.Level_4);
+        SmartDashboard.putBoolean("Reef/P1", coralSelected == Coral.Position_1);
+        SmartDashboard.putBoolean("Reef/P2", coralSelected == Coral.Position_2);
+        SmartDashboard.putBoolean("Reef/P3", coralSelected == Coral.Position_3);
+        SmartDashboard.putBoolean("Reef/P4", coralSelected == Coral.Position_4);
+        SmartDashboard.putBoolean("Reef/P5", coralSelected == Coral.Position_5);
+        SmartDashboard.putBoolean("Reef/P6", coralSelected == Coral.Position_6);
+        SmartDashboard.putBoolean("Reef/P7", coralSelected == Coral.Position_7);
+        SmartDashboard.putBoolean("Reef/P8", coralSelected == Coral.Position_8);
+        SmartDashboard.putBoolean("Reef/P9", coralSelected == Coral.Position_9);
+        SmartDashboard.putBoolean("Reef/P10", coralSelected == Coral.Position_10);
+        SmartDashboard.putBoolean("Reef/P11", coralSelected == Coral.Position_11);
+        SmartDashboard.putBoolean("Reef/P12", coralSelected == Coral.Position_12);
     }
 }
