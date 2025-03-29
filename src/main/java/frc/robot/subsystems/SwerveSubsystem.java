@@ -172,7 +172,6 @@ public class SwerveSubsystem extends SubsystemBase {
     if (visionOdometryEnable)
     {
       swerveDrive.updateOdometry();
-      vision.updatePoseEstimation(swerveDrive);
       List<Optional<EstimatedRobotPose>> estimatedPoses = vision.updatePoseEstimation(swerveDrive);
       List<Pose2d> poses = estimatedPoses.stream()
           .flatMap(optionalPose -> optionalPose.stream().map(pose -> pose.estimatedPose.toPose2d())).toList();
@@ -310,7 +309,7 @@ public class SwerveSubsystem extends SubsystemBase {
   {
 // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-        swerveDrive.getMaximumChassisVelocity(), 4.0,
+        swerveDrive.getMaximumChassisVelocity()/4, 4.0,
         swerveDrive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
 
 // Since AutoBuilder is configured, we can use it to build pathfinding commands

@@ -103,6 +103,7 @@ public class RobotContainer {
   private static final SendableChooser<String> autos = new SendableChooser<>();
   private SendableChooser<String> selectedAuto = new SendableChooser<String>();
   private static final String NO_SELECTED_AUTO = "None";
+  
   private static final String SimpleDrive = "Simple Drive";
   private static final String InvertedScore = "Inverted Score";
   private static final String DriveToReef = "Drive To Reef";
@@ -113,10 +114,9 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
+    configurePathPlanner();
     configureBindings();
-    configurePathPlanner();
     configureShuffboardCommands();
-    configurePathPlanner();
 
 
     driveBase.setDefaultCommand(driveBase.driveFieldOriented(driveAngularVelocity));
@@ -176,12 +176,14 @@ public class RobotContainer {
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elavator, () -> ArmLevel.Climb)));
     driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true)); 
     driver.b()
-        .onTrue(Commands.runOnce(() -> driveBase
+        .whileTrue(driveBase
             .driveToPose(
-              new Pose2d(5.276, 2.943, new Rotation2d(Radian.convertFrom(107.354, Degree)))
-              )).andThen(
-                NamedCommands.getCommand(SCORE_LEVEL_4_CORAL
-              )));
+              new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree)))
+              // new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree))) ID 21
+            )
+              .andThen(
+                NamedCommands.getCommand(SCORE_LEVEL_4_CORAL))
+              );
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
     SmartDashboard.putBoolean("Algae/Low", !highAlgae);
@@ -237,11 +239,20 @@ public class RobotContainer {
 
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
   }
-  
+
   public Command getAutonomousCommand() {
-    // return driveBase.getAutonomousCommand("CircleAuto");
-    return driveBase.getAutonomousCommand("Red_5B_5A");
-    // return driveBase.getAutonomousCommand("DriveStraight3mTurn");
+    if(DriverStation.isFMSAttached() || SmartDashboard.getBoolean("Auto Mode Enable", false)){
+      SmartDashboard.putBoolean("Auto Mode Enable", false);
+      String autoName = selectedAuto.getSelected();
+      if (autoName == NO_SELECTED_AUTO){
+        return Commands.none();
+      }
+      else{ 
+        return new PathPlannerAuto(autoName);
+      }
+    } else{
+        return Commands.print("Auto Disabled");
+    }
   }
 
   // TODO use driveAngularVelocity's scaleTranslation method and remove this method.
