@@ -87,7 +87,7 @@ public class RobotContainer {
       this::getYSpeed)
       .withControllerRotationAxis(this::getRotationSpeed)
       .deadband(OperatorConstants.DEADBAND)
-      .allianceRelativeControl(false);
+      .allianceRelativeControl(true);
 
   private static final SendableChooser<String> autos = new SendableChooser<>();
   private SendableChooser<String> selectedAuto = new SendableChooser<String>();
@@ -163,7 +163,7 @@ public class RobotContainer {
     driver.rightBumper().toggleOnTrue( new CoralInput(intake) );
     driver.leftBumper().onTrue( new SequentialCommandGroup( new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel) ) );
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elavator, () -> ArmLevel.Climb)));
-    driver.back().onTrue((Commands.runOnce(driveBase::zeroGyro)).ignoringDisable(true)); 
+    driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true)); 
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
     SmartDashboard.putBoolean("Algae/Low", !highAlgae);
@@ -231,6 +231,7 @@ public class RobotContainer {
     // return driveBase.getAutonomousCommand("DriveStraight3mTurn");
   }
 
+  // TODO use driveAngularVelocity's scaleTranslation method and remove this method.
   public double getXSpeed(){
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
