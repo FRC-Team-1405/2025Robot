@@ -117,6 +117,10 @@ public class ReefSelecter {
         this.coralSelected = position;
     }
 
+    public Coral getCoralPosition(){
+        return this.coralSelected;
+    }
+
     public void updatePosition() {
         switch (level) {
             case Level_1:
