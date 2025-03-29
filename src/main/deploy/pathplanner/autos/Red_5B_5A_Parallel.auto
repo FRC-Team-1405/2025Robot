@@ -57,13 +57,32 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RFromFeeder_5A"
+            "pathName": "RFromFeeder_5A_P1"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RFromFeeder_5A_P2"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Level4"
+                }
+              }
+            ]
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Score Level4 Coral"
+            "name": "Output Coral"
           }
         }
       ]
