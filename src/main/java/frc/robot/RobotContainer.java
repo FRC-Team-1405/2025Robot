@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degree;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radian;
+
 import java.io.File;
 import java.util.Optional;
 
@@ -34,6 +38,7 @@ import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -78,6 +83,12 @@ public class RobotContainer {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
+
+  /*
+   * Named Commands Constants
+   */
+
+   private final String SCORE_LEVEL_4_CORAL = "Score Level4 Coral";
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -165,14 +176,12 @@ public class RobotContainer {
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elavator, () -> ArmLevel.Climb)));
     driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true)); 
     driver.b()
-      .onTrue( new SequentialCommandGroup(
-        new CoralSonar(driveBase::getPose),
-        new CoralOutput(intake)
-        ))
-      .onFalse( new SequentialCommandGroup(
-        new CoralOutput(intake),
-        new ArmPosition(elavator, () -> ArmLevel.Travel)
-        ));
+        .onTrue(Commands.runOnce(() -> driveBase
+            .driveToPose(
+              new Pose2d(5.276, 2.943, new Rotation2d(Radian.convertFrom(107.354, Degree)))
+              )).andThen(
+                NamedCommands.getCommand(SCORE_LEVEL_4_CORAL
+              )));
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
     SmartDashboard.putBoolean("Algae/Low", !highAlgae);
@@ -273,9 +282,10 @@ public class RobotContainer {
 
   void configurePathPlanner() {
 
-    NamedCommands.registerCommand("Score Level4 Coral", 
+    NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL, 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_4, intake), 
-                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel)));
+                  new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel),
+                  new MoveCoral(elavator, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Score Level3 Coral", 
                   new SequentialCommandGroup( new MoveCoral(elavator, () -> ElevationLevel.Level_3, intake), 
                   new CoralOutput(intake), new ArmPosition(elavator, () -> ArmLevel.Travel), 
