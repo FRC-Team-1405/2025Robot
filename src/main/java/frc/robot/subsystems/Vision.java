@@ -155,7 +155,6 @@ public class Vision
       estimatedPoses.add(poseEst);
       if (poseEst.isPresent())
       {
-        System.out.println("getEstimatedGlobalPose, IS present");
         var pose = poseEst.get();
         
         Matrix<N3, N1> curStdDevs = Robot.isReal() ? camera.curStdDevs :
