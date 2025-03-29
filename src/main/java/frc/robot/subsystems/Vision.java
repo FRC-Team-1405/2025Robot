@@ -27,6 +27,8 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
+
 import java.awt.Desktop;
 import java.util.ArrayList;
 import java.util.List;
@@ -227,20 +229,21 @@ public class Vision
         return Optional.empty();
       }
 
-      //est pose is very far from recorded robot pose
-      // if (PhotonUtils.getDistanceToPose(currentPose.get(), pose.get().estimatedPose.toPose2d()) > 1)
-      // {
-      //   longDistangePoseEstimationCount++;
+      // est pose is very far from recorded robot pose
+      if (RobotContainer.LONG_DISTANCE_FILTER) {
+        if (PhotonUtils.getDistanceToPose(currentPose.get(), pose.get().estimatedPose.toPose2d()) > 1) {
+          longDistangePoseEstimationCount++;
 
-      //   //if it calculates that were 10 meter away for more than 10 times in a row its probably right
-      //   if (longDistangePoseEstimationCount < 10)
-      //   {
-      //     return Optional.empty();
-      //   }
-      // } else
-      // {
-      //   longDistangePoseEstimationCount = 0;
-      // }
+          // if it calculates that were 10 meter away for more than 10 times in a row its
+          // probably right
+          if (longDistangePoseEstimationCount < 10) {
+            return Optional.empty();
+          }
+        } else {
+          longDistangePoseEstimationCount = 0;
+        }
+      }
+      
       return pose;
     }
     return Optional.empty();
@@ -329,6 +332,10 @@ public class Vision
         PhotonPipelineResult latest = c.resultsList.get(0);
         if (latest.hasTargets())
         {
+          if (RobotContainer.AMBIGUITY_FILTER) {
+            targets.removeIf(e -> e.getPoseAmbiguity() < maximumAmbiguity);
+          }
+          
           targets.addAll(latest.targets);
         }
       }

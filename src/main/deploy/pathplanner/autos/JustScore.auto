@@ -5,9 +5,9 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Middle_4A"
+            "name": "Score Level4 Coral"
           }
         }
       ]
