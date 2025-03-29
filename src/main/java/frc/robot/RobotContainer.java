@@ -240,7 +240,7 @@ public class RobotContainer {
   
   public Command getAutonomousCommand() {
     // return driveBase.getAutonomousCommand("CircleAuto");
-    return driveBase.getAutonomousCommand("Red_5B");
+    return driveBase.getAutonomousCommand("Red_5B_5A");
     // return driveBase.getAutonomousCommand("DriveStraight3mTurn");
   }
 

@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.1386039402173913,
-        "y": 1.0413807744565202
+        "x": 1.252,
+        "y": 0.97
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.8122282608695652,
-        "y": 0.9400390624999989
+        "x": 1.925624320652174,
+        "y": 0.8686582880434787
       },
       "isLocked": false,
       "linkedName": null
@@ -45,7 +45,7 @@
     "rotation": -59.99999999999999
   },
   "reversed": false,
-  "folder": "Red_Feeder_Station",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
     "rotation": -125.00000000000001
