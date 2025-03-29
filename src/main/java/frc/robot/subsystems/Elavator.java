@@ -51,7 +51,7 @@ public class Elavator extends SubsystemBase {
 
   public enum ArmLevel {
     Home(0.0), 
-    Travel(3.0), 
+    Travel(3.5), 
     Low_Score(0.0), 
     Middle_Score(3.0), 
     High_Score(6.5),

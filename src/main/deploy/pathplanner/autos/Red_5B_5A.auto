@@ -23,15 +23,9 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Intake Coral"
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "RFromFeeder_6B"
+            "pathName": "RFromFeeder_5A"
           }
         },
         {
@@ -44,6 +38,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Red_Position",
+  "folder": null,
   "choreoAuto": false
 }
