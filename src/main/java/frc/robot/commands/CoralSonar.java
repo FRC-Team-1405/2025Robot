@@ -45,7 +45,7 @@ public class CoralSonar extends Command {
     Preferences.initDouble("CoralSonar/RightTarget", -6.5);
     Preferences.initDouble("CoralSonar/Range", 2.0);
     targetLeft = Units.inchesToMeters( Preferences.getDouble("CoralSonar/LeftTarget", 6.5) );
-    targetRight = Units.inchesToMeters( Preferences.getDouble("CoralSonar", -6.5) );
+    targetRight = Units.inchesToMeters( Preferences.getDouble("CoralSonar/RightTarget", -6.5) );
     targetRange = Units.inchesToMeters( Preferences.getDouble("CoralSonar/Range", 2.0) );
 
     SmartDashboard.putNumber("CoralSonar/Target", 0);
@@ -56,7 +56,6 @@ public class CoralSonar extends Command {
     Transform2d right = new Transform2d(0, Units.inchesToMeters(targetRight), Rotation2d.kZero);
 
     field.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
-
     blueCoral = field.getTags()
       .stream()
       .filter(tag -> 17 <= tag.ID && tag.ID <= 22)
@@ -64,12 +63,27 @@ public class CoralSonar extends Command {
       .flatMap(tag -> Arrays.asList(tag.transformBy(left), tag.transformBy(right)).stream())
       .collect(Collectors.toList());
 
+      System.out.printf("\n\n");
+      System.out.printf("Blue Alliance\n");
+      System.out.printf("==========\n");
+      field.getTags()
+      .stream()
+      .filter(tag -> (17 <= tag.ID && tag. ID <= 22) || (6 <= tag.ID && tag.ID <= 11))
+      .forEach(tag -> {
+          var p = tag.pose.toPose2d();
+          System.out.printf("%02d   %s\n", tag.ID, p.toString());
+          System.out.printf("   L %s\n", p.transformBy(left).toString()); 
+          System.out.printf("   R %s\n", p.transformBy(right).toString());
+      });
+
     field.setOrigin(OriginPosition.kRedAllianceWallRightSide);
     redCoral = field.getTags()
       .stream()
       .filter(tag -> 6 <= tag.ID && tag.ID <= 11).map(tag -> tag.pose.toPose2d())
       .flatMap(tag -> Arrays.asList(tag.transformBy(left), tag.transformBy(right)).stream())
       .collect(Collectors.toList());
+
+
   }
 
   // Called when the command is initially scheduled.
