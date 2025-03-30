@@ -159,14 +159,12 @@ public class Vision
       {
         var pose = poseEst.get();
         
-        Matrix<N3, N1> curStdDevs = Robot.isReal() ? camera.curStdDevs :
-          MatBuilder.fill(Nat.N3(), Nat.N1(), 4, 5, 6);
+        Matrix<N3, N1> curStdDevs = Robot.isReal() ? camera.curStdDevs : 
+            MatBuilder.fill(Nat.N3(), Nat.N1(), 4, 5, 6); // robot is in simulation, provide fake camera stdDev readings
 
         swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
                                          pose.timestampSeconds,
                                          curStdDevs);
-      } else {
-        System.out.println("getEstimatedGlobalPose, not present");
       }
     }
 
@@ -232,16 +230,16 @@ public class Vision
       // est pose is very far from recorded robot pose
       if (RobotContainer.LONG_DISTANCE_FILTER) {
         if (PhotonUtils.getDistanceToPose(currentPose.get(), pose.get().estimatedPose.toPose2d()) > 1) {
-          longDistangePoseEstimationCount++;
+        longDistangePoseEstimationCount++;
 
           // if it calculates that were 10 meter away for more than 10 times in a row its
           // probably right
           if (longDistangePoseEstimationCount < 10) {
-            return Optional.empty();
-          }
-        } else {
-          longDistangePoseEstimationCount = 0;
+          return Optional.empty();
         }
+        } else {
+        longDistangePoseEstimationCount = 0;
+      }
       }
       
       return pose;
@@ -333,7 +331,7 @@ public class Vision
         if (latest.hasTargets())
         {
           if (RobotContainer.AMBIGUITY_FILTER) {
-            targets.removeIf(e -> e.getPoseAmbiguity() < maximumAmbiguity);
+            targets.removeIf(e -> e.getPoseAmbiguity() > maximumAmbiguity);
           }
           
           targets.addAll(latest.targets);
@@ -551,11 +549,9 @@ public class Vision
       {
         resultsList = Robot.isReal() ? camera.getAllUnreadResults() : cameraSim.getCamera().getAllUnreadResults();
         lastReadTimestamp = currentTimestamp;
-        System.out.println("resultsList.size(): " + resultsList.size());
         resultsList.sort((PhotonPipelineResult a, PhotonPipelineResult b) -> {
           return a.getTimestampSeconds() >= b.getTimestampSeconds() ? 1 : -1;
         });
-        System.out.println("made it out...");
         if (!resultsList.isEmpty())
         {
           updateEstimatedGlobalPose();
@@ -564,7 +560,9 @@ public class Vision
     }
 
     public void resetResultsList() {
-      // resultsList.clear();
+      if (RobotContainer.RESET_CAMERA_RESULTS) {
+        resultsList.clear();
+      }
     }
 
     /**
@@ -579,7 +577,6 @@ public class Vision
      */
     private void updateEstimatedGlobalPose()
     {
-      System.out.println("\nUPDATED: updateEstimatedGlobalPose");
       Optional<EstimatedRobotPose> visionEst = Optional.empty();
       for (var change : resultsList)
       {

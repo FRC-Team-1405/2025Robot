@@ -98,6 +98,8 @@ public class RobotContainer {
     */
     public static final boolean AMBIGUITY_FILTER = true;
     public static final boolean LONG_DISTANCE_FILTER = true;
+    public static final boolean RESET_CAMERA_RESULTS = false;
+
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -220,19 +222,19 @@ public class RobotContainer {
     operator.povLeft().onTrue( Commands.runOnce(reefSelecter::selectLeft) );
     operator.povRight().onTrue( Commands.runOnce(reefSelecter::selectRight));       
 
-    operator.povUp()
-            .or(operator.povUpLeft())
-            .or(operator.povUpRight())
-            .onTrue( new InstantCommand( () -> {
+      operator.povUp()
+              .or(operator.povUpLeft())
+              .or(operator.povUpRight())
+              .onTrue( new InstantCommand( () -> {
                 reefSelecter.levelUp();
-            } ));
+              } ));
 
-    operator.povDown()
-            .or(operator.povDownLeft())
-            .or(operator.povDownRight())
-            .onTrue( new InstantCommand( () -> {
+      operator.povDown()
+              .or(operator.povDownLeft())
+              .or(operator.povDownRight())
+              .onTrue( new InstantCommand( () -> {
                 reefSelecter.levelDown();
-            }));
+              }));
 
 
     Command climbCommand = new Climb(climber, () -> {
@@ -243,7 +245,7 @@ public class RobotContainer {
 
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
   }
-
+  
   public Command getAutonomousCommand() {
     if(DriverStation.isFMSAttached() || SmartDashboard.getBoolean("Auto Mode Enable", false)){
       SmartDashboard.putBoolean("Auto Mode Enable", false);
