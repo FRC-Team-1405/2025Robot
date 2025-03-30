@@ -81,6 +81,7 @@ public class RobotContainer {
   public static final boolean AMBIGUITY_FILTER = true;
   public static final boolean LONG_DISTANCE_FILTER = true;
   public static final boolean RESET_CAMERA_RESULTS = false;
+  public static final boolean PARALLEL_AUTO_ALIGN = false;
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled
@@ -176,7 +177,25 @@ public class RobotContainer {
         .onTrue(new SequentialCommandGroup(new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
     driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true));
-    driver.b()
+
+    
+
+    if (PARALLEL_AUTO_ALIGN) {
+
+      // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position while raising the elevator.
+      // It will not score the coral, the operator will need to output the coral.
+      // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
+      driver.b()
+        .whileTrue(driveBase
+            .driveToPose(
+                new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree)))
+            // new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree))) ID 21
+            ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
+    } else {
+
+      // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position, raise the elevator and score the coral in sequence.
+      // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
+      driver.b()
         .whileTrue(driveBase
             .driveToPose(
                 new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree)))
@@ -184,6 +203,7 @@ public class RobotContainer {
             )
             .andThen(
                 NamedCommands.getCommand(SCORE_LEVEL_4_CORAL)));
+    }
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
     SmartDashboard.putBoolean("Algae/Low", !highAlgae);
