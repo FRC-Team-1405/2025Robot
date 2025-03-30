@@ -4,9 +4,6 @@
 
 package frc.robot.lib;
 
-import java.lang.System.Logger.Level;
-
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.Elevator;
 

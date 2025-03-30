@@ -16,6 +16,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -32,6 +33,7 @@ import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
 import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
+import frc.robot.commands.CoralPositionCalculator;
 import frc.robot.commands.GrabAlgae;
 import frc.robot.commands.LowScore;
 import frc.robot.commands.MoveCoral;
@@ -105,6 +107,8 @@ public class RobotContainer {
   private static final String DriveAndScoreHigh = "Drive And Score High";
   private static final String DiagonalScore = "Diagonal Score";
 
+  private CoralPositionCalculator coralPositionCalculator;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -113,6 +117,8 @@ public class RobotContainer {
     configurePathPlanner();
     configureBindings();
     configureShuffboardCommands();
+
+    coralPositionCalculator = new CoralPositionCalculator(() -> driveBase.getPose());
 
     driveBase.setDefaultCommand(driveBase.driveFieldOriented(driveAngularVelocity));
   }
@@ -188,8 +194,8 @@ public class RobotContainer {
       driver.b()
         .whileTrue(driveBase
             .driveToPose(
-                new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree)))
-            // new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree))) ID 21
+                new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0)))
+            // new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0))) ID 21
             ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
     } else {
 
@@ -198,8 +204,8 @@ public class RobotContainer {
       driver.b()
         .whileTrue(driveBase
             .driveToPose(
-                new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree)))
-            // new Pose2d(5.764, 4.19, new Rotation2d(Radian.convertFrom(0, Degree))) ID 21
+                new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0)))
+            // new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0))) ID 21
             )
             .andThen(
                 NamedCommands.getCommand(SCORE_LEVEL_4_CORAL)));
