@@ -8,7 +8,7 @@ import java.lang.System.Logger.Level;
 
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.subsystems.Elavator;
+import frc.robot.subsystems.Elevator;
 
 /** Add your docs here. */
 public class ReefSelecter {
@@ -39,27 +39,27 @@ public class ReefSelecter {
         Right,
     }
 
-    private Elavator.ElevationLevel level = Elavator.ElevationLevel.Level_4;
+    private Elevator.ElevationLevel level = Elevator.ElevationLevel.Level_4;
     private CoralLevel coralLevel = CoralLevel.Level_4;
     private Coral coralSelected = Coral.Position_1;
 
     public ReefSelecter(){
         updatePosition();
     }
-    public void setLevel(Elavator.ElevationLevel level){
+    public void setLevel(Elevator.ElevationLevel level){
         this.level = level;
         updatePosition();
     }
 
-    public Elavator.ElevationLevel getLevel() {
+    public Elevator.ElevationLevel getLevel() {
         return level;
     }
 
     public void levelUp() {
         level = switch(level) {
-            case Level_1 -> Elavator.ElevationLevel.Level_2;
-            case Level_2 -> Elavator.ElevationLevel.Level_3;
-            case Level_3 -> Elavator.ElevationLevel.Level_4;
+            case Level_1 -> Elevator.ElevationLevel.Level_2;
+            case Level_2 -> Elevator.ElevationLevel.Level_3;
+            case Level_3 -> Elevator.ElevationLevel.Level_4;
             default -> level;
         };
         updatePosition();
@@ -67,9 +67,9 @@ public class ReefSelecter {
     
     public void levelDown(){
         level = switch(level){
-            case Level_4 -> Elavator.ElevationLevel.Level_3;
-            case Level_3 -> Elavator.ElevationLevel.Level_2;
-            case Level_2 -> Elavator.ElevationLevel.Level_1;
+            case Level_4 -> Elevator.ElevationLevel.Level_3;
+            case Level_3 -> Elevator.ElevationLevel.Level_2;
+            case Level_2 -> Elevator.ElevationLevel.Level_1;
             default -> level;
         };
         updatePosition();

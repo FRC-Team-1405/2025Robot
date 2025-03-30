@@ -8,14 +8,14 @@ import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Elavator;
-import frc.robot.subsystems.Elavator.ArmLevel;
-import frc.robot.subsystems.Elavator.ElevationLevel;
+import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Elevator.ArmLevel;
+import frc.robot.subsystems.Elevator.ElevationLevel;
 import frc.robot.subsystems.Intake;
 
 public class GrabAlgae extends SequentialCommandGroup {
   /** Creates a new GrabAlgae. */
-  public GrabAlgae(Elavator elevator, Intake intake, BooleanSupplier highAlgae) {
+  public GrabAlgae(Elevator elevator, Intake intake, BooleanSupplier highAlgae) {
     addRequirements(elevator);
     addRequirements(intake);
     addCommands( new ArmPosition(elevator, () -> ArmLevel.Algae));

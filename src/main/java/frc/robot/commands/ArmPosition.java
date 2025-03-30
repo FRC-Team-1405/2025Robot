@@ -7,15 +7,15 @@ package frc.robot.commands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Elavator;
-import frc.robot.subsystems.Elavator.ArmLevel;
+import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Elevator.ArmLevel;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ArmPosition extends Command {
   /** Creates a new CoralOutput. */
-  private Elavator elavator;
+  private Elevator elavator;
   private Supplier<ArmLevel> desiredLevel;
-  public ArmPosition(Elavator elavator, Supplier<ArmLevel> level) {
+  public ArmPosition(Elevator elavator, Supplier<ArmLevel> level) {
     this.elavator = elavator;
     this.desiredLevel = level;
     addRequirements(elavator);

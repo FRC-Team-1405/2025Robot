@@ -34,7 +34,7 @@ import frc.robot.Constants.CanID;
 import frc.robot.Constants.DigitalIO;
 
 
-public class Elavator extends SubsystemBase {
+public class Elevator extends SubsystemBase {
   public enum ElevationLevel {
     Home(0.0), Level_1(0.0), Level_2(6.5), Level_3(18.0), Level_4(36.5), Inverted_Low(12.6);
 
@@ -164,7 +164,7 @@ public class Elavator extends SubsystemBase {
 
 
   /** Creates a new Elavator. */
-  public Elavator() {
+  public Elevator() {
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, false));
 
     MechanismRoot2d root = mechanism.getRoot("Root", 2, 0);

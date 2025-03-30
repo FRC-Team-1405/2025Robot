@@ -8,9 +8,9 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.subsystems.Elavator;
-import frc.robot.subsystems.Elavator.ArmLevel;
-import frc.robot.subsystems.Elavator.ElevationLevel;
+import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Elevator.ArmLevel;
+import frc.robot.subsystems.Elevator.ElevationLevel;
 import frc.robot.subsystems.Intake;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -18,9 +18,9 @@ import frc.robot.subsystems.Intake;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class MoveCoral extends SequentialCommandGroup {
 
-  private Supplier<Elavator.ElevationLevel> level;
+  private Supplier<Elevator.ElevationLevel> level;
 
-  public MoveCoral(Elavator elavator, Supplier<Elavator.ElevationLevel> level, Intake intake) {
+  public MoveCoral(Elevator elavator, Supplier<Elevator.ElevationLevel> level, Intake intake) {
     this.level = level;
     
     addRequirements(elavator);

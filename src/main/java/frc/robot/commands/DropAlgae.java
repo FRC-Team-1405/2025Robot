@@ -6,9 +6,9 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.subsystems.Elavator;
-import frc.robot.subsystems.Elavator.ArmLevel;
-import frc.robot.subsystems.Elavator.ElevationLevel;
+import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Elevator.ArmLevel;
+import frc.robot.subsystems.Elevator.ElevationLevel;
 import frc.robot.subsystems.Intake;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -16,7 +16,7 @@ import frc.robot.subsystems.Intake;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class DropAlgae extends SequentialCommandGroup {
   /** Creates a new DropAlgae. */
-  public DropAlgae(Elavator elevator, Intake intake) {
+  public DropAlgae(Elevator elevator, Intake intake) {
     addRequirements(elevator);
     addCommands( intake.runOnce( intake::outtakeAlgae ));
     addCommands( new ArmPosition(elevator, () -> ArmLevel.Algae));

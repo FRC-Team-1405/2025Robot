@@ -7,17 +7,17 @@ package frc.robot.commands;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.subsystems.Elavator;
+import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Elavator.ArmLevel;
-import frc.robot.subsystems.Elavator.ElevationLevel;
+import frc.robot.subsystems.Elevator.ArmLevel;
+import frc.robot.subsystems.Elevator.ElevationLevel;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class LowScore extends SequentialCommandGroup {
   /** Creates a new LowScore. */
-  public LowScore(Elavator elavator,Intake intake) {
+  public LowScore(Elevator elavator,Intake intake) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addRequirements(elavator, intake);
