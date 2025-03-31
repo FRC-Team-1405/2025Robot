@@ -6,13 +6,11 @@ package frc.robot;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -60,8 +58,6 @@ public class RobotContainer {
   private final Climber climber = new Climber();
   private final Intake intake = new Intake();
 
-  private final Supplier<Optional<Pose2d>> reefSelecterCurrentSelectionSupplier = () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition());
-
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
@@ -72,6 +68,7 @@ public class RobotContainer {
 
   private final String SCORE_LEVEL_4_CORAL = "Score Level4 Coral";
   private final String ELEVATOR_TO_LEVEL_4 = "Elevator To Level4";
+  private final String ELEVATOR_TO_SELECTED_LEVEL = "Elevator To Selected Level";
   private final String ELEVATOR_TO_HOME = "Elevator To Home";
   private final String OUTPUT_CORAL = "Output Coral";
 
@@ -81,9 +78,10 @@ public class RobotContainer {
   public static final boolean AMBIGUITY_FILTER = true;
   public static final boolean LONG_DISTANCE_FILTER = true;
   public static final boolean RESET_CAMERA_RESULTS = false;
-  public static final boolean PARALLEL_AUTO_ALIGN = false;
+  public static final boolean PARALLEL_AUTO_ALIGN = true;
   public static final boolean CALCULATE_CORAL_ROBOT_POSITIONS = false;
-  public static final boolean VISUALIZE_REEF_SELECTER_POSITION = true;
+  public static final boolean VISUALIZE_REEF_SELECTER_POSITION = false;
+  public static final boolean AUTO_ALIGN_USE_SELECTED_ELEVATOR_LEVEL = false;
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled
@@ -194,22 +192,41 @@ public class RobotContainer {
       // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position while raising the elevator.
       // It will not score the coral, the operator will need to output the coral.
       // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
-      driver.b()
+      if (AUTO_ALIGN_USE_SELECTED_ELEVATOR_LEVEL) {
+        driver.b()
         .whileTrue(driveBase
             .driveToPose(
-                reefSelecterCurrentSelectionSupplier
+              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
+            ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
+      } else {
+        driver.b()
+        .whileTrue(driveBase
+            .driveToPose(
+              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
             ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
+      }
+      
     } else {
 
       // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position, raise the elevator and score the coral in sequence.
       // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
-      driver.b()
+      if (AUTO_ALIGN_USE_SELECTED_ELEVATOR_LEVEL) {
+        driver.b()
+          .whileTrue(driveBase
+              .driveToPose(
+                () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
+              )
+              .andThen(
+                  NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
+      } else {
+        driver.b()
         .whileTrue(driveBase
             .driveToPose(
-              reefSelecterCurrentSelectionSupplier
+              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
             )
             .andThen(
-                NamedCommands.getCommand(SCORE_LEVEL_4_CORAL)));
+                NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
+      }
     }
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
@@ -318,6 +335,8 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)));
+    NamedCommands.registerCommand(ELEVATOR_TO_SELECTED_LEVEL,
+        new SequentialCommandGroup(new MoveCoral(elevator, () -> reefSelecter.getLevel(), intake)));
 
     NamedCommands.registerCommand(ELEVATOR_TO_HOME,
         new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
