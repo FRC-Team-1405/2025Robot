@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -50,6 +51,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
@@ -295,22 +297,24 @@ public class SwerveSubsystem extends SubsystemBase {
 
   /**
    * Use PathPlanner Path finding to go to a point on the field.
+   * If supplier provides empty optional, do nothing.
    *
    * @param pose Target {@link Pose2d} to go to.
    * @return PathFinding command
    */
-  public Command driveToPose(Pose2d pose) {
-    // Create the constraints to use while pathfinding
-    PathConstraints constraints = new PathConstraints(
+  public Command driveToPose(Supplier<Optional<Pose2d>> pose) {
+      // Create the constraints to use while pathfinding
+      PathConstraints constraints = new PathConstraints(
         swerveDrive.getMaximumChassisVelocity() / 4, 4.0,
         swerveDrive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
 
-    // Since AutoBuilder is configured, we can use it to build pathfinding commands
-    return AutoBuilder.pathfindToPose(
-        pose,
-        constraints,
-        edu.wpi.first.units.Units.MetersPerSecond.of(0) // Goal end velocity in meters/sec
-    );
+      // Since AutoBuilder is configured, we can use it to build pathfinding commands
+      return new DeferredCommand(
+        () -> AutoBuilder.pathfindToPose(
+          pose.get().get(),
+          constraints,
+          edu.wpi.first.units.Units.MetersPerSecond.of(0) // Goal end velocity in meters/sec
+      ), Set.of(this));
   }
 
   /**

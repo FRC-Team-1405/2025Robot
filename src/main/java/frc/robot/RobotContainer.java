@@ -4,19 +4,15 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degree;
-import static edu.wpi.first.units.Units.Radian;
-
 import java.io.File;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -64,6 +60,8 @@ public class RobotContainer {
   private final Climber climber = new Climber();
   private final Intake intake = new Intake();
 
+  private final Supplier<Optional<Pose2d>> reefSelecterCurrentSelectionSupplier = () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition());
+
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
@@ -84,6 +82,8 @@ public class RobotContainer {
   public static final boolean LONG_DISTANCE_FILTER = true;
   public static final boolean RESET_CAMERA_RESULTS = false;
   public static final boolean PARALLEL_AUTO_ALIGN = false;
+  public static final boolean CALCULATE_CORAL_ROBOT_POSITIONS = false;
+  public static final boolean VISUALIZE_REEF_SELECTER_POSITION = true;
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled
@@ -118,7 +118,9 @@ public class RobotContainer {
     configureBindings();
     configureShuffboardCommands();
 
-    coralPositionCalculator = new CoralPositionCalculator(() -> driveBase.getPose());
+    if (CALCULATE_CORAL_ROBOT_POSITIONS) {
+      coralPositionCalculator = new CoralPositionCalculator(() -> driveBase.getPose());
+    }
 
     driveBase.setDefaultCommand(driveBase.driveFieldOriented(driveAngularVelocity));
   }
@@ -132,6 +134,7 @@ public class RobotContainer {
 
   public void teleopInit() {
     alliance = DriverStation.getAlliance();
+    reefSelecter.updateSelectedReefPositionVisualizer();
   }
 
   private void configureShuffboardCommands() {
@@ -194,8 +197,7 @@ public class RobotContainer {
       driver.b()
         .whileTrue(driveBase
             .driveToPose(
-                new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0)))
-            // new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0))) ID 21
+                reefSelecterCurrentSelectionSupplier
             ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
     } else {
 
@@ -204,8 +206,7 @@ public class RobotContainer {
       driver.b()
         .whileTrue(driveBase
             .driveToPose(
-                new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0)))
-            // new Pose2d(5.764, 4.19, new Rotation2d(Units.degreesToRadians(0))) ID 21
+              reefSelecterCurrentSelectionSupplier
             )
             .andThen(
                 NamedCommands.getCommand(SCORE_LEVEL_4_CORAL)));

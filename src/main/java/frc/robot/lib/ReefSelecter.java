@@ -4,7 +4,18 @@
 
 package frc.robot.lib;
 
+import java.util.Optional;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.Elevator;
 
 /** Add your docs here. */
@@ -39,6 +50,9 @@ public class ReefSelecter {
     private Elevator.ElevationLevel level = Elevator.ElevationLevel.Level_4;
     private CoralLevel coralLevel = CoralLevel.Level_4;
     private Coral coralSelected = Coral.Position_1;
+
+    StructPublisher<Pose2d> selectedReefPositionPublisher = NetworkTableInstance.getDefault()
+            .getStructTopic("SelectedReefPosition", Pose2d.struct).publish();
 
     public ReefSelecter(){
         updatePosition();
@@ -154,5 +168,69 @@ public class ReefSelecter {
         SmartDashboard.putBoolean("Reef/P10", coralSelected == Coral.Position_10);
         SmartDashboard.putBoolean("Reef/P11", coralSelected == Coral.Position_11);
         SmartDashboard.putBoolean("Reef/P12", coralSelected == Coral.Position_12);
+
+        updateSelectedReefPositionVisualizer();
+    }
+
+    public void updateSelectedReefPositionVisualizer() {
+        if (RobotContainer.VISUALIZE_REEF_SELECTER_POSITION) {
+            // TODO make this update a variable with the result, then add a getter for that result.
+            // then use that getter when the driver presses B instead of getting the mapped position on the fly. slightly more efficient.
+            getRobotPositionForCoral(getCoralPosition()).ifPresent(selectedPosition -> selectedReefPositionPublisher.set(selectedPosition));
+        }
+    }
+
+    /**
+     * Process for position values was loosly documented in docs/MappingCoralPositionsToPValuesForReefSelector.md
+     * @param coralToGetRobotPositionFor
+     * @param currentAlliance
+     * @return
+     */
+    public Optional<Pose2d> getRobotPositionForCoral(Coral coralToGetRobotPositionFor) {
+        System.out.println("called getRobotPositionForCoral");
+        if (DriverStation.getAlliance().isEmpty()){
+            return Optional.empty();
+        }
+
+        Alliance currentAlliance = DriverStation.getAlliance().get();
+
+        Pose2d selectedPosition;
+
+        if (Alliance.Red.equals(currentAlliance)) {
+            selectedPosition = switch(this.coralSelected) {
+                case Position_1  -> new Pose2d(new Translation2d(11.78, 4.19), new Rotation2d(Units.degreesToRadians(180.00)));
+                case Position_2  -> new Pose2d(new Translation2d(12.28, 5.05), new Rotation2d(Units.degreesToRadians(120.00)));
+                case Position_3  -> new Pose2d(new Translation2d(12.56, 5.21), new Rotation2d(Units.degreesToRadians(120.00)));
+                case Position_4  -> new Pose2d(new Translation2d(13.55, 5.21), new Rotation2d(Units.degreesToRadians(60.00)));
+                case Position_5  -> new Pose2d(new Translation2d(13.84, 5.05), new Rotation2d(Units.degreesToRadians(60.00)));
+                case Position_6  -> new Pose2d(new Translation2d(14.33, 4.19), new Rotation2d(Units.degreesToRadians(0.00)));
+                case Position_7  -> new Pose2d(new Translation2d(14.33, 3.86), new Rotation2d(Units.degreesToRadians(0.00)));
+                case Position_8  -> new Pose2d(new Translation2d(13.84, 3.00), new Rotation2d(Units.degreesToRadians( -60.00)));
+                case Position_9  -> new Pose2d(new Translation2d(13.55, 2.84), new Rotation2d(Units.degreesToRadians( -60.00)));
+                case Position_10 -> new Pose2d(new Translation2d(12.56, 2.84), new Rotation2d(Units.degreesToRadians( -120.00)));
+                case Position_11 -> new Pose2d(new Translation2d(12.28, 3.00), new Rotation2d(Units.degreesToRadians( -120.00)));
+                case Position_12 -> new Pose2d(new Translation2d(11.78, 3.86), new Rotation2d(Units.degreesToRadians(180.00)));
+                default -> null;
+            };
+        } else {
+            selectedPosition = switch(this.coralSelected) {
+                case Position_1  -> new Pose2d(new Translation2d(5.77, 3.86), new Rotation2d(Units.degreesToRadians(0.00)));
+                case Position_2  -> new Pose2d(new Translation2d(5.27, 3.00), new Rotation2d(Units.degreesToRadians( -60.00)));
+                case Position_3  -> new Pose2d(new Translation2d(4.98, 2.84), new Rotation2d(Units.degreesToRadians( -60.00)));
+                case Position_4  -> new Pose2d(new Translation2d(3.99, 2.84), new Rotation2d(Units.degreesToRadians( -120.00)));
+                case Position_5  -> new Pose2d(new Translation2d(3.71, 3.00), new Rotation2d(Units.degreesToRadians( -120.00)));
+                case Position_6  -> new Pose2d(new Translation2d(3.21, 3.86), new Rotation2d(Units.degreesToRadians(180.00)));
+                case Position_7  -> new Pose2d(new Translation2d(3.21, 4.19), new Rotation2d(Units.degreesToRadians(180.00)));
+                case Position_8  -> new Pose2d(new Translation2d(3.71, 5.05), new Rotation2d(Units.degreesToRadians(120.00)));
+                case Position_9  -> new Pose2d(new Translation2d(3.99, 5.21), new Rotation2d(Units.degreesToRadians(120.00)));
+                case Position_10 -> new Pose2d(new Translation2d(4.98, 5.21), new Rotation2d(Units.degreesToRadians(60.00)));
+                case Position_11 -> new Pose2d(new Translation2d(5.27, 5.05), new Rotation2d(Units.degreesToRadians(60.00)));
+                case Position_12 -> new Pose2d(new Translation2d(5.77, 4.19), new Rotation2d(Units.degreesToRadians(0.00)));
+                default -> null;
+            };
+        }
+
+        System.out.printf("Getting Selected Position: %s", selectedPosition);
+        return Optional.of(selectedPosition);
     }
 }
