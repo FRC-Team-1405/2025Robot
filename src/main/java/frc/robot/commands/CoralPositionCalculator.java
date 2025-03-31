@@ -42,8 +42,8 @@ public class CoralPositionCalculator extends Command {
   private double distanceToTarget = 0.0;
 
 
-  private final double targetLeft = Units.inchesToMeters( 6.5 );
-  private final double targetRight = Units.inchesToMeters( -6.5 );
+  private final double targetLeft = Units.inchesToMeters( -6.5 );
+  private final double targetRight = Units.inchesToMeters( 6.5 );
   private final double targetRange = Units.inchesToMeters( 2.0 );
 
   private final double halfRobotLength = Units.inchesToMeters(17.5);
@@ -85,33 +85,19 @@ public class CoralPositionCalculator extends Command {
     leftCoralPositions.stream().forEach(p -> leftCoralRobotPositions.add( p.transformBy(halfRobotTransform) ));
     rightCoralPositions.stream().forEach(p -> rightCoralRobotPositions.add( p.transformBy(halfRobotTransform) ));
 
-      System.out.printf("\n\n");
-      System.out.printf("April Tag positions\n");
-      System.out.printf("==========\n");
-      field.getTags()
-      .stream()
-      .filter(tag -> (17 <= tag.ID && tag. ID <= 22) || (6 <= tag.ID && tag.ID <= 11))
-      .forEach(tag -> {
-          var p = tag.pose.toPose2d();
-          System.out.printf("%02d   %s\n", tag.ID, p.toString());
+    leftCoralRobotPositions.forEach( p -> {
+      System.out.printf("Left Coral Robot Position %s\n", p.toString());
+    });
 
-          System.out.printf("   L %s\n", p.transformBy(left).toString());
-          System.out.printf("   R %s\n", p.transformBy(right).toString());
-      });
+    rightCoralRobotPositions.forEach( p -> {
+      System.out.printf("Right Coral Robot Position %s\n", p.toString());
+    });
 
+    visualizePoints(leftCoralPublisher, leftCoralPositions);
+    visualizePoints(rightCoralPublisher, rightCoralPositions);
 
-
-      // List<Pose2d> pointsToVisualize = List.of(
-      //   new Pose2d(new Translation2d(13.47, 3.31), new Rotation2d(Units.degreesToRadians(-60.00))),
-      //   new Pose2d(new Translation2d(13.62, 3.39), new Rotation2d(Units.degreesToRadians(-60.00))),
-      //   new Pose2d(new Translation2d(13.33, 3.22), new Rotation2d(Units.degreesToRadians(-60.00)))
-      // );
-
-      visualizePoints(leftCoralPublisher, leftCoralPositions);
-      visualizePoints(rightCoralPublisher, rightCoralPositions);
-
-      visualizePoints(leftCoralRobotPublisher, leftCoralRobotPositions);
-      visualizePoints(rightCoralRobotPublisher, rightCoralRobotPositions);
+    visualizePoints(leftCoralRobotPublisher, leftCoralRobotPositions);
+    visualizePoints(rightCoralRobotPublisher, rightCoralRobotPositions);
   }
 
   // Called when the command is initially scheduled.
