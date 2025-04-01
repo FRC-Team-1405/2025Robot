@@ -306,7 +306,9 @@ public class Vision {
         PhotonPipelineResult latest = c.resultsList.get(0);
         if (latest.hasTargets()) {
           if (RobotContainer.AMBIGUITY_FILTER) {
+            System.out.println("AMBIGUITY_FILTER starting targets size: " + targets.size());
             targets.removeIf(e -> e.getPoseAmbiguity() > maximumAmbiguity);
+            System.out.println("AMBIGUITY_FILTER ending targets size: " + targets.size());
           }
 
           targets.addAll(latest.targets);

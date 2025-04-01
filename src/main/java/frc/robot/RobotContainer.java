@@ -19,7 +19,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
@@ -81,7 +84,7 @@ public class RobotContainer {
   public static final boolean PARALLEL_AUTO_ALIGN = true;
   public static final boolean CALCULATE_CORAL_ROBOT_POSITIONS = false;
   public static final boolean VISUALIZE_REEF_SELECTER_POSITION = false;
-  public static final boolean AUTO_ALIGN_USE_SELECTED_ELEVATOR_LEVEL = false;
+  public static final boolean AUTO_ALIGN_USE_SELECTED_ELEVATOR_LEVEL = true;
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled
@@ -342,7 +345,10 @@ public class RobotContainer {
         new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
 
     NamedCommands.registerCommand(OUTPUT_CORAL,
-        new CoralOutput(intake));
+        new ParallelRaceGroup(
+            new CoralOutput(intake), 
+            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))
+        ));
 
     NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake),

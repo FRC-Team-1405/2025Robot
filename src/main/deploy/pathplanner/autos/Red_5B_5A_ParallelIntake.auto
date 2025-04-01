@@ -49,15 +49,22 @@
           }
         },
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "Intake Coral"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RFromFeeder_5A_P1"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RFromFeeder_5A_P1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Coral"
+                }
+              }
+            ]
           }
         },
         {
@@ -99,6 +106,25 @@
                 "type": "path",
                 "data": {
                   "pathName": "RToFeeder_5A"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Coral"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RFromFeeder_6B"
                 }
               }
             ]

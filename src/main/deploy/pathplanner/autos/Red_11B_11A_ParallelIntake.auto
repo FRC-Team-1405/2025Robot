@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Red_5B"
+                  "pathName": "Blue_3A"
                 }
               },
               {
@@ -36,7 +36,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "RToFeeder_5B"
+                  "pathName": "BToFeeder_3A"
                 }
               },
               {
@@ -49,15 +49,22 @@
           }
         },
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "Intake Coral"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RFromFeeder_5A_P1"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "BFromFeeder_3B_P1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Coral"
+                }
+              }
+            ]
           }
         },
         {
@@ -67,7 +74,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "RFromFeeder_5A_P2"
+                  "pathName": "BFromFeeder_3B_P2"
                 }
               },
               {
@@ -98,7 +105,26 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "RToFeeder_5A"
+                  "pathName": "BToFeeder_3B"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Coral"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "BFromFeeder_2B"
                 }
               }
             ]
