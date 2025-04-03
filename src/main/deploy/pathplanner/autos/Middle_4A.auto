@@ -5,12 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "Set Middle Start"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "Middle_4A"
@@ -21,11 +15,23 @@
           "data": {
             "name": "Score Level4 Coral"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Algae_4A"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Low Algae"
+          }
         }
       ]
     }
   },
-  "resetOdom": true,
-  "folder": null,
+  "resetOdom": false,
+  "folder": "Middle",
   "choreoAuto": false
 }

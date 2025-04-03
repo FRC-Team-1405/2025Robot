@@ -7,6 +7,7 @@ package frc.robot;
 import java.io.File;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -32,6 +33,8 @@ import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
 import frc.robot.commands.CoralPositionCalculator;
 import frc.robot.commands.GrabAlgae;
+import frc.robot.commands.HighAlgae;
+import frc.robot.commands.LowAlgae;
 import frc.robot.commands.LowScore;
 import frc.robot.commands.MoveCoral;
 import frc.robot.lib.ReefSelecter;
@@ -69,6 +72,8 @@ public class RobotContainer {
    * Named Commands Constants
    */
 
+  private final String LOW_ALGAE = "Low Algae";
+  private final String HIGH_ALGAE = "High Algae";
   private final String SCORE_LEVEL_4_CORAL = "Score Level4 Coral";
   private final String ELEVATOR_TO_LEVEL_4 = "Elevator To Level4";
   private final String ELEVATOR_TO_SELECTED_LEVEL = "Elevator To Selected Level";
@@ -350,6 +355,8 @@ public class RobotContainer {
             new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))
         ));
 
+    NamedCommands.registerCommand(LOW_ALGAE, new SequentialCommandGroup(new LowAlgae(elevator, intake)));
+    NamedCommands.registerCommand(HIGH_ALGAE, new SequentialCommandGroup(new HighAlgae(elevator, intake)));
     NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake),
             new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),

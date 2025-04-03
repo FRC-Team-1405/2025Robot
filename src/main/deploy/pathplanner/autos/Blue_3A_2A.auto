@@ -19,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "BToFeeder_3A"
+            "pathName": "LToFeeder_3A"
           }
         },
         {
@@ -31,7 +31,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "BFromFeeder_2A"
+            "pathName": "LFromFeeder_2A"
           }
         },
         {
@@ -44,6 +44,6 @@
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "LeftSide",
   "choreoAuto": false
 }

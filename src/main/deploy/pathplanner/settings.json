@@ -2,8 +2,23 @@
   "robotWidth": 0.889,
   "robotLength": 0.889,
   "holonomicMode": true,
-  "pathFolders": [],
-  "autoFolders": [],
+  "pathFolders": [
+    "Blue_Position",
+    "BuckeyePaths",
+    "LFromFeeder",
+    "LToFeeder",
+    "Middle_Position",
+    "Algae_Positions",
+    "RFromFeeder",
+    "RToFeeder",
+    "Red_Position"
+  ],
+  "autoFolders": [
+    "GoodAutos",
+    "LeftSide",
+    "Middle",
+    "RightSide"
+  ],
   "defaultMaxVel": 1.5,
   "defaultMaxAccel": 3.0,
   "defaultMaxAngVel": 540.0,

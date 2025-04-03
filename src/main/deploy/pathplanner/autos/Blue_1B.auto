@@ -19,7 +19,7 @@
       ]
     }
   },
-  "resetOdom": true,
-  "folder": null,
+  "resetOdom": false,
+  "folder": "LeftSide",
   "choreoAuto": false
 }

@@ -1,0 +1,170 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Copy of Blue_3A"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Level4"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Output Coral"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LToFeeder_3A"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Home"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Coral"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LFromFeeder_2_P1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Level4"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LFromFeeder_2A_P2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Output Coral"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Home"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LToFeeder_2A"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Coral"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LFromFeeder_2_P1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Level4"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LFromFeeder_2B_P2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Output Coral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Elevator To Home"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": false,
+  "folder": "GoodAutos",
+  "choreoAuto": false
+}
