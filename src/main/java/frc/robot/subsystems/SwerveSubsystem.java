@@ -55,6 +55,7 @@ import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.Vision.Cameras;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
@@ -75,11 +76,7 @@ public class SwerveSubsystem extends SubsystemBase {
    * AprilTag field layout.
    */
   private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
-  /**
-   * Enable vision odometry updates while driving.
-   */
-  private final boolean visionOdometryEnable = true;
-
+  
   /**
    * PhotonVision class to keep an accurate odometry.
    */
@@ -131,7 +128,7 @@ public class SwerveSubsystem extends SubsystemBase {
     // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used
     // over the internal encoder and push the offsets onto it. Throws warning if not
     // possible
-    if (visionOdometryEnable) {
+    if (RobotContainer.VISION_ODOMETRY_ESTIMATION) {
       setupPhotonVision();
       // Stop the odometry thread if we are using vision that way we can synchronize
       // updates better.
@@ -175,7 +172,7 @@ public class SwerveSubsystem extends SubsystemBase {
       SmartDashboard.putNumber("PIDDebuging/module" + module.moduleNumber + "/Percentage", errorPercentage);
     }
 
-    if (visionOdometryEnable) {
+    if (RobotContainer.VISION_ODOMETRY_ESTIMATION) {
       swerveDrive.updateOdometry();
       List<Optional<EstimatedRobotPose>> estimatedPoses = vision.updatePoseEstimation(swerveDrive);
       List<Pose2d> poses = estimatedPoses.stream()

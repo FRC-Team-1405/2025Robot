@@ -85,6 +85,8 @@ public class RobotContainer {
   public static final boolean CALCULATE_CORAL_ROBOT_POSITIONS = false;
   public static final boolean VISUALIZE_REEF_SELECTER_POSITION = false;
   public static final boolean AUTO_ALIGN_USE_SELECTED_ELEVATOR_LEVEL = true;
+  public static final boolean VISION_ODOMETRY_ESTIMATION = true; // Enable vision and publish its estimated position (doesn't update robot odometry)
+  public static final boolean VISION_ROBOT_ODOMETRY_UPDATE = false; // Enable vision odometry updates while driving. Doesn't work without VISION_ODOMETRY_ESTIMATION set to true.
 
   /*
    * Converts driver input into a field-relative ChassisSpeeds that is controlled

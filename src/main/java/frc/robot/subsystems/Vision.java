@@ -157,9 +157,11 @@ public class Vision {
         Matrix<N3, N1> curStdDevs = Robot.isReal() ? camera.curStdDevs : 
             MatBuilder.fill(Nat.N3(), Nat.N1(), 4, 5, 6); // robot is in simulation, provide fake camera stdDev readings
 
-        swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
+        if (RobotContainer.VISION_ROBOT_ODOMETRY_UPDATE) {
+          swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
             pose.timestampSeconds,
             curStdDevs);
+        }
       }
     }
 
