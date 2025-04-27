@@ -50,7 +50,7 @@ public class CoralSonar extends Command {
 
     SmartDashboard.putNumber("CoralSonar/Target", 0);
 
-    AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+    AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
 
     Transform2d left = new Transform2d(0, Units.inchesToMeters(targetLeft), Rotation2d.kZero);
     Transform2d right = new Transform2d(0, Units.inchesToMeters(targetRight), Rotation2d.kZero);

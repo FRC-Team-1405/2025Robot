@@ -44,6 +44,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -75,7 +76,7 @@ public class SwerveSubsystem extends SubsystemBase {
   /**
    * AprilTag field layout.
    */
-  private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+  private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
   
   /**
    * PhotonVision class to keep an accurate odometry.
@@ -89,6 +90,29 @@ public class SwerveSubsystem extends SubsystemBase {
   StructPublisher<Pose2d> estimatedPosePublisher2 = NetworkTableInstance.getDefault()
       .getStructTopic("EstimatedPose_1", Pose2d.struct).publish();
   List<StructPublisher<Pose2d>> estimatedPosesPublisher = new ArrayList<>();
+
+  /**
+   * Move Robot To Position Feature
+   */
+  NetworkTableEntry xEntry = NetworkTableInstance.getDefault().getTable("DashboardTable").getEntry("xPosition");
+  NetworkTableEntry yEntry = NetworkTableInstance.getDefault().getTable("DashboardTable").getEntry("yPosition");
+
+  double moveToXPosition = xEntry.getDouble(0.0); // Default to 0.0 if not set
+  double moveToYPosition = yEntry.getDouble(0.0);
+  Pose2d targetPose = new Pose2d(moveToXPosition, moveToYPosition, new Rotation2d(0)); // Rotation of 0 degrees for simplicity TODO improve this
+
+  // Supplier<Optional<Pose2d>> poseSupplier = () -> Optional.of(targetPose);
+  Supplier<Optional<Pose2d>> poseSupplier = () -> {
+    double x = NetworkTableInstance.getDefault()
+                   .getTable("DashboardTable")
+                   .getEntry("xPosition").getDouble(0.0);
+    double y = NetworkTableInstance.getDefault()
+                   .getTable("DashboardTable")
+                   .getEntry("yPosition").getDouble(0.0);
+    return Optional.of(new Pose2d(x, y, new Rotation2d(0))); // Adjust rotation as needed
+};
+
+  Command driveToPositionCommand;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -135,6 +159,13 @@ public class SwerveSubsystem extends SubsystemBase {
       swerveDrive.stopOdometryThread();
     }
     setupPathPlanner();
+
+    if (RobotContainer.MOVE_ROBOT_TO_POSITION) {
+      xEntry.setDouble(0.0);
+      yEntry.setDouble(0.0);
+
+      driveToPositionCommand = driveToPose(poseSupplier);
+    }
   }
 
   /**
@@ -151,6 +182,12 @@ public class SwerveSubsystem extends SubsystemBase {
         Constants.MAX_SPEED,
         new Pose2d(new Translation2d(Meter.of(2), Meter.of(0)),
             Rotation2d.fromDegrees(0)));
+  }
+
+  public void configureShuffboardCommands() {
+    if (RobotContainer.MOVE_ROBOT_TO_POSITION) {
+      SmartDashboard.putBoolean("Move Robot To Position", false);
+    }
   }
 
   /**
@@ -186,6 +223,16 @@ public class SwerveSubsystem extends SubsystemBase {
       SmartDashboard.putData(swerveDrive.field);
     }
     publisher.set(swerveDrive.getPose());
+
+    if (RobotContainer.MOVE_ROBOT_TO_POSITION) {
+      if (SmartDashboard.getBoolean("Move Robot To Position", false)) {
+        vision.visionUpdateRobotOdometry = true;
+        driveToPositionCommand.schedule();
+      } else {
+        driveToPositionCommand.cancel();
+        vision.visionUpdateRobotOdometry = RobotContainer.VISION_ROBOT_ODOMETRY_UPDATE;
+      }
+    }
   }
 
   @Override

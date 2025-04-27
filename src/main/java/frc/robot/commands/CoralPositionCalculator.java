@@ -63,7 +63,7 @@ public class CoralPositionCalculator extends Command {
 
     SmartDashboard.putNumber("CoralPositionCalculator/Target", 0);
 
-    AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+    AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
 
     Transform2d left = new Transform2d(0, targetLeft, Rotation2d.kZero);
     Transform2d right = new Transform2d(0, targetRight, Rotation2d.kZero);

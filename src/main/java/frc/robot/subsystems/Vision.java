@@ -57,7 +57,7 @@ public class Vision {
    * April Tag Field Layout of the year.
    */
   public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(
-      AprilTagFields.k2025Reefscape);
+      AprilTagFields.k2025ReefscapeAndyMark);
   /**
    * Ambiguity defined as a value between (0,1). Used in
    * {@link Vision#filterPose}.
@@ -80,6 +80,11 @@ public class Vision {
    * Field from {@link swervelib.SwerveDrive#field}
    */
   private Field2d field2d;
+
+  /**
+   * a class variable mirroring VISION_ROBOT_ODOMETRY_UPDATE FeatureSwitch, that can be overriden by features that want to temporarily update odometry from vision readings.
+   */
+  public boolean visionUpdateRobotOdometry;
 
   /**
    * Constructor for the Vision class.
@@ -106,6 +111,8 @@ public class Vision {
     for (Cameras camera : Cameras.values()) {
       camera.resetResultsList();
     }
+
+    visionUpdateRobotOdometry = RobotContainer.VISION_ROBOT_ODOMETRY_UPDATE;
   }
 
   /**
@@ -157,7 +164,7 @@ public class Vision {
         Matrix<N3, N1> curStdDevs = Robot.isReal() ? camera.curStdDevs : 
             MatBuilder.fill(Nat.N3(), Nat.N1(), 4, 5, 6); // robot is in simulation, provide fake camera stdDev readings
 
-        if (RobotContainer.VISION_ROBOT_ODOMETRY_UPDATE) {
+        if (visionUpdateRobotOdometry) {
           swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
             pose.timestampSeconds,
             curStdDevs);
