@@ -14,6 +14,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -292,6 +293,10 @@ public class RobotContainer {
     SmartDashboard.putData(climbCommand);
 
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
+
+    if(RobotBase.isSimulation()){
+      driver.x().onTrue(Commands.runOnce(driveBase::addFakeVisionReading));
+    }
   }
 
   public Command getAutonomousCommand() {

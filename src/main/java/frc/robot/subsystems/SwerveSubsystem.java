@@ -44,6 +44,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
@@ -91,6 +92,12 @@ public class SwerveSubsystem extends SubsystemBase {
       .getStructTopic("EstimatedPose_1", Pose2d.struct).publish();
   List<StructPublisher<Pose2d>> estimatedPosesPublisher = new ArrayList<>();
 
+  DoublePublisher driveVsVisionOdometryDifference_0 = NetworkTableInstance.getDefault()
+  .getDoubleTopic("DriveVsVisionOdometryDifference_0").publish();
+  DoublePublisher driveVsVisionOdometryDifference_1 = NetworkTableInstance.getDefault()
+  .getDoubleTopic("DriveVsVisionOdometryDifference_1").publish();
+  List<DoublePublisher> driveVsVisionOdometryDifference_Publishers = new ArrayList<>();
+
   /**
    * Move Robot To Position Feature
    */
@@ -101,7 +108,6 @@ public class SwerveSubsystem extends SubsystemBase {
   double moveToYPosition = yEntry.getDouble(0.0);
   Pose2d targetPose = new Pose2d(moveToXPosition, moveToYPosition, new Rotation2d(0)); // Rotation of 0 degrees for simplicity TODO improve this
 
-  // Supplier<Optional<Pose2d>> poseSupplier = () -> Optional.of(targetPose);
   Supplier<Optional<Pose2d>> poseSupplier = () -> {
     double x = NetworkTableInstance.getDefault()
                    .getTable("DashboardTable")
@@ -109,8 +115,8 @@ public class SwerveSubsystem extends SubsystemBase {
     double y = NetworkTableInstance.getDefault()
                    .getTable("DashboardTable")
                    .getEntry("yPosition").getDouble(0.0);
-    return Optional.of(new Pose2d(x, y, new Rotation2d(0))); // Adjust rotation as needed
-};
+    return Optional.of(new Pose2d(x, y, new Rotation2d(0))); // Rotation of 0 degrees for simplicity
+  };
 
   Command driveToPositionCommand;
 
@@ -122,6 +128,9 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveSubsystem(File directory) {
     estimatedPosesPublisher.add(estimatedPosePublisher1);
     estimatedPosesPublisher.add(estimatedPosePublisher2);
+    driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
+    driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
+
     // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary
     // objects being created.
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
@@ -177,6 +186,9 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveSubsystem(SwerveDriveConfiguration driveCfg, SwerveControllerConfiguration controllerCfg) {
     estimatedPosesPublisher.add(estimatedPosePublisher1);
     estimatedPosesPublisher.add(estimatedPosePublisher2);
+    driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
+    driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
+
     swerveDrive = new SwerveDrive(driveCfg,
         controllerCfg,
         Constants.MAX_SPEED,
@@ -217,7 +229,13 @@ public class SwerveSubsystem extends SubsystemBase {
       vision.updateVisionField();
 
       for (int i = 0; i < poses.size(); i++) {
+        // publish the position of each cameras estimated pose
         estimatedPosesPublisher.get(i).set(poses.get(i));
+
+        // publish the error between each cameras estimated pose and the drive estimated pose
+        Translation2d cameraEstimatedPose_Translation2d = poses.get(i).getTranslation();
+        Translation2d driveEstimatedPose_Translation2d = swerveDrive.getPose().getTranslation();
+        driveVsVisionOdometryDifference_Publishers.get(i).set(cameraEstimatedPose_Translation2d.getDistance(driveEstimatedPose_Translation2d));
       }
 
       SmartDashboard.putData(swerveDrive.field);
