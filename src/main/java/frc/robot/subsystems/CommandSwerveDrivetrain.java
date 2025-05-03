@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -9,20 +11,31 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-
+import frc.robot.RobotContainer;
+import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -40,6 +53,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+
+    /** Swerve request to apply during robot-centric path following */
+    private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -108,6 +124,29 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
 
+
+    /**
+     * Move Robot To Position Feature
+     */
+    NetworkTableEntry xEntry = NetworkTableInstance.getDefault().getTable("DashboardTable").getEntry("xPosition");
+    NetworkTableEntry yEntry = NetworkTableInstance.getDefault().getTable("DashboardTable").getEntry("yPosition");
+
+    double moveToXPosition = xEntry.getDouble(0.0); // Default to 0.0 if not set
+    double moveToYPosition = yEntry.getDouble(0.0);
+    Pose2d targetPose = new Pose2d(moveToXPosition, moveToYPosition, new Rotation2d(Units.degreesToRadians(0))); // Rotation of 0 degrees for simplicity TODO improve this
+
+    Supplier<Optional<Pose2d>> poseSupplier = () -> {
+        double x = NetworkTableInstance.getDefault()
+                    .getTable("DashboardTable")
+                    .getEntry("xPosition").getDouble(0.0);
+        double y = NetworkTableInstance.getDefault()
+                    .getTable("DashboardTable")
+                    .getEntry("yPosition").getDouble(0.0);
+        return Optional.of(new Pose2d(x, y, new Rotation2d(Units.degreesToRadians(0)))); // Rotation of 0 degrees for simplicity
+    };
+
+  Command driveToPositionCommand;
+
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
      * <p>
@@ -126,6 +165,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        configureAutoBuilder();
+        xEntry.setDouble(0.0);
+        yEntry.setDouble(0.0);
+        driveToPositionCommand = driveToPose(poseSupplier);
     }
 
     /**
@@ -150,6 +194,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        configureAutoBuilder();
+        xEntry.setDouble(0.0);
+        yEntry.setDouble(0.0);
+        driveToPositionCommand = driveToPose(poseSupplier);
     }
 
     /**
@@ -181,6 +230,41 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         super(drivetrainConstants, odometryUpdateFrequency, odometryStandardDeviation, visionStandardDeviation, modules);
         if (Utils.isSimulation()) {
             startSimThread();
+        }
+
+        configureAutoBuilder();
+        xEntry.setDouble(0.0);
+        yEntry.setDouble(0.0);
+        driveToPositionCommand = driveToPose(poseSupplier);
+    }
+
+    private void configureAutoBuilder() {
+        System.out.println("CONFIGURED AUTOBUILDER");
+        try {
+            var config = RobotConfig.fromGUISettings();
+            AutoBuilder.configure(
+                () -> getState().Pose,   // Supplier of current robot pose
+                this::resetPose,         // Consumer for seeding pose against auto
+                () -> getState().Speeds, // Supplier of current robot speeds
+                // Consumer of ChassisSpeeds and feedforwards to drive the robot
+                (speeds, feedforwards) -> setControl(
+                    m_pathApplyRobotSpeeds.withSpeeds(speeds)
+                        .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+                        .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+                ),
+                new PPHolonomicDriveController(
+                    // PID constants for translation
+                    new PIDConstants(10, 0, 0),
+                    // PID constants for rotation
+                    new PIDConstants(7, 0, 0)
+                ),
+                config,
+                // Assume the path needs to be flipped for Red vs Blue, this is normally the case
+                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+                this // Subsystem for requirements
+            );
+        } catch (Exception ex) {
+            DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", ex.getStackTrace());
         }
     }
 
@@ -235,6 +319,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        if (SmartDashboard.getBoolean("Move Robot To Position", false)) {
+            driveToPositionCommand.schedule();
+          } else {
+            driveToPositionCommand.cancel();
+          }
     }
 
     private void startSimThread() {
@@ -285,4 +375,30 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }
+
+    public void configureShuffleboardCommands() {
+        SmartDashboard.putBoolean("Move Robot To Position", false);
+    }
+
+     /**
+   * Use PathPlanner Path finding to go to a point on the field.
+   * If supplier provides empty optional, do nothing.
+   *
+   * @param pose Target {@link Pose2d} to go to.
+   * @return PathFinding command
+   */
+  public Command driveToPose(Supplier<Optional<Pose2d>> pose) {
+      // Create the constraints to use while pathfinding
+      PathConstraints constraints = new PathConstraints(
+        TunerConstants.kSpeedAt12Volts.magnitude() / 3, 4.0,
+        3, Units.degreesToRadians(720));
+
+      // Since AutoBuilder is configured, we can use it to build pathfinding commands
+      return new DeferredCommand(
+        () -> AutoBuilder.pathfindToPose(
+          pose.get().get(),
+          constraints,
+          edu.wpi.first.units.Units.MetersPerSecond.of(0) // Goal end velocity in meters/sec
+      ), Set.of(this));
+  }
 }
