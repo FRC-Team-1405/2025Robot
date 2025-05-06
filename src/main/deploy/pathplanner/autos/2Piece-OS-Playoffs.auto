@@ -9,15 +9,15 @@
           "data": {
             "commands": [
               {
-                "type": "path",
-                "data": {
-                  "pathName": "Copy of Blue_3A"
-                }
-              },
-              {
                 "type": "named",
                 "data": {
                   "name": "Elevator To Level4"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Blue_3B"
                 }
               }
             ]
@@ -36,7 +36,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "LToFeeder_3A"
+                  "pathName": "LToFeeder_3B"
                 }
               },
               {
@@ -49,22 +49,15 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake Coral"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "LFromFeeder_2_P1"
-                }
-              }
-            ]
+            "name": "Intake Coral"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LFromFeeder_2_P1"
           }
         },
         {
@@ -112,53 +105,15 @@
           }
         },
         {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake Coral"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "LFromFeeder_2_P1"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Elevator To Level4"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "LFromFeeder_2B_P2"
-                }
-              }
-            ]
-          }
-        },
-        {
           "type": "named",
           "data": {
-            "name": "Output Coral"
+            "name": "Intake Coral"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Elevator To Home"
+            "pathName": "LFromFeederPlayoffs"
           }
         }
       ]

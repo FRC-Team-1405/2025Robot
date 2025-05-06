@@ -72,6 +72,7 @@ public class RobotContainer {
    * Named Commands Constants
    */
 
+  private final String ARM_LEVEL_4 = "Arm Level";
   private final String LOW_ALGAE = "Low Algae";
   private final String HIGH_ALGAE = "High Algae";
   private final String SCORE_LEVEL_4_CORAL = "Score Level4 Coral";
@@ -341,6 +342,7 @@ public class RobotContainer {
 
   void configurePathPlanner() {
 
+    NamedCommands.registerCommand(ARM_LEVEL_4, new ArmPosition(elevator, () -> ArmLevel.High_Score));
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)));
     NamedCommands.registerCommand(ELEVATOR_TO_SELECTED_LEVEL,
@@ -350,10 +352,8 @@ public class RobotContainer {
         new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
 
     NamedCommands.registerCommand(OUTPUT_CORAL,
-        new ParallelRaceGroup(
-            new CoralOutput(intake), 
-            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))
-        ));
+        new CoralOutput(intake)
+      );
 
     NamedCommands.registerCommand(LOW_ALGAE, new SequentialCommandGroup(new LowAlgae(elevator, intake)));
     NamedCommands.registerCommand(HIGH_ALGAE, new SequentialCommandGroup(new HighAlgae(elevator, intake)));

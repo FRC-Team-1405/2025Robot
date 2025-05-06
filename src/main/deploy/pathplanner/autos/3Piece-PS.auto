@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Red_5B"
+                  "pathName": "Red_5A"
                 }
               },
               {
@@ -36,7 +36,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "RToFeeder_5B"
+                  "pathName": "RToFeeder_5A"
                 }
               },
               {
@@ -53,15 +53,15 @@
           "data": {
             "commands": [
               {
-                "type": "path",
-                "data": {
-                  "pathName": "RFromFeeder_6_P1"
-                }
-              },
-              {
                 "type": "named",
                 "data": {
                   "name": "Intake Coral"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RFromFeeder_6_P1"
                 }
               }
             ]
@@ -112,22 +112,9 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake Coral"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "RFromFeeder_6_P1"
-                }
-              }
-            ]
+            "name": "Intake Coral"
           }
         },
         {
@@ -137,7 +124,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "RFromFeeder_6B_P2"
+                  "pathName": "RFromFeeder_6A"
                 }
               },
               {
@@ -153,12 +140,6 @@
           "type": "named",
           "data": {
             "name": "Output Coral"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Elevator To Home"
           }
         }
       ]

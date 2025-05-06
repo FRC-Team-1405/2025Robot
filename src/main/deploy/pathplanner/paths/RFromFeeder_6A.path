@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.3906750490563078,
-        "y": 1.178012573584462
+        "x": 2.992561141309972,
+        "y": 0.9638841711984594
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.701953125,
-        "y": 2.9549507472826075
+        "x": 3.7592835178294512,
+        "y": 2.958048251013549
       },
       "prevControl": {
-        "x": 3.5169681066510137,
-        "y": 2.78678254878353
+        "x": 3.5742984994804647,
+        "y": 2.789880052514471
       },
       "nextControl": null,
       "isLocked": false,
@@ -32,10 +32,10 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.5661799340555849,
+      "minWaypointRelativePos": 0.4983513895431,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 1.5,
+        "maxVelocity": 1.0,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -61,7 +61,7 @@
   "reversed": false,
   "folder": "RFromFeeder",
   "idealStartingState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": -125.00000000000001
   },
   "useDefaultConstraints": false

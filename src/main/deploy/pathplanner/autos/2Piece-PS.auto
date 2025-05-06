@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Red_5B"
+                  "pathName": "Red_5A"
                 }
               },
               {
@@ -36,13 +36,76 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "RToFeeder_5B"
+                  "pathName": "RToFeeder_5A"
                 }
               },
               {
                 "type": "named",
                 "data": {
                   "name": "Elevator To Home"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RFromFeeder_6_P1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Coral"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Level4"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RFromFeeder_6A_P1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Output Coral"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Elevator To Home"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RToFeeder_6B"
                 }
               }
             ]
@@ -57,57 +120,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RFromFeeder_5A_P1"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Copy of RFromFeeder_5A_P2"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Elevator To Level4"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Output Coral"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Elevator To Home"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "RToFeeder_5A"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake Coral"
+            "pathName": "RFromFeeder_6A"
           }
         }
       ]

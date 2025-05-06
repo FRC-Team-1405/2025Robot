@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.9033,
-        "y": 6.448
+        "x": 5.532,
+        "y": 1.429
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.517153532608696,
-        "y": 6.370762567934781
+        "x": 5.3521249999981135,
+        "y": 1.9705000000029962
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.952326766304348,
-        "y": 5.261965013586956
+        "x": 5.011184906690023,
+        "y": 2.854794436219929
       },
       "prevControl": {
-        "x": 3.812676768192492,
-        "y": 5.469324310526733
+        "x": 5.209935025120095,
+        "y": 2.097419467301796
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 0.8,
+    "maxVelocity": 0.75,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 119.99999999999999
+    "rotation": -59.99999999999999
   },
   "reversed": false,
   "folder": "BuckeyePaths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 119.99999999999999
+    "rotation": -59.99999999999999
   },
   "useDefaultConstraints": false
 }
