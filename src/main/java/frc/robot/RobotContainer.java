@@ -175,6 +175,8 @@ public class RobotContainer {
 
     SmartDashboard.putNumber("Test/Short Drive Time", 0.5);
     SmartDashboard.putNumber("Test/Reef Drive", 2.0);
+
+    driveBase.configureShuffboardCommands();
   }
 
   /**

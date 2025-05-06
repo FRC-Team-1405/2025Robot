@@ -106,7 +106,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   double moveToXPosition = xEntry.getDouble(0.0); // Default to 0.0 if not set
   double moveToYPosition = yEntry.getDouble(0.0);
-  Pose2d targetPose = new Pose2d(moveToXPosition, moveToYPosition, new Rotation2d(0)); // Rotation of 0 degrees for simplicity TODO improve this
+  Pose2d targetPose = new Pose2d(moveToXPosition, moveToYPosition, new Rotation2d(Units.degreesToRadians(0))); // Rotation of 0 degrees for simplicity TODO improve this
 
   Supplier<Optional<Pose2d>> poseSupplier = () -> {
     double x = NetworkTableInstance.getDefault()
@@ -115,7 +115,7 @@ public class SwerveSubsystem extends SubsystemBase {
     double y = NetworkTableInstance.getDefault()
                    .getTable("DashboardTable")
                    .getEntry("yPosition").getDouble(0.0);
-    return Optional.of(new Pose2d(x, y, new Rotation2d(0))); // Rotation of 0 degrees for simplicity
+    return Optional.of(new Pose2d(x, y, new Rotation2d(Units.degreesToRadians(0)))); // Rotation of 0 degrees for simplicity
   };
 
   Command driveToPositionCommand;
@@ -199,6 +199,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public void configureShuffboardCommands() {
     if (RobotContainer.MOVE_ROBOT_TO_POSITION) {
       SmartDashboard.putBoolean("Move Robot To Position", false);
+      SmartDashboard.putBoolean("Use Vision Readings", false);
     }
   }
 
@@ -248,6 +249,12 @@ public class SwerveSubsystem extends SubsystemBase {
         driveToPositionCommand.schedule();
       } else {
         driveToPositionCommand.cancel();
+        vision.visionUpdateRobotOdometry = RobotContainer.VISION_ROBOT_ODOMETRY_UPDATE;
+      }
+
+      if(SmartDashboard.getBoolean("Use Vision Readings", false)) {
+        vision.visionUpdateRobotOdometry = true;
+      } else {
         vision.visionUpdateRobotOdometry = RobotContainer.VISION_ROBOT_ODOMETRY_UPDATE;
       }
     }
