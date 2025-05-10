@@ -110,7 +110,7 @@ public class Vision {
       camera.resetResultsList();
     }
 
-    visionUpdateRobotOdometry = true;
+    visionUpdateRobotOdometry = RobotContainer.VISION_ROBOT_ODOMETRY_UPDATE;
   }
 
   /**

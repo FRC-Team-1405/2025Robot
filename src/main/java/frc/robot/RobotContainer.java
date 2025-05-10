@@ -54,7 +54,7 @@ public class RobotContainer {
     public static final boolean LONG_DISTANCE_FILTER = true;
     public static final boolean RESET_CAMERA_RESULTS = false;
     public static final boolean VISION_ODOMETRY_ESTIMATION = true;  // Enable vision and publish its estimated position (doesn't update robot odometry)
-    public static boolean VISION_ROBOT_ODOMETRY_UPDATE = false;  // Enable vision odometry updates while driving. Doesn't work without VISION_ODOMETRY_ESTIMATION set to true.
+    public static boolean VISION_ROBOT_ODOMETRY_UPDATE = true;  // Enable vision odometry updates while driving. Doesn't work without VISION_ODOMETRY_ESTIMATION set to true.
     //endregion FeatureSwitches
 
     public RobotContainer() {

@@ -152,6 +152,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
   .getDoubleTopic("DriveVsVisionOdometryDifference_1").publish();
   List<DoublePublisher> driveVsVisionOdometryDifference_Publishers = new ArrayList<>();
 
+    Field2d field = new Field2d();
+
     /**
      * Move Robot To Position Feature
      */
@@ -212,6 +214,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
 
+        estimatedPosesPublisher.add(estimatedPosePublisher1);
+        estimatedPosesPublisher.add(estimatedPosePublisher2);
+        driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
+        driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
+        
         setupPhotonVision();
     }
 
@@ -243,6 +250,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         xEntry.setDouble(0.0);
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
+
+        estimatedPosesPublisher.add(estimatedPosePublisher1);
+        estimatedPosesPublisher.add(estimatedPosePublisher2);
+        driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
+        driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
 
         setupPhotonVision();
     }
@@ -290,6 +302,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         xEntry.setDouble(0.0);
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
+
+        estimatedPosesPublisher.add(estimatedPosePublisher1);
+        estimatedPosesPublisher.add(estimatedPosePublisher2);
+        driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
+        driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
 
         setupPhotonVision();
     }
@@ -384,7 +401,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         if (RobotContainer.VISION_ODOMETRY_ESTIMATION) {
-            // swerveDrive.updateOdometry();
+            field.setRobotPose(this.getState().Pose);
+
             List<Optional<EstimatedRobotPose>> estimatedPoses =
             vision.updatePoseEstimation(this);
             List<Pose2d> poses = estimatedPoses.stream()
