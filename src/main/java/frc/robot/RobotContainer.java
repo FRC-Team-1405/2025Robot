@@ -138,6 +138,17 @@ public class RobotContainer {
 
     SmartDashboard.putNumber("Test/Short Drive Time", 0.5);
     SmartDashboard.putNumber("Test/Reef Drive", 2.0);
+
+    Command algaeIntake = intake.runOnce(intake::intakeAlgae);
+    algaeIntake.setName("Intake Algae");
+    SmartDashboard.putData(algaeIntake);
+
+    Command algaeOutput = intake.runOnce(intake::outtakeAlgae)
+      .andThen(Commands.waitSeconds(0.5)
+      .andThen(intake::stop));
+    algaeOutput.setName("Output Algae");
+    SmartDashboard.putData(algaeOutput);
+
 }
 
 /**

@@ -26,6 +26,10 @@ public final class Constants {
     public static final int kOperatorPort = 1;   
   }
 
+  public static class IntakeConstants {
+    public static final double CURRENTLIMIT = 40.0;
+  }
+
   public static class ElavationConstants{
     public static final double POSITIONACCURACY = 0.25;
     public static final double CURRENTLIMIT = 70.0;

@@ -15,10 +15,13 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.compound.Diff_DutyCycleOut_Velocity;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.ForwardLimitValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
 import frc.robot.Constants.CanBus;
 import frc.robot.lib.FusionTimeofFlight;
 
@@ -28,7 +31,8 @@ public class Intake extends SubsystemBase {
   private final VelocityDutyCycle velocityVoltage = new VelocityDutyCycle(0).withSlot(1);
   private final double CoralImputSpeed;
   private final double CoralOutputSpeed;
-  private final double AlgeaSpeed;
+  private final double AlgeaInputSpeed;
+  private final double AlgeaOutputSpeed;
   private final FusionTimeofFlight timeofFlight = new FusionTimeofFlight(CanBus.IntakeSensor);
   private final Supplier<ForwardLimitValue> reefDetector = primary.getForwardLimit().asSupplier();
   private double sensorValue = 0;
@@ -40,10 +44,24 @@ public class Intake extends SubsystemBase {
       Preferences.initDouble("Output/CoralOutputSpeed", -30.0);
       CoralOutputSpeed = Preferences.getDouble("Output/CoralOutputSpeed/", -30.0);
       
-      Preferences.initDouble("Intake/AlgeaSpeed", 0.25);
-      AlgeaSpeed = Preferences.getDouble("Elavator/Position/", -0.25);
+      Preferences.initDouble("Intake/AlgeaInputSpeed", 0.25);
+      AlgeaInputSpeed = Preferences.getDouble("Intake/AlgeaInputSpeed", 0.25);
 
+      Preferences.initDouble("Intake/AlgeaOutputSpeed", -1.0);
+      AlgeaOutputSpeed = Preferences.getDouble("Intake/AlgeaOutputSpeed", -1.0);
+
+      initAlgeaTorque();
   }
+
+  private boolean haveAlgae = false;
+  private void initAlgeaTorque(){
+    Trigger torqueCurrent = new Trigger( () -> {
+      return haveAlgae && Math.abs(primary.getTorqueCurrent().getValueAsDouble()) > Constants.IntakeConstants.CURRENTLIMIT; 
+    });
+
+    torqueCurrent.onTrue( this.runOnce(this::stop) );
+  }
+
 
   @Override
   public void periodic() {
@@ -82,11 +100,13 @@ public class Intake extends SubsystemBase {
   }
 
   public void intakeAlgae(){
-    primary.set(-AlgeaSpeed);
+    haveAlgae = true;
+    primary.set(AlgeaInputSpeed);
   }
 
   public void outtakeAlgae(){
-    primary.set(AlgeaSpeed);
+    primary.set(AlgeaOutputSpeed);
+    haveAlgae = false;
   }
 
   public boolean reefDetected() {
