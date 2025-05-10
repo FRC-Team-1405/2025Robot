@@ -49,6 +49,14 @@ public class RobotContainer {
 
     private final ReefSelector reefSelector = new ReefSelector();
 
+    //region FeatureSwitches
+    public static final boolean AMBIGUITY_FILTER = true;
+    public static final boolean LONG_DISTANCE_FILTER = true;
+    public static final boolean RESET_CAMERA_RESULTS = false;
+    public static final boolean VISION_ODOMETRY_ESTIMATION = true;  // Enable vision and publish its estimated position (doesn't update robot odometry)
+    public static boolean VISION_ROBOT_ODOMETRY_UPDATE = false;  // Enable vision odometry updates while driving. Doesn't work without VISION_ODOMETRY_ESTIMATION set to true.
+    //endregion FeatureSwitches
+
     public RobotContainer() {
         // autoChooser = AutoBuilder.buildAutoChooser("Example Path");
         // SmartDashboard.putData("Auto Mode", autoChooser);
@@ -86,6 +94,9 @@ public class RobotContainer {
         joystick.b().whileTrue(drivetrain.applyRequest(
                 () -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
+                
+        joystick.x().whileTrue(drivetrain
+        .driveToPose(new Pose2d()));
         joystick.y()
                 .whileTrue(drivetrain
                         .driveToPose(

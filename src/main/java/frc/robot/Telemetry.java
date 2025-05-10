@@ -124,4 +124,8 @@ public class Telemetry {
             m_moduleSpeeds[i].setLength(state.ModuleStates[i].speedMetersPerSecond / (2 * MaxSpeed));
         }
     }
+
+    public void setPose(Pose2d pose) {
+        drivePose.set(pose);
+    }
 }
