@@ -18,13 +18,26 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.ArmPosition;
+import frc.robot.commands.CoralInput;
+import frc.robot.commands.CoralOutput;
+import frc.robot.commands.MoveCoral;
 import frc.robot.generated.TunerConstants;
-import frc.robot.lib.ReefSelector;
+import frc.robot.lib.ReefSelecter;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Elevator.ArmLevel;
+import frc.robot.subsystems.Elevator.ElevationLevel;
+import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -41,13 +54,28 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController joystick = new CommandXboxController(0);
+    private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     /* Path follower */
-    // private final SendableChooser<Command> autoChooser;
+    private final SendableChooser<Command> autoChooser;
 
-    private final ReefSelector reefSelector = new ReefSelector();
+    private final Elevator elevator = new Elevator();
+    private final ReefSelecter reefSelecter = new ReefSelecter();
+    private final Climber climber = new Climber();
+    private final Intake intake = new Intake();
+
+    /*
+   * Named Commands Constants
+   */
+
+  private final String ELEVATOR_TO_LEVEL_4_AUTO = "Elevator to Level4 Auto";
+  private final String SCORE_LEVEL_4_CORAL = "Score Level4 Coral";
+  private final String ELEVATOR_TO_LEVEL_4 = "Elevator To Level4";
+  private final String ELEVATOR_TO_SELECTED_LEVEL = "Elevator To Selected Level";
+  private final String ELEVATOR_TO_HOME = "Elevator To Home";
+  private final String OUTPUT_CORAL = "Output Coral";
 
     //region FeatureSwitches
     public static final boolean AMBIGUITY_FILTER = true;
@@ -58,8 +86,9 @@ public class RobotContainer {
     //endregion FeatureSwitches
 
     public RobotContainer() {
-        // autoChooser = AutoBuilder.buildAutoChooser("Example Path");
-        // SmartDashboard.putData("Auto Mode", autoChooser);
+        configurePathPlanner();
+        autoChooser = AutoBuilder.buildAutoChooser("DriveStraight3m");
+        SmartDashboard.putData("Auto Mode", autoChooser);
 
         configureBindings();
         drivetrain.configureShuffleboardCommands();
@@ -100,24 +129,134 @@ public class RobotContainer {
         joystick.y()
                 .whileTrue(drivetrain
                         .driveToPose(
-                                () -> reefSelector.getRobotPositionForCoral(reefSelector.getCoralPosition())));
+                                () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        // joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        // joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        // joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        // joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+        joystick.rightBumper().toggleOnTrue(new CoralInput(intake));
+    joystick.leftBumper()
+        .onTrue(new SequentialCommandGroup(new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
+    // driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
+    // driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true));
+
+    
+
+    if (false) {
+
+      // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position while raising the elevator.
+      // It will not score the coral, the operator will need to output the coral.
+      // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
+      if (false) {
+        joystick.b()
+        .whileTrue(drivetrain
+            .driveToPose(
+              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
+            ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
+      } else {
+        joystick.b()
+        .whileTrue(drivetrain
+            .driveToPose(
+              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
+            ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
+      }
+      
+    } else {
+
+      // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position, raise the elevator and score the coral in sequence.
+      // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
+      if (false) {
+        joystick.b()
+          .whileTrue(drivetrain
+              .driveToPose(
+                () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
+              )
+              .andThen(
+                  NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
+      } else {
+        joystick.b()
+        .whileTrue(drivetrain
+            .driveToPose(
+              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
+            )
+            .andThen(
+                NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
+      }
+    }
+
+        operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
+    operator.a().onTrue(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+    operator.x().onTrue(new InstantCommand(() -> {
+      intake.outtakeCoral();
+    }));
+    operator.x().onFalse(new InstantCommand(() -> {
+      intake.stop();
+    }));
+
+    operator.povLeft().onTrue(Commands.runOnce(reefSelecter::selectLeft));
+    operator.povRight().onTrue(Commands.runOnce(reefSelecter::selectRight));
+
+    operator.povUp()
+        .or(operator.povUpLeft())
+        .or(operator.povUpRight())
+        .onTrue(new InstantCommand(() -> {
+          reefSelecter.levelUp();
+        }));
+
+    operator.povDown()
+        .or(operator.povDownLeft())
+        .or(operator.povDownRight())
+        .onTrue(new InstantCommand(() -> {
+          reefSelecter.levelDown();
+        }));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {
         /* Run the path selected from the auto chooser */
-        // return autoChooser.getSelected();
-        return null;
+        return autoChooser.getSelected();
+        // return null;
     }
+
+    void configurePathPlanner() {
+
+    NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4,
+        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)));
+    NamedCommands.registerCommand(ELEVATOR_TO_SELECTED_LEVEL,
+        new SequentialCommandGroup(new MoveCoral(elevator, () -> reefSelecter.getLevel(), intake)));
+
+    NamedCommands.registerCommand(ELEVATOR_TO_HOME,
+        new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+
+    NamedCommands.registerCommand(OUTPUT_CORAL,
+        new ParallelRaceGroup(
+            new CoralOutput(intake), 
+            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))
+        ));
+
+    NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL,
+        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake),
+            new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
+            new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
+    NamedCommands.registerCommand("Score Level3 Coral",
+        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_3, intake),
+            new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
+            new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
+    NamedCommands.registerCommand("Score Level2 Coral",
+        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_2, intake),
+            new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
+            new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
+    NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));
+
+    NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
+        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4_Auto, intake)));
+  }
 }

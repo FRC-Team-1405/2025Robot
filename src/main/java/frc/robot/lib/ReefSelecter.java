@@ -15,9 +15,11 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.RobotContainer;
+import frc.robot.subsystems.Elevator;
 
 /** Add your docs here. */
-public class ReefSelector {
+public class ReefSelecter {
     public enum CoralLevel {
         Level_1,
         Level_2,
@@ -45,13 +47,42 @@ public class ReefSelector {
         Right,
     }
 
+    private Elevator.ElevationLevel level = Elevator.ElevationLevel.Level_4;
     private CoralLevel coralLevel = CoralLevel.Level_4;
     private Coral coralSelected = Coral.Position_1;
 
     StructPublisher<Pose2d> selectedReefPositionPublisher = NetworkTableInstance.getDefault()
             .getStructTopic("SelectedReefPosition", Pose2d.struct).publish();
 
-    public ReefSelector(){
+    public ReefSelecter(){
+        updatePosition();
+    }
+    public void setLevel(Elevator.ElevationLevel level){
+        this.level = level;
+        updatePosition();
+    }
+
+    public Elevator.ElevationLevel getLevel() {
+        return level;
+    }
+
+    public void levelUp() {
+        level = switch(level) {
+            case Level_1 -> Elevator.ElevationLevel.Level_2;
+            case Level_2 -> Elevator.ElevationLevel.Level_3;
+            case Level_3 -> Elevator.ElevationLevel.Level_4;
+            default -> level;
+        };
+        updatePosition();
+    }
+    
+    public void levelDown(){
+        level = switch(level){
+            case Level_4 -> Elevator.ElevationLevel.Level_3;
+            case Level_3 -> Elevator.ElevationLevel.Level_2;
+            case Level_2 -> Elevator.ElevationLevel.Level_1;
+            default -> level;
+        };
         updatePosition();
     }
 
@@ -102,6 +133,24 @@ public class ReefSelector {
     }
 
     public void updatePosition() {
+        switch (level) {
+            case Level_1:
+                coralLevel = CoralLevel.Level_1;
+                break;
+            case Level_2:
+                coralLevel = CoralLevel.Level_2;
+                break;
+            case Level_3:
+                coralLevel = CoralLevel.Level_3;
+                break;
+            case Level_4:
+                coralLevel = CoralLevel.Level_4;
+                break;
+            default:
+                coralLevel = CoralLevel.Level_1;
+                break;            
+        }
+
         // update shuffleboard
         SmartDashboard.putBoolean("Reef/L1", coralLevel == CoralLevel.Level_1);
         SmartDashboard.putBoolean("Reef/L2", coralLevel == CoralLevel.Level_2);
@@ -124,9 +173,11 @@ public class ReefSelector {
     }
 
     public void updateSelectedReefPositionVisualizer() {
-        // TODO make this update a variable with the result, then add a getter for that result.
-        // then use that getter when the driver presses B instead of getting the mapped position on the fly. slightly more efficient.
-        getRobotPositionForCoral(getCoralPosition()).ifPresent(selectedPosition -> selectedReefPositionPublisher.set(selectedPosition));
+        // if (RobotContainer.VISUALIZE_REEF_SELECTER_POSITION) {
+            // TODO make this update a variable with the result, then add a getter for that result.
+            // then use that getter when the driver presses B instead of getting the mapped position on the fly. slightly more efficient.
+            getRobotPositionForCoral(getCoralPosition()).ifPresent(selectedPosition -> selectedReefPositionPublisher.set(selectedPosition));
+        // }
     }
 
     /**

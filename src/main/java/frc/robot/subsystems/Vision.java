@@ -41,6 +41,7 @@ import edu.wpi.first.networktables.NetworkTablesJNI;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
@@ -94,6 +95,7 @@ public class Vision {
   public Vision(Supplier<Pose2d> currentPose, Field2d field) {
     this.currentPose = currentPose;
     this.field2d = field;
+    SmartDashboard.putData("VisionField", field);
 
     if (Robot.isSimulation()) {
       visionSim = new VisionSystemSim("Vision");
@@ -313,9 +315,9 @@ public class Vision {
         PhotonPipelineResult latest = c.resultsList.get(0);
         if (latest.hasTargets()) {
           if (RobotContainer.AMBIGUITY_FILTER) {
-            System.out.println("AMBIGUITY_FILTER starting targets size: " + targets.size());
+            // System.out.println("AMBIGUITY_FILTER starting targets size: " + targets.size());
             targets.removeIf(e -> e.getPoseAmbiguity() > maximumAmbiguity);
-            System.out.println("AMBIGUITY_FILTER ending targets size: " + targets.size());
+            // System.out.println("AMBIGUITY_FILTER ending targets size: " + targets.size());
           }
 
           targets.addAll(latest.targets);
@@ -344,13 +346,13 @@ public class Vision {
             Units.inchesToMeters(-12.767),
             Units.inchesToMeters(-12.327),
             Units.inchesToMeters(7.588)),
-        VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+        VecBuilder.fill(1, 1, 15), VecBuilder.fill(1, 1, 15)),  //TODO make these dynamic
     RIGHT_CAM("Right",
         new Rotation3d(0, Math.toRadians(-15), Math.toRadians(-135)),
         new Translation3d(Units.inchesToMeters(-12.754),
             Units.inchesToMeters(12.326),
             Units.inchesToMeters(7.588)),
-        VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
+            VecBuilder.fill(1, 1, 15), VecBuilder.fill(1, 1, 15));  //TODO make these dynamic
 
     /**
      * Latency alert to use when high latency is detected.
@@ -424,7 +426,7 @@ public class Vision {
       robotToCamTransform = new Transform3d(robotToCamTranslation, robotToCamRotation);
 
       poseEstimator = new PhotonPoseEstimator(Vision.fieldLayout,
-          PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+          PoseStrategy.LOWEST_AMBIGUITY,
           robotToCamTransform);
       poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
