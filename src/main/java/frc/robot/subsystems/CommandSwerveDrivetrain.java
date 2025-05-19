@@ -22,6 +22,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -509,6 +510,34 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public Command driveToPose(Pose2d pose) {
         return driveToPose(() -> Optional.of(pose));
+    }
+
+    public static Command PidToPose(CommandSwerveDrivetrain swerveDrivetrain, Pose2d targetpose, double toleranceInches) {
+        PIDController xcontroller = new PIDController(2, 0, 0);  //TODO use profilePID
+        PIDController ycontroller = new PIDController(2, 0, 0);  //TODO use profilePID
+        PIDController thetacontroller = new PIDController(2, 0, 0);
+
+        Pose2d currentpose = swerveDrivetrain.getState().Pose;
+
+        // Drivetrain will execute this command periodically
+        return swerveDrivetrain.applyRequest(() -> RobotContainer.drive.withVelocityX(xcontroller.calculate(currentpose.getX(), targetpose.getX()))
+            .withVelocityY(ycontroller.calculate(currentpose.getY(), targetpose.getY()))
+            .withRotationalRate(thetacontroller.calculate(currentpose.getRotation().getDegrees(), targetpose.getRotation().getDegrees()))
+            ).until(
+                () -> Units.metersToInches(currentpose.getTranslation().getDistance(targetpose.getTranslation())) < toleranceInches
+            );
+
+        // return swerveDrivetrain.run( () ->
+        //     var speeds = fieldspeeds(
+        //         xcontroller.calculate(currentpose.getx(), targetpose.getx()),
+        //         ycontroller.calculate(currentpose.gety(), targetpose.gety()),
+        //         thetacontroller.calculate()
+        //     );
+
+        //     swerve.drive(speeds);
+        // ).until(
+        //     //until you are close enough 0.04meter tolerance?
+        // );
     }
 
     /**

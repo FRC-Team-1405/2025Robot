@@ -40,33 +40,35 @@ import frc.robot.subsystems.Elevator.ElevationLevel;
 import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
-                                                                                      // max angular velocity
+  public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired
+                                                                                            // top speed
+  public static final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per
+                                                                                                // second
+  // max angular velocity
 
-    /* Setting up bindings for necessary control of the swerve drive platform */
-    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+  /* Setting up bindings for necessary control of the swerve drive platform */
+  public static final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+  private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+  private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    private final CommandXboxController joystick = new CommandXboxController(0);
-    private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
+  private final CommandXboxController joystick = new CommandXboxController(0);
+  private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
-    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    /* Path follower */
-    private final SendableChooser<Command> autoChooser;
+  /* Path follower */
+  private final SendableChooser<Command> autoChooser;
 
-    private final Elevator elevator = new Elevator();
-    private final ReefSelecter reefSelecter = new ReefSelecter();
-    private final Climber climber = new Climber();
-    private final Intake intake = new Intake();
+  private final Elevator elevator = new Elevator();
+  private final ReefSelecter reefSelecter = new ReefSelecter();
+  private final Climber climber = new Climber();
+  private final Intake intake = new Intake();
 
-    /*
+  /*
    * Named Commands Constants
    */
 
@@ -77,121 +79,125 @@ public class RobotContainer {
   private final String ELEVATOR_TO_HOME = "Elevator To Home";
   private final String OUTPUT_CORAL = "Output Coral";
 
-    //region FeatureSwitches
-    public static final boolean AMBIGUITY_FILTER = true;
-    public static final boolean LONG_DISTANCE_FILTER = true;
-    public static final boolean RESET_CAMERA_RESULTS = false;
-    public static final boolean VISION_ODOMETRY_ESTIMATION = true;  // Enable vision and publish its estimated position (doesn't update robot odometry)
-    public static boolean VISION_ROBOT_ODOMETRY_UPDATE = true;  // Enable vision odometry updates while driving. Doesn't work without VISION_ODOMETRY_ESTIMATION set to true.
-    //endregion FeatureSwitches
+  // region FeatureSwitches
+  public static final boolean AMBIGUITY_FILTER = true;
+  public static final boolean LONG_DISTANCE_FILTER = true;
+  public static final boolean RESET_CAMERA_RESULTS = false;
+  public static final boolean VISION_ODOMETRY_ESTIMATION = true; // Enable vision and publish its estimated position
+                                                                 // (doesn't update robot odometry)
+  public static boolean VISION_ROBOT_ODOMETRY_UPDATE = true; // Enable vision odometry updates while driving. Doesn't
+                                                             // work without VISION_ODOMETRY_ESTIMATION set to true.
+  // endregion FeatureSwitches
 
-    public RobotContainer() {
-        configurePathPlanner();
-        autoChooser = AutoBuilder.buildAutoChooser("DriveStraight3m");
-        SmartDashboard.putData("Auto Mode", autoChooser);
+  public RobotContainer() {
+    configurePathPlanner();
+    autoChooser = AutoBuilder.buildAutoChooser("DriveStraight3m");
+    SmartDashboard.putData("Auto Mode", autoChooser);
 
-        configureBindings();
-        drivetrain.configureShuffleboardCommands();
+    configureBindings();
+    drivetrain.configureShuffleboardCommands();
 
-        // Warmup PathPlanner to avoid Java pauses
-        FollowPathCommand.warmupCommand().schedule();
-    }
+    // Warmup PathPlanner to avoid Java pauses
+    FollowPathCommand.warmupCommand().schedule();
+  }
 
-    private void configureBindings() {
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
-                // Drivetrain will execute this command periodically
-                drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with
-                                                                                                   // negative Y
-                                                                                                   // (forward)
-                        .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with
-                                                                                    // negative X (left)
-                ));
+  private void configureBindings() {
+    // Note that X is defined as forward according to WPILib convention,
+    // and Y is defined as to the left according to WPILib convention.
+    drivetrain.setDefaultCommand(
+        // Drivetrain will execute this command periodically
+        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with
+                                                                                           // negative Y
+                                                                                           // (forward)
+            .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+            .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with
+                                                                        // negative X (left)
+        ));
 
-        // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
-        final var idle = new SwerveRequest.Idle();
-        RobotModeTriggers.disabled().whileTrue(
-                drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+    // Idle while the robot is disabled. This ensures the configured
+    // neutral mode is applied to the drive motors while disabled.
+    final var idle = new SwerveRequest.Idle();
+    RobotModeTriggers.disabled().whileTrue(
+        drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-        joystick.b().onTrue(drivetrain.runOnce(() -> {
-            drivetrain.resetPose(new Pose2d(1, 1, new Rotation2d(0)));
-        }));
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(
-                () -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
+    joystick.b().onTrue(drivetrain.runOnce(() -> {
+      drivetrain.resetPose(new Pose2d(1, 1, new Rotation2d(0)));
+    }));
+    // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
+    joystick.a().onTrue(CommandSwerveDrivetrain.PidToPose(drivetrain, new Pose2d(3.0, 3.0, new Rotation2d(0)), 1));
+    joystick.b().whileTrue(drivetrain.applyRequest(
+        () -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
-                
-        joystick.x().whileTrue(drivetrain
+    joystick.x().whileTrue(drivetrain
         .driveToPose(new Pose2d()));
-        joystick.y()
-                .whileTrue(drivetrain
-                        .driveToPose(
-                                () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())));
+    joystick.y()
+        .whileTrue(drivetrain
+            .driveToPose(
+                () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        // joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        // joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        // joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        // joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+    // Run SysId routines when holding back/start and X/Y.
+    // Note that each routine should be run exactly once in a single log.
+    // joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    // joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    // joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    // joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-        // reset the field-centric heading on left bumper press
-        // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+    // reset the field-centric heading on left bumper press
+    // joystick.leftBumper().onTrue(drivetrain.runOnce(() ->
+    // drivetrain.seedFieldCentric()));
 
-        joystick.rightBumper().toggleOnTrue(new CoralInput(intake));
+    joystick.rightBumper().toggleOnTrue(new CoralInput(intake));
     joystick.leftBumper()
         .onTrue(new SequentialCommandGroup(new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
-    // driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
+    // driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () ->
+    // ArmLevel.Climb)));
     // driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true));
-
-    
 
     if (false) {
 
-      // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position while raising the elevator.
+      // Driver presses AND HOLDS B to activate auto align. auto align will move to
+      // the scoring position while raising the elevator.
       // It will not score the coral, the operator will need to output the coral.
-      // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
+      // when the driver lets go the auto align will stop. the elevator will not move
+      // until operator moves it.
       if (false) {
         joystick.b()
-        .whileTrue(drivetrain
-            .driveToPose(
-              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
-            ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
+            .whileTrue(drivetrain
+                .driveToPose(
+                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
+                .alongWith(NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
       } else {
         joystick.b()
-        .whileTrue(drivetrain
-            .driveToPose(
-              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
-            ).alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
+            .whileTrue(drivetrain
+                .driveToPose(
+                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
+                .alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
       }
-      
+
     } else {
 
-      // Driver presses AND HOLDS B to activate auto align. auto align will move to the scoring position, raise the elevator and score the coral in sequence.
-      // when the driver lets go the auto align will stop. the elevator will not move until operator moves it.
+      // Driver presses AND HOLDS B to activate auto align. auto align will move to
+      // the scoring position, raise the elevator and score the coral in sequence.
+      // when the driver lets go the auto align will stop. the elevator will not move
+      // until operator moves it.
       if (false) {
         joystick.b()
-          .whileTrue(drivetrain
-              .driveToPose(
-                () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
-              )
-              .andThen(
-                  NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
+            .whileTrue(drivetrain
+                .driveToPose(
+                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
+                .andThen(
+                    NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
       } else {
         joystick.b()
-        .whileTrue(drivetrain
-            .driveToPose(
-              () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())
-            )
-            .andThen(
-                NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
+            .whileTrue(drivetrain
+                .driveToPose(
+                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
+                .andThen(
+                    NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
       }
     }
 
-        operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
+    operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
     operator.a().onTrue(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
     operator.x().onTrue(new InstantCommand(() -> {
       intake.outtakeCoral();
@@ -217,16 +223,16 @@ public class RobotContainer {
           reefSelecter.levelDown();
         }));
 
-        drivetrain.registerTelemetry(logger::telemeterize);
-    }
+    drivetrain.registerTelemetry(logger::telemeterize);
+  }
 
-    public Command getAutonomousCommand() {
-        /* Run the path selected from the auto chooser */
-        return autoChooser.getSelected();
-        // return null;
-    }
+  public Command getAutonomousCommand() {
+    /* Run the path selected from the auto chooser */
+    return autoChooser.getSelected();
+    // return null;
+  }
 
-    void configurePathPlanner() {
+  void configurePathPlanner() {
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)));
@@ -238,9 +244,8 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(OUTPUT_CORAL,
         new ParallelRaceGroup(
-            new CoralOutput(intake), 
-            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))
-        ));
+            new CoralOutput(intake),
+            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))));
 
     NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake),
