@@ -13,6 +13,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -24,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ArmPosition;
 import frc.robot.commands.CoralInput;
@@ -37,6 +37,8 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Elevator.ArmLevel;
 import frc.robot.subsystems.Elevator.ElevationLevel;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
@@ -58,15 +60,16 @@ public class RobotContainer {
   private final CommandXboxController joystick = new CommandXboxController(0);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
-  public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
   /* Path follower */
   private final SendableChooser<Command> autoChooser;
 
+  public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private final Elevator elevator = new Elevator();
   private final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
   private final Intake intake = new Intake();
+  private final Vision vision = new Vision(Vision.camerasFromConfigs(VisionConstants.CONFIGS));
 
   /*
    * Named Commands Constants
@@ -263,5 +266,18 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4_Auto, intake)));
+  }
+
+  public void correctOdometry() {
+    var visionSamples = vision.flushSamples();
+    vision.updateSpeeds(drivetrain.getState().Speeds);
+    for (var sample : visionSamples) {
+      double thetaStddev = sample.weight() > 0.9 ? 25.0 : 99999.0;
+      drivetrain.addVisionMeasurement(
+        sample.pose(),
+        sample.timestamp(),
+        VecBuilder.fill(0.1 / sample.weight(), 0.1 / sample.weight(), thetaStddev)
+      );
+    }
   }
 }

@@ -8,8 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import org.photonvision.EstimatedRobotPose;
-
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
@@ -25,7 +23,6 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -186,11 +183,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     Command driveToPositionCommand;
 
     /**
-     * PhotonVision class to keep an accurate odometry.
-     */
-    private Vision vision;
-
-    /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
      * <p>
      * This constructs the underlying hardware devices, so users should not
@@ -219,8 +211,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         estimatedPosesPublisher.add(estimatedPosePublisher2);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
-        
-        setupPhotonVision();
     }
 
     /**
@@ -256,8 +246,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         estimatedPosesPublisher.add(estimatedPosePublisher2);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
-
-        setupPhotonVision();
     }
 
     /**
@@ -308,8 +296,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         estimatedPosesPublisher.add(estimatedPosePublisher2);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
-
-        setupPhotonVision();
     }
 
     private void configureAutoBuilder() {
@@ -399,29 +385,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             driveToPositionCommand.schedule();
         } else {
             driveToPositionCommand.cancel();
-        }
-
-        if (RobotContainer.VISION_ODOMETRY_ESTIMATION) {
-            field.setRobotPose(this.getState().Pose);
-
-            List<Optional<EstimatedRobotPose>> estimatedPoses =
-            vision.updatePoseEstimation(this);
-            List<Pose2d> poses = estimatedPoses.stream()
-            .flatMap(optionalPose -> optionalPose.stream().map(pose ->
-            pose.estimatedPose.toPose2d())).toList();
-            vision.updateVisionField();
-
-            for (int i = 0; i < poses.size(); i++) {
-                // publish the position of each cameras estimated pose
-                estimatedPosesPublisher.get(i).set(poses.get(i));
-
-                // publish the error between each cameras estimated pose and the drive estimated pose
-                Translation2d cameraEstimatedPose_Translation2d =
-                poses.get(i).getTranslation();
-                Translation2d driveEstimatedPose_Translation2d =
-                this.getState().Pose.getTranslation();
-                driveVsVisionOdometryDifference_Publishers.get(i).set(cameraEstimatedPose_Translation2d.getDistance(driveEstimatedPose_Translation2d));
-            }
         }
     }
 
@@ -538,12 +501,5 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         // ).until(
         //     //until you are close enough 0.04meter tolerance?
         // );
-    }
-
-    /**
-     * Setup the photon vision class.
-     */
-    public void setupPhotonVision() {
-        vision = new Vision(() -> this.getState().Pose, new Field2d());
     }
 }
