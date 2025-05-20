@@ -24,14 +24,14 @@ public class VisionConstants {
                                     Units.inchesToMeters(-12.327),
                                     Units.inchesToMeters(7.588)),
                             new Rotation3d(0, Math.toRadians(-15), Math.toRadians(135))),
-                    new CameraIntrinsics( // TODO: these are filler values
-                            1280.0,
+                    new CameraIntrinsics(
                             800.0,
-                            915.28,
-                            914.69,
-                            664.29,
-                            387.37,
-                            new double[] { 0.045, -0.066, 0.001, 0, 0.011, -0.002, 0.005, 0.001 })),
+                            600.0,
+                            685.13,
+                            690.95,
+                            453.90,
+                            237.267,
+                            new double[] { 0.105, 0.275, -0.028, 0.014, -0.047, 0.062, 0.176, 0.197 })),
             new CameraConfig(
                     "Right",
                     1.0,
@@ -40,14 +40,14 @@ public class VisionConstants {
                                     Units.inchesToMeters(12.326),
                                     Units.inchesToMeters(7.588)),
                             new Rotation3d(0, Math.toRadians(-15), Math.toRadians(-135))),
-                    new CameraIntrinsics( // TODO: these are filler values
-                            1280.0,
+                    new CameraIntrinsics(
                             800.0,
-                            915.28,
-                            914.69,
-                            664.29,
-                            387.37,
-                            new double[] { 0.045, -0.066, 0.001, 0, 0.011, -0.002, 0.005, 0.001 }))
+                            600.0,
+                            690.51,
+                            687.34,
+                            358.37,
+                            332.82,
+                            new double[] { 0.051, -0.09, 0.004, -0.014, 0.044, -0.005, 0.007, 0 }))
     };
 
     public static final class Filtering {

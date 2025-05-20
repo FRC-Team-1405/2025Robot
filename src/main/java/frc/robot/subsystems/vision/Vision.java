@@ -9,8 +9,9 @@ import edu.wpi.first.util.struct.StructSerializable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.FieldConstants;
+import frc.robot.lib.GlobalField;
 import frc.robot.lib.ProceduralStructGenerator;
 import frc.robot.lib.Tracer;
 import frc.robot.subsystems.vision.VisionConstants.CameraConfig;
@@ -21,7 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-public class Vision implements Subsystem {
+public class Vision extends SubsystemBase {
   static {
     OpenCvLoader.forceStaticLoad();
   }
@@ -116,6 +117,7 @@ public class Vision implements Subsystem {
               sample -> {
                 timerSinceLastSample.restart();
                 samples.add(sample);
+                GlobalField.setObject(camera.getName() + "Camera", sample.pose());
                 SmartDashboard.putNumber("VisionWeight", sample.weight());
               });
 
@@ -124,16 +126,15 @@ public class Vision implements Subsystem {
       Tracer.endTrace();
     }
 
-    Pose3d[] tagLoc3d =
+    Pose2d[] tagLoc =
         seenTags.stream()
             .map(i -> FieldConstants.APRIL_TAG_FIELD.getTagPose(i))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .toArray(Pose3d[]::new);
-    Pose2d[] tagLoc2d = new Pose2d[tagLoc3d.length];
-    for (int i = 0; i < tagLoc3d.length; i++) {
-      tagLoc2d[i] = tagLoc3d[i].toPose2d();
-    }
+            .map(Pose3d::toPose2d)
+            .toArray(Pose2d[]::new);
+    GlobalField.setObject("SeenTags", tagLoc);
+
     seenTags.clear();
 
     Tracer.endTrace();
