@@ -1,5 +1,3 @@
-
-
 public class Car {
 
     private double speed = 0;
@@ -8,7 +6,7 @@ public class Car {
 
     private int carTemperature = 0;
 
-    public void accelerate(double pressure) {
+    public void accelerate(double pressure){
         speed = pressure;
     }
 
@@ -22,9 +20,12 @@ public class Car {
     public String getModel(){
         return model;
     }
-
     
     public void setTemperature(Driver myDriver){
         carTemperature = myDriver.driverPreferedCarTemperature;
+    }
+
+    public double getTemperature(){
+        return carTemperature;
     }
 }
