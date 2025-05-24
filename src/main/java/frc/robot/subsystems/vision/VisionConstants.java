@@ -25,13 +25,13 @@ public class VisionConstants {
                                     Units.inchesToMeters(7.588)),
                             new Rotation3d(0, Math.toRadians(-15), Math.toRadians(135))),
                     new CameraIntrinsics(
+                            1280.0,
                             800.0,
-                            600.0,
-                            685.13,
-                            690.95,
-                            453.90,
-                            237.267,
-                            new double[] { 0.105, 0.275, -0.028, 0.014, -0.047, 0.062, 0.176, 0.197 })),
+                            910.28,
+                            909.75,
+                            654.27,
+                            386.21,
+                            new double[] { 0.055, -0.093, 0, 0, 0.03, -0.001, 0.003, -0.003 })),
             new CameraConfig(
                     "Right",
                     1.0,
@@ -41,13 +41,13 @@ public class VisionConstants {
                                     Units.inchesToMeters(7.588)),
                             new Rotation3d(0, Math.toRadians(-15), Math.toRadians(-135))),
                     new CameraIntrinsics(
+                            1280.0,
                             800.0,
-                            600.0,
-                            690.51,
-                            687.34,
-                            358.37,
-                            332.82,
-                            new double[] { 0.051, -0.09, 0.004, -0.014, 0.044, -0.005, 0.007, 0 }))
+                            912.02,
+                            911.39,
+                            635.5,
+                            430.50,
+                            new double[] { 0.049, -0.078, 0, 0, 0.018, -0.002, 0.004, 0 }))
     };
 
     public static final class Filtering {
