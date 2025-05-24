@@ -15,6 +15,7 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,6 +31,7 @@ import frc.robot.commands.ArmPosition;
 import frc.robot.commands.CoralInput;
 import frc.robot.commands.CoralOutput;
 import frc.robot.commands.MoveCoral;
+import frc.robot.commands.PidToPoseCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.lib.ReefSelecter;
 import frc.robot.subsystems.Climber;
@@ -42,14 +44,19 @@ import frc.robot.subsystems.Intake;
 public class RobotContainer {
   public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired
                                                                                             // top speed
-  public static final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per
-                                                                                                // second
+  public static final double MaxAngularRate = 11.22;// in radians per second
+  
   // max angular velocity
 
   /* Setting up bindings for necessary control of the swerve drive platform */
   public static final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+
+  public static final SwerveRequest.FieldCentric pidToPose_FieldCentricDrive = new SwerveRequest.FieldCentric()
+      .withDeadband(0).withRotationalDeadband(0) // Add a 10% deadband
+      .withDriveRequestType(DriveRequestType.Velocity); // Use open-loop control for drive motors
+
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
@@ -90,6 +97,7 @@ public class RobotContainer {
   // endregion FeatureSwitches
 
   public RobotContainer() {
+    DriverStation.silenceJoystickConnectionWarning(true);
     configurePathPlanner();
     autoChooser = AutoBuilder.buildAutoChooser("DriveStraight3m");
     SmartDashboard.putData("Auto Mode", autoChooser);
@@ -124,7 +132,26 @@ public class RobotContainer {
       drivetrain.resetPose(new Pose2d(1, 1, new Rotation2d(0)));
     }));
     // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-    joystick.a().onTrue(CommandSwerveDrivetrain.PidToPose(drivetrain, new Pose2d(3.0, 3.0, new Rotation2d(0)), 1));
+
+
+
+    Pose2d pidToPoseTarget = new Pose2d(5.270, 3.000, Rotation2d.fromDegrees(-60));
+    joystick.a().whileTrue(
+      CommandSwerveDrivetrain.PidToPose(drivetrain, pidToPoseTarget, 1)
+      .alongWith(
+        Commands.sequence(
+          Commands.waitUntil(() -> drivetrain.getState().Pose.getTranslation().getDistance(pidToPoseTarget.getTranslation()) < 1)),
+          new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)
+        )
+      .andThen(
+        new ParallelRaceGroup(
+            new CoralOutput(intake),
+            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25)))
+      )
+      ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+
+
+
     joystick.b().whileTrue(drivetrain.applyRequest(
         () -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
@@ -263,5 +290,7 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4_Auto, intake)));
+
+    PidToPoseCommands.registerCommands(drivetrain);
   }
 }

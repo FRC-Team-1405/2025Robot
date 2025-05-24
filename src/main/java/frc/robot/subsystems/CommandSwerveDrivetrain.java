@@ -513,18 +513,33 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public static Command PidToPose(CommandSwerveDrivetrain swerveDrivetrain, Pose2d targetpose, double toleranceInches) {
-        PIDController xcontroller = new PIDController(2, 0, 0);  //TODO use profilePID
-        PIDController ycontroller = new PIDController(2, 0, 0);  //TODO use profilePID
+        PIDController xcontroller = new PIDController(1.5, 0, 0);  //TODO use profilePID
+        PIDController ycontroller = new PIDController(1.5, 0, 0);  //TODO use profilePID
         PIDController thetacontroller = new PIDController(2, 0, 0);
+        thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
 
-        Pose2d currentpose = swerveDrivetrain.getState().Pose;
 
         // Drivetrain will execute this command periodically
-        return swerveDrivetrain.applyRequest(() -> RobotContainer.drive.withVelocityX(xcontroller.calculate(currentpose.getX(), targetpose.getX()))
-            .withVelocityY(ycontroller.calculate(currentpose.getY(), targetpose.getY()))
-            .withRotationalRate(thetacontroller.calculate(currentpose.getRotation().getDegrees(), targetpose.getRotation().getDegrees()))
-            ).until(
-                () -> Units.metersToInches(currentpose.getTranslation().getDistance(targetpose.getTranslation())) < toleranceInches
+        return swerveDrivetrain.applyRequest(() -> {
+            SmartDashboard.putNumber("PID_TO_POSE/xError", xcontroller.getError());
+            SmartDashboard.putNumber("PID_TO_POSE/yError", ycontroller.getError());
+
+            Pose2d currentpose = swerveDrivetrain.getState().Pose;
+
+            double xOutput = xcontroller.calculate(currentpose.getX(), targetpose.getX());
+            double yOutput = ycontroller.calculate(currentpose.getY(), targetpose.getY());
+            double thetaOutput = thetacontroller.calculate(currentpose.getRotation().getRadians(), targetpose.getRotation().getRadians());
+            SmartDashboard.putNumber("PID_TO_POSE/xCalculatedOutput", xOutput);
+            SmartDashboard.putNumber("PID_TO_POSE/yCalculatedOutput", yOutput);
+            SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
+
+            
+            return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
+                .withVelocityY(yOutput)
+                .withRotationalRate(thetaOutput);
+        })
+        .until(
+                () -> Units.metersToInches(swerveDrivetrain.getState().Pose.getTranslation().getDistance(targetpose.getTranslation())) < toleranceInches
             );
 
         // return swerveDrivetrain.run( () ->
