@@ -29,6 +29,7 @@ import com.ctre.phoenix6.signals.ReverseLimitValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.Constants.CanBus;
 import frc.robot.Constants.CanID;
 import frc.robot.Constants.DigitalIO;
@@ -149,10 +150,17 @@ public class Elevator extends SubsystemBase {
   }
 
   public boolean isArmAtLevel(ArmLevel level) {
+    if (Robot.isSimulation()){
+      return true;
+    }
     return Math.abs(level.getposition() - armMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
   }
 
   public boolean isAtPosition(){
+    if (Robot.isSimulation()){
+      return true;
+    }
+    
     return Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
   }
 

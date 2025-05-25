@@ -510,6 +510,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             SmartDashboard.putNumber("PID_TO_POSE/yCalculatedOutput", yOutput);
             SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
 
+            System.out.println("runPidToPose Called with targetPose: " + targetPose);
+
             return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
                     .withVelocityY(yOutput)
                     .withRotationalRate(thetaOutput);
