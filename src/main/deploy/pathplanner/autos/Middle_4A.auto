@@ -5,12 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "Set Middle Start"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "Middle_4A"

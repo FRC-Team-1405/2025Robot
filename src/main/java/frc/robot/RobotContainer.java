@@ -6,6 +6,8 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.Optional;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -90,6 +92,7 @@ public class RobotContainer {
   private final String OUTPUT_CORAL = "Output Coral";
 
   // region FeatureSwitches
+  public static final boolean DEBUG_CONSOLE_LOGGING = true;
   public static final boolean AMBIGUITY_FILTER = true;
   public static final boolean LONG_DISTANCE_FILTER = true;
   public static final boolean RESET_CAMERA_RESULTS = false;
@@ -136,34 +139,13 @@ public class RobotContainer {
     }));
     // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
 
-
-
-    Pose2d pidToPoseTarget = new Pose2d(5.270, 3.000, Rotation2d.fromDegrees(-60));
+    /* A Button: Auto Align  */
     joystick.a().whileTrue(
-      CommandSwerveDrivetrain.PidToPose(drivetrain, pidToPoseTarget, 1)
-      .alongWith(
-        Commands.sequence(
-          Commands.waitUntil(() -> drivetrain.getState().Pose.getTranslation().getDistance(pidToPoseTarget.getTranslation()) < 1)),
-          new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)
-        )
-      .andThen(
-        new ParallelRaceGroup(
-            new CoralOutput(intake),
-            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25)))
-      )
-      ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
-
-
+      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), intake, elevator)
+    ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
 
     joystick.b().whileTrue(drivetrain.applyRequest(
         () -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
-
-    joystick.x().whileTrue(drivetrain
-        .driveToPose(new Pose2d()));
-    joystick.y()
-        .whileTrue(drivetrain
-            .driveToPose(
-                () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition())));
 
     // Run SysId routines when holding back/start and X/Y.
     // Note that each routine should be run exactly once in a single log.
@@ -182,50 +164,6 @@ public class RobotContainer {
     // driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () ->
     // ArmLevel.Climb)));
     // driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true));
-
-    if (false) {
-
-      // Driver presses AND HOLDS B to activate auto align. auto align will move to
-      // the scoring position while raising the elevator.
-      // It will not score the coral, the operator will need to output the coral.
-      // when the driver lets go the auto align will stop. the elevator will not move
-      // until operator moves it.
-      if (false) {
-        joystick.b()
-            .whileTrue(drivetrain
-                .driveToPose(
-                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
-                .alongWith(NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
-      } else {
-        joystick.b()
-            .whileTrue(drivetrain
-                .driveToPose(
-                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
-                .alongWith(NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
-      }
-
-    } else {
-
-      // Driver presses AND HOLDS B to activate auto align. auto align will move to
-      // the scoring position, raise the elevator and score the coral in sequence.
-      // when the driver lets go the auto align will stop. the elevator will not move
-      // until operator moves it.
-      if (false) {
-        joystick.b()
-            .whileTrue(drivetrain
-                .driveToPose(
-                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
-                .andThen(
-                    NamedCommands.getCommand(ELEVATOR_TO_SELECTED_LEVEL)));
-      } else {
-        joystick.b()
-            .whileTrue(drivetrain
-                .driveToPose(
-                    () -> reefSelecter.getRobotPositionForCoral(reefSelecter.getCoralPosition()))
-                .andThen(
-                    NamedCommands.getCommand(ELEVATOR_TO_LEVEL_4)));
-      }
-    }
 
     operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
     operator.a().onTrue(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));

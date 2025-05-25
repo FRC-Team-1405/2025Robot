@@ -12,6 +12,7 @@ import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 import frc.robot.constants.AprilTags;
 import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.vision.Vision.VisionUpdate;
@@ -192,23 +193,25 @@ public class Camera {
   }
 
   public void periodic() {
-    poseEstimator.addHeadingData(Timer.getFPGATimestamp(), Rotation2d.kZero);
-    seenTags.clear();
-    final var results = camera.getAllUnreadResults();
-    for (var result : results) {
-      if (result.hasTargets()) {
-        result = pruneTags(result);
-        Optional<EstimatedRobotPose> estRoboPose =
-            poseEstimator.update(result, cachedCameraMatrix, cachedDistortionMatrix, Optional.empty());
-        if (estRoboPose.isPresent()) {
-          Optional<VisionUpdate> u = update(estRoboPose.get());
-          if (u.isPresent()) {
-            updates.add(u.get());
+    if (Robot.isReal()){
+      poseEstimator.addHeadingData(Timer.getFPGATimestamp(), Rotation2d.kZero);
+      seenTags.clear();
+      final var results = camera.getAllUnreadResults();
+      for (var result : results) {
+        if (result.hasTargets()) {
+          result = pruneTags(result);
+          Optional<EstimatedRobotPose> estRoboPose =
+              poseEstimator.update(result, cachedCameraMatrix, cachedDistortionMatrix, Optional.empty());
+          if (estRoboPose.isPresent()) {
+            Optional<VisionUpdate> u = update(estRoboPose.get());
+            if (u.isPresent()) {
+              updates.add(u.get());
+            }
           }
         }
       }
-    }
 
-    SmartDashboard.putBoolean("/Vision/" + getName() + "/isConnected", camera.isConnected());
+      SmartDashboard.putBoolean("/Vision/" + getName() + "/isConnected", camera.isConnected());
+    }
   }
 }

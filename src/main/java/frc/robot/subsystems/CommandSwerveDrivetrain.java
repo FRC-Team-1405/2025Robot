@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.lang.StackWalker.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +37,18 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotContainer;
+import frc.robot.commands.ArmPosition;
+import frc.robot.commands.CoralOutput;
+import frc.robot.commands.MoveCoral;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.lib.AllianceSymmetry;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -131,12 +138,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
 
+    static StructPublisher<Pose2d> pidToPosePublisher = NetworkTableInstance.getDefault().getStructTopic("PID_TO_POSE/Pose", Pose2d.struct)
+      .publish();
+
     /*
      * Vision Odometry Suppliers
      */
 
-    StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("SwervePose", Pose2d.struct)
-      .publish();
   StructPublisher<Pose2d> estimatedPosePublisher1 = NetworkTableInstance.getDefault()
       .getStructTopic("EstimatedPose_0", Pose2d.struct).publish();
   StructPublisher<Pose2d> estimatedPosePublisher2 = NetworkTableInstance.getDefault()
@@ -472,46 +480,63 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return driveToPose(() -> Optional.of(pose));
     }
 
-    public static Command PidToPose(CommandSwerveDrivetrain swerveDrivetrain, Pose2d targetpose, double toleranceInches) {
-        PIDController xcontroller = new PIDController(1.5, 0, 0);  //TODO use profilePID
-        PIDController ycontroller = new PIDController(1.5, 0, 0);  //TODO use profilePID
+    public Command runPidToPose(Pose2d targetPose, double toleranceInches) {
+        PIDController xcontroller = new PIDController(1.5, 0, 0); // TODO use profilePID
+        PIDController ycontroller = new PIDController(1.5, 0, 0); // TODO use profilePID
         PIDController thetacontroller = new PIDController(2, 0, 0);
         thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
 
-
         // Drivetrain will execute this command periodically
-        return swerveDrivetrain.applyRequest(() -> {
+        return this.applyRequest(() -> {
+            pidToPosePublisher.set(targetPose);
             SmartDashboard.putNumber("PID_TO_POSE/xError", xcontroller.getError());
             SmartDashboard.putNumber("PID_TO_POSE/yError", ycontroller.getError());
 
-            Pose2d currentpose = swerveDrivetrain.getState().Pose;
+            Pose2d currentpose = this.getState().Pose;
 
-            double xOutput = xcontroller.calculate(currentpose.getX(), targetpose.getX());
-            double yOutput = ycontroller.calculate(currentpose.getY(), targetpose.getY());
-            double thetaOutput = thetacontroller.calculate(currentpose.getRotation().getRadians(), targetpose.getRotation().getRadians());
+            double xOutput = xcontroller.calculate(currentpose.getX(), targetPose.getX());
+            double yOutput = ycontroller.calculate(currentpose.getY(), targetPose.getY());
+            double thetaOutput = thetacontroller.calculate(currentpose.getRotation().getRadians(),
+                    targetPose.getRotation().getRadians());
             SmartDashboard.putNumber("PID_TO_POSE/xCalculatedOutput", xOutput);
             SmartDashboard.putNumber("PID_TO_POSE/yCalculatedOutput", yOutput);
             SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
 
-            
             return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
-                .withVelocityY(yOutput)
-                .withRotationalRate(thetaOutput);
+                    .withVelocityY(yOutput)
+                    .withRotationalRate(thetaOutput);
         })
-        .until(
-                () -> Units.metersToInches(swerveDrivetrain.getState().Pose.getTranslation().getDistance(targetpose.getTranslation())) < toleranceInches
-            );
+                .until(
+                        () -> Units.metersToInches(this.getState().Pose.getTranslation()
+                                .getDistance(targetPose.getTranslation())) < toleranceInches);
+    }
 
-        // return swerveDrivetrain.run( () ->
-        //     var speeds = fieldspeeds(
-        //         xcontroller.calculate(currentpose.getx(), targetpose.getx()),
-        //         ycontroller.calculate(currentpose.gety(), targetpose.gety()),
-        //         thetacontroller.calculate()
-        //     );
+    public Command runAutoAlign(Supplier<Optional<Pose2d>> targetPoseSupplier, Intake intake, Elevator elevator) {
+        return Commands.sequence(
+                Commands.runOnce(() -> {
+                    if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
+                        System.out.println("runAutoAlign Called with targetPose: " + targetPoseSupplier.get());
+                    }
+                }),
+                Commands.defer(() -> {
+                Optional<Pose2d> targetPose = targetPoseSupplier.get();
 
-        //     swerve.drive(speeds);
-        // ).until(
-        //     //until you are close enough 0.04meter tolerance?
-        // );
+                if (targetPose.isEmpty()) {
+                    return Commands.none();
+                }
+
+                return this.runPidToPose(targetPose.get(), 1)
+                    .alongWith(
+                        Commands.sequence(
+                            Commands.waitUntil(() -> this.getState().Pose.getTranslation()
+                                .getDistance(targetPose.get().getTranslation()) < 1)),
+                        new MoveCoral(elevator, () -> Elevator.ElevationLevel.Level_4, intake))
+                    .andThen(
+                        new ParallelRaceGroup(
+                            new CoralOutput(intake),
+                            new ArmPosition(elevator, () -> Elevator.ArmLevel.Travel)
+                                .beforeStarting(Commands.waitSeconds(0.25))));
+            }, Set.of(this))
+        );
     }
 }

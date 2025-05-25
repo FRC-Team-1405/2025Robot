@@ -232,4 +232,8 @@ public class ReefSelecter {
         System.out.printf("Getting Selected Position: %s", selectedPosition);
         return Optional.of(selectedPosition);
     }
+
+    public Optional<Pose2d> getRobotPositionForSelectedCoral() {
+        return getRobotPositionForCoral(getCoralPosition());
+    }
 }
