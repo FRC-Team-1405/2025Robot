@@ -496,6 +496,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
             double xOutput = xcontroller.calculate(currentpose.getX(), targetPose.getX());
             double yOutput = ycontroller.calculate(currentpose.getY(), targetPose.getY());
+
+            boolean isRedAlliance = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+            if (isRedAlliance){
+                // flip driving direction so we drive towards and not away from the target pose on red alliance
+                xOutput = -xOutput;
+                yOutput = -yOutput;
+            }
+
             double thetaOutput = thetacontroller.calculate(currentpose.getRotation().getRadians(),
                     targetPose.getRotation().getRadians());
             SmartDashboard.putNumber("PID_TO_POSE/xCalculatedOutput", xOutput);
@@ -519,24 +527,23 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     }
                 }),
                 Commands.defer(() -> {
-                Optional<Pose2d> targetPose = targetPoseSupplier.get();
+                    Optional<Pose2d> targetPose = targetPoseSupplier.get();
 
-                if (targetPose.isEmpty()) {
-                    return Commands.none();
-                }
+                    if (targetPose.isEmpty()) {
+                        return Commands.none();
+                    }
 
-                return this.runPidToPose(targetPose.get(), 1)
-                    .alongWith(
-                        Commands.sequence(
-                            Commands.waitUntil(() -> this.getState().Pose.getTranslation()
-                                .getDistance(targetPose.get().getTranslation()) < 1)),
-                        new MoveCoral(elevator, () -> Elevator.ElevationLevel.Level_4, intake))
-                    .andThen(
-                        new ParallelRaceGroup(
-                            new CoralOutput(intake),
-                            new ArmPosition(elevator, () -> Elevator.ArmLevel.Travel)
-                                .beforeStarting(Commands.waitSeconds(0.25))));
-            }, Set.of(this))
-        );
+                    return this.runPidToPose(targetPose.get(), 1)
+                            .alongWith(
+                                    Commands.sequence(
+                                            Commands.waitUntil(() -> this.getState().Pose.getTranslation()
+                                                    .getDistance(targetPose.get().getTranslation()) < 1)),
+                                    new MoveCoral(elevator, () -> Elevator.ElevationLevel.Level_4, intake))
+                            .andThen(
+                                    new ParallelRaceGroup(
+                                            new CoralOutput(intake),
+                                            new ArmPosition(elevator, () -> Elevator.ArmLevel.Travel)
+                                                    .beforeStarting(Commands.waitSeconds(0.25))));
+                }, Set.of(this)));
     }
 }
