@@ -105,6 +105,8 @@ public class Vision {
         c.addToVisionSim(visionSim);
       }
 
+      //This is a change 
+
       openSimCameraViews();
     }
 
