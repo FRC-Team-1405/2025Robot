@@ -83,6 +83,10 @@ public class Vision extends SubsystemBase {
     weight *= Filtering.LINEAR_VELOCITY_WEIGHT_COEFFICIENT.lerp(Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond));
     weight *= Filtering.ANGULAR_VELOCITY_WEIGHT_COEFFICIENT.lerp(speeds.omegaRadiansPerSecond);
 
+    if (DriverStation.isDisabled()) {
+      weight = 1.0;
+    }
+
     return Optional.of(new VisionSample(update.pose(), update.timestamp(), weight));
   }
 

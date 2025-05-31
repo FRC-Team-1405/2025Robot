@@ -481,8 +481,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public Command runPidToPose(Pose2d targetPose, double toleranceInches) {
-        PIDController xcontroller = new PIDController(1.5, 0, 0); // TODO use profilePID
-        PIDController ycontroller = new PIDController(1.5, 0, 0); // TODO use profilePID
+        PIDController xcontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
+        PIDController ycontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
         PIDController thetacontroller = new PIDController(2, 0, 0);
         thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -510,7 +510,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             SmartDashboard.putNumber("PID_TO_POSE/yCalculatedOutput", yOutput);
             SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
 
-            System.out.println("runPidToPose Called with targetPose: " + targetPose);
+            if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
+                System.out.println("runPidToPose Called with targetPose: " + targetPose);
+            }
 
             return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
                     .withVelocityY(yOutput)

@@ -92,7 +92,7 @@ public class RobotContainer {
   private final String OUTPUT_CORAL = "Output Coral";
 
   // region FeatureSwitches
-  public static final boolean DEBUG_CONSOLE_LOGGING = true;
+  public static final boolean DEBUG_CONSOLE_LOGGING = false;
   public static final boolean AMBIGUITY_FILTER = true;
   public static final boolean LONG_DISTANCE_FILTER = true;
   public static final boolean RESET_CAMERA_RESULTS = false;
@@ -239,7 +239,7 @@ public class RobotContainer {
     var visionSamples = vision.flushSamples();
     vision.updateSpeeds(drivetrain.getState().Speeds);
     for (var sample : visionSamples) {
-      double thetaStddev = sample.weight() > 0.9 ? 25.0 : 99999.0;
+      double thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0;
       drivetrain.addVisionMeasurement(
         sample.pose(),
         sample.timestamp(),
