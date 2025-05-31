@@ -480,7 +480,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return driveToPose(() -> Optional.of(pose));
     }
 
-    public Command runPidToPose(Pose2d targetPose, double toleranceInches) {
+    /**
+     * 
+     * @param targetPose
+     * @param toleranceInches
+     * @param applyFieldSymmetryToPose iff true assumes Pose is in Blue alliance, will automatically mirror the Pose for Red alliance
+     * @return
+     */
+    public Command runPidToPose(Pose2d targetPose, double toleranceInches, boolean applyFieldSymmetryToPose) {
         PIDController xcontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
         PIDController ycontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
         PIDController thetacontroller = new PIDController(2, 0, 0);
@@ -488,14 +495,17 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         // Drivetrain will execute this command periodically
         return this.applyRequest(() -> {
-            pidToPosePublisher.set(targetPose);
+            final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
+            final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
+
+            pidToPosePublisher.set(poseToMoveTo);
             SmartDashboard.putNumber("PID_TO_POSE/xError", xcontroller.getError());
             SmartDashboard.putNumber("PID_TO_POSE/yError", ycontroller.getError());
 
             Pose2d currentpose = this.getState().Pose;
 
-            double xOutput = xcontroller.calculate(currentpose.getX(), targetPose.getX());
-            double yOutput = ycontroller.calculate(currentpose.getY(), targetPose.getY());
+            double xOutput = xcontroller.calculate(currentpose.getX(), poseToMoveTo.getX());
+            double yOutput = ycontroller.calculate(currentpose.getY(), poseToMoveTo.getY());
 
             boolean isRedAlliance = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
             if (isRedAlliance){
@@ -505,13 +515,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             }
 
             double thetaOutput = thetacontroller.calculate(currentpose.getRotation().getRadians(),
-                    targetPose.getRotation().getRadians());
+                poseToMoveTo.getRotation().getRadians());
             SmartDashboard.putNumber("PID_TO_POSE/xCalculatedOutput", xOutput);
             SmartDashboard.putNumber("PID_TO_POSE/yCalculatedOutput", yOutput);
             SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
 
             if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-                System.out.println("runPidToPose Called with targetPose: " + targetPose);
+                System.out.println("runPidToPose Called with poseToMoveTo: " + poseToMoveTo);
             }
 
             return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
@@ -519,8 +529,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     .withRotationalRate(thetaOutput);
         })
                 .until(
-                        () -> Units.metersToInches(this.getState().Pose.getTranslation()
-                                .getDistance(targetPose.getTranslation())) < toleranceInches);
+                        () -> {
+                            final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
+                            final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
+                            return Units.metersToInches(this.getState().Pose.getTranslation()
+                                .getDistance(poseToMoveTo.getTranslation())) < toleranceInches;
+                            });
     }
 
     public Command runAutoAlign(Supplier<Optional<Pose2d>> targetPoseSupplier, Intake intake, Elevator elevator) {
@@ -537,7 +551,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                         return Commands.none();
                     }
 
-                    return this.runPidToPose(targetPose.get(), 1)
+                    return this.runPidToPose(targetPose.get(), 1, false)
                             .alongWith(
                                     Commands.sequence(
                                             Commands.waitUntil(() -> this.getState().Pose.getTranslation()

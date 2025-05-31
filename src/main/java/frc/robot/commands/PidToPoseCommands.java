@@ -19,10 +19,10 @@ public class PidToPoseCommands {
   public static Pose2d Red_6B = new Pose2d(3.99, 2.84, Rotation2d.fromDegrees(-120.0));
 
   public static void registerCommands(CommandSwerveDrivetrain drivetrain) {
-    Command MoveTo_Red_5B = drivetrain.runPidToPose(Red_5B, 1);
-    Command MoveTo_Red_5A = drivetrain.runPidToPose(Red_5A, 1);
-    Command MoveTo_Red_6B = drivetrain.runPidToPose(Red_6B, 1);
-    Command MoveTo_Red_6A = drivetrain.runPidToPose(Red_6A, 1);
+    Command MoveTo_Red_5B = drivetrain.runPidToPose(Red_5B, 1, true);
+    Command MoveTo_Red_5A = drivetrain.runPidToPose(Red_5A, 1, true);
+    Command MoveTo_Red_6B = drivetrain.runPidToPose(Red_6B, 1, true);
+    Command MoveTo_Red_6A = drivetrain.runPidToPose(Red_6A, 1, true);
 
     NamedCommands.registerCommand("MoveTo_Red_5B", MoveTo_Red_5B);
     NamedCommands.registerCommand("MoveTo_Red_5A", MoveTo_Red_5A);

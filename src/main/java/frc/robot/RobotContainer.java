@@ -149,6 +149,12 @@ public class RobotContainer {
     driver.leftBumper()
         .onTrue(new SequentialCommandGroup(new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
+    
+    /* B Button: Auto Align  */
+    driver.b().whileTrue(
+      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), intake, elevator)
+    ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+
     driver.back().onTrue(
       Commands.runOnce(() -> {
         double angleToResetTo = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? 0 : 180;
