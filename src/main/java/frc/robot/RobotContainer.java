@@ -336,7 +336,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
-        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4_Auto, intake)).unless(() -> !intake.hasCoral()));
+        Commands.sequence(Commands.waitUntil(intake::hasCoral), new MoveCoral(elevator, () -> ElevationLevel.Level_4_Auto, intake)).withTimeout(1.5).unless(() -> !intake.hasCoral()));
 
     PidToPoseCommands.registerCommands(drivetrain);
   }
