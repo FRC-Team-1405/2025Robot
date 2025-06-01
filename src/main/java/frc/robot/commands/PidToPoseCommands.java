@@ -17,16 +17,19 @@ public class PidToPoseCommands {
   public static Pose2d Red_5B = new Pose2d(5.270, 3.000, Rotation2d.fromDegrees(-60));
   public static Pose2d Red_6A = new Pose2d(3.71, 3, Rotation2d.fromDegrees(-120.0));
   public static Pose2d Red_6B = new Pose2d(3.99, 2.84, Rotation2d.fromDegrees(-120.0));
+  public static Pose2d RightFeeder = new Pose2d(0.98, 1, Rotation2d.fromDegrees(-125.0));
 
   public static void registerCommands(CommandSwerveDrivetrain drivetrain) {
     Command MoveTo_Red_5B = drivetrain.runPidToPose(Red_5B, 1, true);
     Command MoveTo_Red_5A = drivetrain.runPidToPose(Red_5A, 1, true);
     Command MoveTo_Red_6B = drivetrain.runPidToPose(Red_6B, 1, true);
     Command MoveTo_Red_6A = drivetrain.runPidToPose(Red_6A, 1, true);
+    Command MoveTo_RightFeeder = drivetrain.runPidToPose(RightFeeder, 1, true);
 
     NamedCommands.registerCommand("MoveTo_Red_5B", MoveTo_Red_5B);
     NamedCommands.registerCommand("MoveTo_Red_5A", MoveTo_Red_5A);
     NamedCommands.registerCommand("MoveTo_Red_6B", MoveTo_Red_6B);
     NamedCommands.registerCommand("MoveTo_Red_6A", MoveTo_Red_6A);
+    NamedCommands.registerCommand("MoveTo_RightFeeder", MoveTo_RightFeeder);
   }
 }

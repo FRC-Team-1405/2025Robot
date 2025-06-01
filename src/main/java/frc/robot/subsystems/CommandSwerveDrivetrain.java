@@ -22,10 +22,12 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -488,8 +490,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @return
      */
     public Command runPidToPose(Pose2d targetPose, double toleranceInches, boolean applyFieldSymmetryToPose) {
-        PIDController xcontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
-        PIDController ycontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
+        Constraints robotConstraints = new Constraints(4, 3);
+        ProfiledPIDController xcontroller = new ProfiledPIDController(2.2, 0, 0, robotConstraints); // TODO use profilePID
+        ProfiledPIDController ycontroller = new ProfiledPIDController(2.2, 0, 0, robotConstraints); // TODO use profilePID
         PIDController thetacontroller = new PIDController(2, 0, 0);
         thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -499,8 +502,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
 
             pidToPosePublisher.set(poseToMoveTo);
-            SmartDashboard.putNumber("PID_TO_POSE/xError", xcontroller.getError());
-            SmartDashboard.putNumber("PID_TO_POSE/yError", ycontroller.getError());
+            SmartDashboard.putNumber("PID_TO_POSE/xError", xcontroller.getPositionError());
+            SmartDashboard.putNumber("PID_TO_POSE/yError", ycontroller.getPositionError());
 
             Pose2d currentpose = this.getState().Pose;
 
