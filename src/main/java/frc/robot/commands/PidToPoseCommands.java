@@ -13,6 +13,8 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class PidToPoseCommands {
+  private static final double TOLERANCE = 1.2;
+
   /* Reef Poses */
   public static Pose2d Red_5A = new Pose2d(4.98, 2.84, Rotation2d.fromDegrees( -60));
   public static Pose2d Red_5B = new Pose2d(5.270, 3.000, Rotation2d.fromDegrees(-60));
@@ -29,14 +31,14 @@ public class PidToPoseCommands {
 
   public static void registerCommands(CommandSwerveDrivetrain drivetrain) {
     /* Commands */
-    Command MoveTo_Red_5B = drivetrain.runPidToPose(Red_5B, 1, true);
-    Command MoveTo_Red_5A = drivetrain.runPidToPose(Red_5A, 1, true);
-    Command MoveTo_Red_6B = drivetrain.runPidToPose(Red_6B, 1, true);
-    Command MoveTo_Red_6A = drivetrain.runPidToPose(Red_6A, 1, true);
+    Command MoveTo_Red_5B = drivetrain.runPidToPose(Red_5B, TOLERANCE, true);
+    Command MoveTo_Red_5A = drivetrain.runPidToPose(Red_5A, TOLERANCE, true);
+    Command MoveTo_Red_6B = drivetrain.runPidToPose(Red_6B, TOLERANCE, true);
+    Command MoveTo_Red_6A = drivetrain.runPidToPose(Red_6A, TOLERANCE, true);
 
-    Command MoveTo_Blue_2A = drivetrain.runPidToPose(Blue_2A, 1, true);
-    Command MoveTo_Blue_2B = drivetrain.runPidToPose(Blue_2B, 1, true);
-    Command MoveTo_Blue_3A = drivetrain.runPidToPose(Blue_3A, 1, true);
+    Command MoveTo_Blue_2A = drivetrain.runPidToPose(Blue_2A, TOLERANCE, true);
+    Command MoveTo_Blue_2B = drivetrain.runPidToPose(Blue_2B, TOLERANCE, true);
+    Command MoveTo_Blue_3A = drivetrain.runPidToPose(Blue_3A, TOLERANCE, true);
 
     /* Register Commands */
     NamedCommands.registerCommand("MoveTo_Red_5B", MoveTo_Red_5B);

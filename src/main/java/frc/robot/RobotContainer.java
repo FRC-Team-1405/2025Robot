@@ -64,7 +64,7 @@ public class RobotContainer {
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
   public static final SwerveRequest.FieldCentric pidToPose_FieldCentricDrive = new SwerveRequest.FieldCentric()
-      .withDeadband(0).withRotationalDeadband(0) // Add a 10% deadband
+      .withDeadband(0).withRotationalDeadband(0)
       .withDriveRequestType(DriveRequestType.Velocity); // Use open-loop control for drive motors
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
@@ -217,6 +217,7 @@ public class RobotContainer {
     drivetrain.registerTelemetry(logger::telemeterize);
   }
 
+
   private void oldConfigureBindings() {
     // Note that X is defined as forward according to WPILib convention,
     // and Y is defined as to the left according to WPILib convention.
@@ -336,7 +337,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
-        Commands.sequence(Commands.waitUntil(intake::hasCoral), new MoveCoral(elevator, () -> ElevationLevel.Level_4_Auto, intake)).withTimeout(1.5).unless(() -> !intake.hasCoral()));
+        Commands.sequence(Commands.waitUntil(intake::hasCoral), new MoveCoral(elevator, () -> ElevationLevel.Level_4_Auto, intake)).unless(() -> !intake.hasCoral()));
 
     PidToPoseCommands.registerCommands(drivetrain);
   }
