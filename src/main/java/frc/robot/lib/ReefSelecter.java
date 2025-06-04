@@ -46,7 +46,7 @@ public class ReefSelecter {
         Right,
     }
 
-    private Elevator.ElevationLevel level = Elevator.ElevationLevel.Level_4_Auto;
+    private Elevator.ElevationLevel level = Elevator.ElevationLevel.Level_4;
     private CoralLevel coralLevel = CoralLevel.Level_4;
     private Coral coralSelected = Coral.Position_1;
 
@@ -69,7 +69,7 @@ public class ReefSelecter {
         level = switch(level) {
             case Level_1 -> Elevator.ElevationLevel.Level_2;
             case Level_2 -> Elevator.ElevationLevel.Level_3;
-            case Level_3 -> Elevator.ElevationLevel.Level_4_Auto;
+            case Level_3 -> Elevator.ElevationLevel.Level_4;
             default -> level;
         };
         updatePosition();
@@ -77,7 +77,7 @@ public class ReefSelecter {
     
     public void levelDown(){
         level = switch(level){
-            case Level_4_Auto -> Elevator.ElevationLevel.Level_3;
+            case Level_4 -> Elevator.ElevationLevel.Level_3;
             case Level_3 -> Elevator.ElevationLevel.Level_2;
             case Level_2 -> Elevator.ElevationLevel.Level_1;
             default -> level;
@@ -142,7 +142,7 @@ public class ReefSelecter {
             case Level_3:
                 coralLevel = CoralLevel.Level_3;
                 break;
-            case Level_4_Auto:
+            case Level_4:
                 coralLevel = CoralLevel.Level_4;
                 break;
             default:
