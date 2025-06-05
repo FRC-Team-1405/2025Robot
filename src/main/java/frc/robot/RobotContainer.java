@@ -152,7 +152,7 @@ public class RobotContainer {
     
     /* B Button: Auto Align  */
     driver.b().whileTrue(
-      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), intake, elevator)
+      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
     ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
 
     driver.back().onTrue(
@@ -244,7 +244,7 @@ public class RobotContainer {
 
     /* A Button: Auto Align  */
     driver.a().whileTrue(
-      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), intake, elevator)
+      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
     ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
 
     driver.b().whileTrue(drivetrain.applyRequest(

@@ -49,6 +49,7 @@ import frc.robot.commands.MoveCoral;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.lib.AllianceSymmetry;
+import frc.robot.subsystems.Elevator.ElevationLevel;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -537,7 +538,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                             });
     }
 
-    public Command runAutoAlign(Supplier<Optional<Pose2d>> targetPoseSupplier, Intake intake, Elevator elevator) {
+    public Command runAutoAlign(Supplier<Optional<Pose2d>> targetPoseSupplier, Supplier<ElevationLevel> elevationLevelSupplier, Intake intake, Elevator elevator) {
         return Commands.sequence(
                 Commands.runOnce(() -> {
                     if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
@@ -556,7 +557,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                                     Commands.sequence(
                                             Commands.waitUntil(() -> this.getState().Pose.getTranslation()
                                                     .getDistance(targetPose.get().getTranslation()) < 1)),
-                                    new MoveCoral(elevator, () -> Elevator.ElevationLevel.Level_4, intake))
+                                    new MoveCoral(elevator, elevationLevelSupplier, intake))
                             .andThen(
                                     new ParallelRaceGroup(
                                             new CoralOutput(intake),
