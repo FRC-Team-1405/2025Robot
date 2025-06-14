@@ -16,6 +16,7 @@ import com.ctre.phoenix6.controls.compound.Diff_DutyCycleOut_Velocity;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.ForwardLimitValue;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -52,6 +53,9 @@ public class Intake extends SubsystemBase {
     sensorValue = timeofFlight.getRange();
     SmartDashboard.putBoolean("Intake/HaveCoral", hasCoral());
     SmartDashboard.putBoolean("Intake/HitReef", reefDetected());
+    if (DriverStation.isTeleopEnabled()){
+      System.out.println("intake current: " + primary.getStatorCurrent().getValueAsDouble());
+    }
   }
 
   public void stop(){
@@ -69,11 +73,19 @@ public class Intake extends SubsystemBase {
     primary.setControl(velocityVoltage.withVelocity(CoralImputSpeed));
   }
 
+  public void slowIntakeCoral() {
+    primary.setControl(velocityVoltage.withVelocity(CoralImputSpeed/2));
+  }
+
   public void outtakeCoral(){
     primary.setControl(velocityVoltage.withVelocity(CoralOutputSpeed));
   }
   public void slowScore(){
     primary.setControl(velocityVoltage.withVelocity(-CoralImputSpeed));
+  }
+
+  public double getCurrent() {
+    return primary.getStatorCurrent().getValueAsDouble();
   }
 
  

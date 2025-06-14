@@ -39,6 +39,7 @@ import frc.robot.commands.CoralOutput;
 import frc.robot.commands.GrabAlgae;
 import frc.robot.commands.LowScore;
 import frc.robot.commands.MoveCoral;
+import frc.robot.commands.NewCoralInput;
 import frc.robot.commands.PidToPoseCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.lib.ReefSelecter;
@@ -154,6 +155,8 @@ public class RobotContainer {
     driver.b().whileTrue(
       drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
     ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+
+    driver.povUp().toggleOnTrue(new NewCoralInput(intake));
 
     driver.back().onTrue(
       Commands.runOnce(() -> {
