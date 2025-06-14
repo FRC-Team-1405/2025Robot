@@ -535,7 +535,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                             final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
                             return Units.metersToInches(this.getState().Pose.getTranslation()
                                 .getDistance(poseToMoveTo.getTranslation())) < toleranceInches;
-                            });
+                            }).andThen(
+                                () -> {
+                                    final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
+                                    final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
+
+                                    final double distanceToTarget = Units.metersToInches(this.getState().Pose.getTranslation().getDistance(poseToMoveTo.getTranslation()));
+
+                                    System.out.println("PidToPose Reached Target position, distanceToTarget: " + distanceToTarget);
+                                }
+                            );
     }
 
     public Command runAutoAlign(Supplier<Optional<Pose2d>> targetPoseSupplier, Supplier<ElevationLevel> elevationLevelSupplier, Intake intake, Elevator elevator) {
@@ -556,8 +565,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                             .alongWith(
                                     Commands.sequence(
                                             Commands.waitUntil(() -> this.getState().Pose.getTranslation()
-                                                    .getDistance(targetPose.get().getTranslation()) < 1)),
+                                                    .getDistance(targetPose.get().getTranslation()) < 1)).andThen(
+                                                        () -> {
+                                                            System.out.println("PidToPose is within a meter of target, start moving elevator to level: " + elevationLevelSupplier.get());
+                                                        }
+                                                    ),
                                     new MoveCoral(elevator, elevationLevelSupplier, intake))
+                                    .andThen(() -> {System.out.println("runAutoAlign is in position to score, deploying coral now.");})
                             .andThen(
                                     new ParallelRaceGroup(
                                             new CoralOutput(intake),

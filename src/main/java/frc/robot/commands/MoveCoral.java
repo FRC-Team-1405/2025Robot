@@ -23,9 +23,13 @@ public class MoveCoral extends SequentialCommandGroup {
     
     addRequirements(elavator);
     addCommands( intake.runOnce( intake::stop ));
+    System.out.println("MoveCoral, stopIntake");
     addCommands( new ArmPosition(elavator, () -> ArmLevel.Travel));
+    System.out.println("MoveCoral, armPosition:Travel");
     addCommands( new MoveElevator(elavator, level));
+    System.out.println("MoveCoral, moveElevator - level=" + level.get());
     addCommands( new ArmPosition(elavator, this::armLevel) );
+    System.out.println("MoveCoral, armPosition - armLevel=" + armLevel());
   }
 
   private ArmLevel armLevel()
