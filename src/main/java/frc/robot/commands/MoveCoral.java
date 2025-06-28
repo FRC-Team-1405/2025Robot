@@ -18,31 +18,26 @@ public class MoveCoral extends SequentialCommandGroup {
 
   private Supplier<Elevator.ElevationLevel> level;
 
-  public MoveCoral(Elevator elavator, Supplier<Elevator.ElevationLevel> level, Intake intake) {
+  public MoveCoral(Elevator elevator, Supplier<Elevator.ElevationLevel> level, Intake intake) {
     this.level = level;
-    
-    addRequirements(elavator);
-    addCommands( intake.runOnce( intake::stop ));
-    System.out.println("MoveCoral, stopIntake");
-    addCommands( new ArmPosition(elavator, () -> ArmLevel.Travel));
-    System.out.println("MoveCoral, armPosition:Travel");
-    addCommands( new MoveElevator(elavator, level));
-    System.out.println("MoveCoral, moveElevator - level=" + level.get());
-    addCommands( new ArmPosition(elavator, this::armLevel) );
-    System.out.println("MoveCoral, armPosition - armLevel=" + armLevel());
+
+    addRequirements(elevator);
+    addCommands(IntakeCommands.stopIntake(intake));
+    addCommands(new ArmPosition(elevator, () -> ArmLevel.Travel));
+    addCommands(new MoveElevator(elevator, level));
+    addCommands(new ArmPosition(elevator, this::armLevel));
   }
 
-  private ArmLevel armLevel()
-  {
-    ArmLevel value = switch((level.get())){
-      case  Home -> ArmLevel.Home;
-      case  Level_1 -> ArmLevel.Low_Score;
-      case  Level_2 -> ArmLevel.Middle_Score;
-      case  Level_3 -> ArmLevel.Middle_Score;
-      case  Level_4 -> ArmLevel.High_Score;
-      case  Level_4_Auto -> ArmLevel.High_Score_Auto;
+  private ArmLevel armLevel() {
+    ArmLevel value = switch ((level.get())) {
+      case Home -> ArmLevel.Home;
+      case Level_1 -> ArmLevel.Low_Score;
+      case Level_2 -> ArmLevel.Middle_Score;
+      case Level_3 -> ArmLevel.Middle_Score;
+      case Level_4 -> ArmLevel.High_Score;
+      case Level_4_Auto -> ArmLevel.High_Score_Auto;
       default -> ArmLevel.Home;
-  };
+    };
     return value;
   }
 }

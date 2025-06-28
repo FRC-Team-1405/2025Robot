@@ -30,14 +30,10 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
-import frc.robot.commands.CoralInput;
-import frc.robot.commands.CoralOutput;
-import frc.robot.commands.GrabAlgae;
-import frc.robot.commands.LowScore;
+import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
 import frc.robot.commands.PidToPoseCommands;
 import frc.robot.generated.TunerConstants;
@@ -116,7 +112,6 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", autoChooser);
 
     configureBindings();
-    configureShuffleboardCommands();
     drivetrain.configureShuffleboardCommands();
 
     // Warmup PathPlanner to avoid Java pauses
@@ -137,19 +132,18 @@ public class RobotContainer {
             .withRotationalRate(getRotationSpeed()) // Drive counterclockwise with
                                                                         // negative X (left)
         ));
-    
+
     // Idle while the robot is disabled. This ensures the configured
     // neutral mode is applied to the drive motors while disabled.
     final var idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled().whileTrue(
         drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-    
-    driver.rightBumper().toggleOnTrue(new CoralInput(intake));
+    driver.rightBumper().whileTrue(IntakeCommands.intakeCoral(intake));
     driver.leftBumper()
-        .onTrue(new SequentialCommandGroup(new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
+        .onTrue(new SequentialCommandGroup(IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
-    
+
     /* B Button: Auto Align  */
     driver.b().whileTrue(
       drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
@@ -176,18 +170,13 @@ public class RobotContainer {
       SmartDashboard.putBoolean("Algae/High", highAlgae);
       SmartDashboard.putBoolean("Algae/Low", !highAlgae);
     }));
-    operator.b().onTrue(new GrabAlgae(elevator, intake, () -> {
-      return highAlgae;
-    }));
+    // operator.b().onTrue(new GrabAlgae(elevator, intake, () -> {
+    //   return highAlgae;
+    // }));
 
     operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
     operator.a().onTrue(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
-    operator.x().onTrue(new InstantCommand(() -> {
-      intake.outtakeCoral();
-    }));
-    operator.x().onFalse(new InstantCommand(() -> {
-      intake.stop();
-    }));
+    operator.x().whileTrue(IntakeCommands.runVoltage(intake, 4.0));
 
     operator.povLeft().onTrue(Commands.runOnce(reefSelecter::selectLeft));
     operator.povRight().onTrue(Commands.runOnce(reefSelecter::selectRight));
@@ -261,9 +250,9 @@ public class RobotContainer {
     // joystick.leftBumper().onTrue(drivetrain.runOnce(() ->
     // drivetrain.seedFieldCentric()));
 
-    driver.rightBumper().toggleOnTrue(new CoralInput(intake));
+    driver.rightBumper().toggleOnTrue(IntakeCommands.intakeCoral(intake));
     driver.leftBumper()
-        .onTrue(new SequentialCommandGroup(new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
+        .onTrue(new SequentialCommandGroup(IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
     // driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () ->
     // ArmLevel.Climb)));
     // driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true));
@@ -271,10 +260,10 @@ public class RobotContainer {
     operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
     operator.a().onTrue(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
     operator.x().onTrue(new InstantCommand(() -> {
-      intake.outtakeCoral();
+      intake.controlVolts(4.0);
     }));
     operator.x().onFalse(new InstantCommand(() -> {
-      intake.stop();
+      intake.controlVolts(0.0);
     }));
 
     operator.povLeft().onTrue(Commands.runOnce(reefSelecter::selectLeft));
@@ -319,22 +308,22 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(OUTPUT_CORAL,
         new ParallelRaceGroup(
-            new CoralOutput(intake),
+            IntakeCommands.expelCoral(intake),
             new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))));
 
     NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake),
-            new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
+            IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
             new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Score Level3 Coral",
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_3, intake),
-            new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
+            IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
             new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Score Level2 Coral",
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_2, intake),
-            new CoralOutput(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
+            IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
             new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
-    NamedCommands.registerCommand("Intake Coral", new CoralInput(intake));  
+    NamedCommands.registerCommand("Intake Coral", Commands.none());
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
         Commands.sequence(Commands.waitUntil(intake::hasCoral), new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)).unless(() -> !intake.hasCoral()));
@@ -353,33 +342,6 @@ public class RobotContainer {
         VecBuilder.fill(0.1 / sample.weight(), 0.1 / sample.weight(), thetaStddev)
       );
     }
-  }
-
-  private void configureShuffleboardCommands() {
-    Command outputCoral = new CoralOutput(intake);
-    outputCoral.setName("Output Coral");
-    SmartDashboard.putData(outputCoral);
-
-    Command inputCoral = new CoralInput(intake);
-    inputCoral.setName("Input Coral");
-    SmartDashboard.putData(inputCoral);
-
-    Trigger reefTrigger = new Trigger(intake::reefDetected);
-    reefTrigger.onTrue(outputCoral);
-
-    Command zeroizeClimber = climber.runOnce(() -> {
-      climber.zeroize();
-    });
-    zeroizeClimber.setName("zeroize Climber");
-    SmartDashboard.putData(zeroizeClimber);
-    SmartDashboard.putBoolean("Auto Mode Enable", false);
-
-    Command lowScore = new LowScore(elevator, intake);
-    lowScore.setName("Low Score");
-    SmartDashboard.putData(lowScore);
-
-    SmartDashboard.putNumber("Test/Short Drive Time", 0.5);
-    SmartDashboard.putNumber("Test/Reef Drive", 2.0);
   }
 
   private double getYSpeed(){

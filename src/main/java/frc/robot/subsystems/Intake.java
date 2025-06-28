@@ -4,93 +4,83 @@
 
 package frc.robot.subsystems;
 
-
-import static edu.wpi.first.units.Units.Rotations;
-
-import java.util.function.Supplier;
-
-import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.compound.Diff_DutyCycleOut_Velocity;
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.ForwardLimitValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.wpilibj.Preferences;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanBus;
+
 import com.playingwithfusion.TimeOfFlight;
+import com.playingwithfusion.TimeOfFlight.RangingMode;
 
 
 public class Intake extends SubsystemBase {
   /** Creates a new Intake. */
-  private TalonFX primary = new TalonFX(CanBus.Intake);
-  private final VelocityDutyCycle velocityVoltage = new VelocityDutyCycle(0).withSlot(1);
-  private final double CoralImputSpeed;
-  private final double CoralOutputSpeed;
-  private final double AlgeaSpeed;
-  private final TimeOfFlight timeofFlight = new TimeOfFlight(CanBus.IntakeSensor);
-  private final Supplier<ForwardLimitValue> reefDetector = primary.getForwardLimit().asSupplier();
-  private double sensorValue = 0;
+  private final TalonFX motor = new TalonFX(CanBus.Intake);
+  private final VoltageOut voltageOut = new VoltageOut(0);
+  private final PositionVoltage holdStill = new PositionVoltage(0.0);
+  private final TimeOfFlight timeOfFlight = new TimeOfFlight(CanBus.IntakeSensor);
+  private final LinearFilter ampFilter = LinearFilter.movingAverage(5);
+  private double cachedSensorValue = 0;
+  private final BaseStatusSignal amps, voltage, velocity, position;
 
   public Intake() {
-      Preferences.initDouble("Intake/CoralImputSpeed", -15.0);
-      CoralImputSpeed = Preferences.getDouble("Intake/CoralImputSpeed/", -15.0);
+    timeOfFlight.setRangingMode(RangingMode.Short, 24.0);
 
-      Preferences.initDouble("Output/CoralOutputSpeed", -30.0);
-      CoralOutputSpeed = Preferences.getDouble("Output/CoralOutputSpeed/", -30.0);
-      
-      Preferences.initDouble("Intake/AlgeaSpeed", 0.25);
-      AlgeaSpeed = Preferences.getDouble("Elavator/Position/", -0.25);
+    amps = motor.getStatorCurrent(false);
+    voltage = motor.getMotorVoltage(false);
+    velocity = motor.getVelocity(false);
+    position = motor.getPosition(false);
 
+    BaseStatusSignal.setUpdateFrequencyForAll(100.0,
+      amps,
+      voltage,
+      velocity,
+      position
+    );
+    motor.optimizeBusUtilization(4.0, 1.0);
+
+    final TalonFXConfiguration cfg = new TalonFXConfiguration();
+    cfg.CurrentLimits.StatorCurrentLimit = 70.0;
+    cfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    cfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    cfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    cfg.Slot0.kP = 20.0;
+
+    motor.getConfigurator().apply(cfg);
+  }
+
+  public void controlVolts(double volts){
+    motor.setControl(voltageOut.withOutput(volts));
+  }
+
+  public void stop() {
+    motor.setControl(holdStill.withPosition(position.getValueAsDouble()));
+  }
+
+  public boolean hasCoral(){
+    return (cachedSensorValue <= 125);
+  }
+
+  public boolean hasAlgae() {
+    return Math.abs(ampFilter.lastValue()) > 25.0;
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    sensorValue = timeofFlight.getRange();
-    SmartDashboard.putBoolean("Intake/HaveCoral", hasCoral());
-    SmartDashboard.putBoolean("Intake/HitReef", reefDetected());
-  }
-
-  public void stop(){
-    primary.set(0.0);
-  }
-  
-  public void pushCoral(){
-    primary.setPosition(primary.getPosition().getValue().in(Rotations)+1);
-  }
-  public void pullCoral(){
-    primary.setPosition(primary.getPosition().getValue().in(Rotations)-1);
-
-  }
-  public void intakeCoral(){
-    primary.setControl(velocityVoltage.withVelocity(CoralImputSpeed));
-  }
-
-  public void outtakeCoral(){
-    primary.setControl(velocityVoltage.withVelocity(CoralOutputSpeed));
-  }
-  public void slowScore(){
-    primary.setControl(velocityVoltage.withVelocity(-CoralImputSpeed));
-  }
-
- 
-
-  public boolean hasCoral(){
-    return (sensorValue <= 100);
-  }
-
-  public void intakeAlgae(){
-    primary.set(-AlgeaSpeed);
-  }
-
-  public void outtakeAlgae(){
-    primary.set(AlgeaSpeed);
-  }
-
-  public boolean reefDetected() {
-    return reefDetector.get() == ForwardLimitValue.ClosedToGround;
+    cachedSensorValue = timeOfFlight.getRange();
+    BaseStatusSignal.refreshAll(
+      amps,
+      voltage,
+      velocity,
+      position
+    );
+    ampFilter.calculate(amps.getValueAsDouble());
   }
 }
