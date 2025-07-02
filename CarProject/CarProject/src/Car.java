@@ -28,4 +28,6 @@ public class Car {
     public double getTemperature(){
         return carTemperature;
     }
+
+    public Radio myRadio = new Radio();
 }

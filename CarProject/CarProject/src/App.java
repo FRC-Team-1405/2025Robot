@@ -18,11 +18,16 @@ public class App {
         Driver zac = new Driver();
         System.out.println("Current temperature is: " + zac.driverPreferedCarTemperature);
 
+        Driver ben = new Driver();
+        ben.driverPreferedCarTemperature = 65;
         zac.driverPreferedCarTemperature = 68;
 
         myCar.setTemperature(zac);
+        myFriendsCar.setTemperature(ben);
         System.out.println("Current temperature is: " + myCar.getTemperature() + "\nMy friend's car's temperature: " + myFriendsCar.getTemperature());
         
+        myCar.myRadio.getStation();
+        System.out.println(myCar.myRadio.getStation());
 
     }
 }
