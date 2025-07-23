@@ -1,6 +1,6 @@
 public class Station {
     private static Genre genre = Genre.COUNTRY;
-    //TODO Add a frequency
+    public double frequency = 92.5;
 
 
 }

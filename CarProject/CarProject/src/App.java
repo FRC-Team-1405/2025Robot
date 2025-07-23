@@ -26,8 +26,12 @@ public class App {
         myFriendsCar.setTemperature(ben);
         System.out.println("Current temperature is: " + myCar.getTemperature() + "\nMy friend's car's temperature: " + myFriendsCar.getTemperature());
         
-        myCar.myRadio.getStation();
-        System.out.println(myCar.myRadio.getStation());
+       /*  myCar.myRadio.getStation();
+        System.out.println(myCar.myRadio.getStation());*/
+
+       String currentGenre = GenreHandler.StationToGenre("100.3");
+        System.out.println(currentGenre);
+
 
     }
 }
