@@ -13,6 +13,8 @@ public class GenreHandler{
         // insert a station into the station/genre map
         StationGenre.put(myStation, Genre.COUNTRY);
 
+
+        // Station x = (Station)StationGenre.keySet().toArray()[0];
         // take the input to this method, and create a new station to search through the map with
         Station frequencyToStation = new Station();
         frequencyToStation.frequency = Double.valueOf(Station);
