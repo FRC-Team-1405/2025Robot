@@ -30,7 +30,9 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.autos.TestAuto;
 import frc.robot.commands.ArmPosition;
 import frc.robot.commands.Climb;
 import frc.robot.commands.IntakeCommands;
@@ -108,7 +110,9 @@ public class RobotContainer {
   public RobotContainer() {
     DriverStation.silenceJoystickConnectionWarning(true);
     configurePathPlanner();
+    SmartDashboard.putBoolean("Auto Mode Enable", false);
     autoChooser = AutoBuilder.buildAutoChooser("DriveStraight3m");
+    TestAuto.configureAutos(autoChooser, drivetrain);
     SmartDashboard.putData("Auto Mode", autoChooser);
 
     configureBindings();
@@ -202,86 +206,6 @@ public class RobotContainer {
     SmartDashboard.putData(climbCommand);
 
     operator.start().and(operator.back()).toggleOnTrue(climbCommand);
-
-    drivetrain.registerTelemetry(logger::telemeterize);
-  }
-
-
-  private void oldConfigureBindings() {
-    // Note that X is defined as forward according to WPILib convention,
-    // and Y is defined as to the left according to WPILib convention.
-    drivetrain.setDefaultCommand(
-        // Drivetrain will execute this command periodically
-        drivetrain.applyRequest(() -> drive.withVelocityX(-driver.getLeftY() * MaxSpeed) // Drive forward with
-                                                                                           // negative Y
-                                                                                           // (forward)
-            .withVelocityY(-driver.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-            .withRotationalRate(-driver.getRightX() * MaxAngularRate) // Drive counterclockwise with
-                                                                        // negative X (left)
-        ));
-
-    // Idle while the robot is disabled. This ensures the configured
-    // neutral mode is applied to the drive motors while disabled.
-    final var idle = new SwerveRequest.Idle();
-    RobotModeTriggers.disabled().whileTrue(
-        drivetrain.applyRequest(() -> idle).ignoringDisable(true));
-
-        driver.b().onTrue(drivetrain.runOnce(() -> {
-      drivetrain.resetPose(new Pose2d(1, 1, new Rotation2d(0)));
-    }));
-    // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-
-    /* A Button: Auto Align  */
-    driver.a().whileTrue(
-      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
-    ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
-
-    driver.b().whileTrue(drivetrain.applyRequest(
-        () -> point.withModuleDirection(new Rotation2d(-driver.getLeftY(), -driver.getLeftX()))));
-
-    // Run SysId routines when holding back/start and X/Y.
-    // Note that each routine should be run exactly once in a single log.
-    // joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    // joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    // joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-    // joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
-    // reset the field-centric heading on left bumper press
-    // joystick.leftBumper().onTrue(drivetrain.runOnce(() ->
-    // drivetrain.seedFieldCentric()));
-
-    driver.rightBumper().toggleOnTrue(IntakeCommands.intakeCoral(intake));
-    driver.leftBumper()
-        .onTrue(new SequentialCommandGroup(IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
-    // driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () ->
-    // ArmLevel.Climb)));
-    // driver.back().onTrue((Commands.runOnce(driveBase::zeroGyroWithAlliance)).ignoringDisable(true));
-
-    operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
-    operator.a().onTrue(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
-    operator.x().onTrue(new InstantCommand(() -> {
-      intake.controlVolts(4.0);
-    }));
-    operator.x().onFalse(new InstantCommand(() -> {
-      intake.controlVolts(0.0);
-    }));
-
-    operator.povLeft().onTrue(Commands.runOnce(reefSelecter::selectLeft));
-    operator.povRight().onTrue(Commands.runOnce(reefSelecter::selectRight));
-
-    operator.povUp()
-        .or(operator.povUpLeft())
-        .or(operator.povUpRight())
-        .onTrue(new InstantCommand(() -> {
-          reefSelecter.levelUp();
-        }));
-
-    operator.povDown()
-        .or(operator.povDownLeft())
-        .or(operator.povDownRight())
-        .onTrue(new InstantCommand(() -> {
-          reefSelecter.levelDown();
-        }));
 
     drivetrain.registerTelemetry(logger::telemeterize);
   }

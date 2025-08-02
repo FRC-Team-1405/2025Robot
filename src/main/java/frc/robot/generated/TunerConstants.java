@@ -136,11 +136,17 @@ public class TunerConstants {
             .withDriveFrictionVoltage(kDriveFrictionVoltage);
 
 
+    //
+    // How to update wheel offsets:
+    // Turn Robot on side and align all wheels forward with bevel facing toward the middle of the robot
+    // For each wheel's encoder get the "Absolute Position No Offset" from Pheonix Tuner X
+    // Replace the offset below with that value for each encoder
+
     // Front Left
     private static final int kFrontLeftDriveMotorId = 4;
     private static final int kFrontLeftSteerMotorId = 24;
     private static final int kFrontLeftEncoderId = 34;
-    private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.31494140625);
+    private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.308594);
     private static final boolean kFrontLeftSteerMotorInverted = true;
     private static final boolean kFrontLeftEncoderInverted = false;
 
@@ -151,7 +157,7 @@ public class TunerConstants {
     private static final int kFrontRightDriveMotorId = 3;
     private static final int kFrontRightSteerMotorId = 23;
     private static final int kFrontRightEncoderId = 33;
-    private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.00341796875);
+    private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.008057);
     private static final boolean kFrontRightSteerMotorInverted = true;
     private static final boolean kFrontRightEncoderInverted = false;
 
@@ -162,7 +168,7 @@ public class TunerConstants {
     private static final int kBackLeftDriveMotorId = 2;
     private static final int kBackLeftSteerMotorId = 22;
     private static final int kBackLeftEncoderId = 32;
-    private static final Angle kBackLeftEncoderOffset = Rotations.of(-0.492919921875);
+    private static final Angle kBackLeftEncoderOffset = Rotations.of(0.497070);
     private static final boolean kBackLeftSteerMotorInverted = true;
     private static final boolean kBackLeftEncoderInverted = false;
 
@@ -173,7 +179,7 @@ public class TunerConstants {
     private static final int kBackRightDriveMotorId = 1;
     private static final int kBackRightSteerMotorId = 21;
     private static final int kBackRightEncoderId = 31;
-    private static final Angle kBackRightEncoderOffset = Rotations.of(0.3701171875);
+    private static final Angle kBackRightEncoderOffset = Rotations.of(0.370605);
     private static final boolean kBackRightSteerMotorInverted = true;
     private static final boolean kBackRightEncoderInverted = false;
 
