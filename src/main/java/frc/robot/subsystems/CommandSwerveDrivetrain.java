@@ -44,7 +44,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotContainer;
 import frc.robot.commands.ArmPosition;
-import frc.robot.commands.CoralOutput;
+import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
@@ -574,7 +574,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                                     .andThen(() -> {System.out.println("runAutoAlign is in position to score, deploying coral now.");})
                             .andThen(
                                     new ParallelRaceGroup(
-                                            new CoralOutput(intake),
+                                            IntakeCommands.expelCoral(intake),
                                             new ArmPosition(elevator, () -> Elevator.ArmLevel.Travel)
                                                     .beforeStarting(Commands.waitSeconds(0.25))));
                 }, Set.of(this)));

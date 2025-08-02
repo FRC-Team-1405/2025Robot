@@ -13,18 +13,18 @@ import frc.robot.subsystems.Elevator.ArmLevel;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ArmPosition extends Command {
   /** Creates a new CoralOutput. */
-  private Elevator elavator;
+  private Elevator elevator;
   private Supplier<ArmLevel> desiredLevel;
-  public ArmPosition(Elevator elavator, Supplier<ArmLevel> level) {
-    this.elavator = elavator;
+  public ArmPosition(Elevator elevator, Supplier<ArmLevel> level) {
+    this.elevator = elevator;
     this.desiredLevel = level;
-    addRequirements(elavator);
+    addRequirements(elevator);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    elavator.setArmlevel(desiredLevel.get());
+    elevator.setArmlevel(desiredLevel.get());
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -35,12 +35,12 @@ public class ArmPosition extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    elavator.stopArm();
+    elevator.stopArm();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return elavator.isArmAtLevel(desiredLevel.get());
+    return elevator.isArmAtLevel(desiredLevel.get());
   }
 }
