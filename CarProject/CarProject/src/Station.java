@@ -8,4 +8,7 @@ public class Station {
         return this.frequency == otherStation.frequency;
     }
 
+    @Override
+    public int hashCode(){return (int)Math.round(frequency * 10);}
+
 }

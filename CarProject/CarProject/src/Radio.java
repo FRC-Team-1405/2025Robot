@@ -1,5 +1,7 @@
 public class Radio {
-    
+    public Radio(){
+        GenreHandler.registerStation(null, station);
+    }
     boolean on;
    // if(on = true){
 
