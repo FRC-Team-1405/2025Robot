@@ -22,10 +22,14 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -488,9 +492,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param applyFieldSymmetryToPose iff true assumes Pose is in Blue alliance, will automatically mirror the Pose for Red alliance
      * @return
      */
-    public Command runPidToPose(Pose2d targetPose, double toleranceInches, boolean applyFieldSymmetryToPose) {
-        PIDController xcontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
-        PIDController ycontroller = new PIDController(2.2, 0, 0); // TODO use profilePID
+    public Command runPidToPose(Pose2d targetPose, double toleranceInches, boolean applyFieldSymmetryToPose, double endStateVelocity) {
+        ProfiledPIDController xProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
+        ProfiledPIDController yProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
         PIDController thetacontroller = new PIDController(2, 0, 0);
         thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -500,13 +504,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
 
             pidToPosePublisher.set(poseToMoveTo);
-            SmartDashboard.putNumber("PID_TO_POSE/xError", xcontroller.getError());
-            SmartDashboard.putNumber("PID_TO_POSE/yError", ycontroller.getError());
+            SmartDashboard.putNumber("PID_TO_POSE/xError", xProfiledPIDController.getPositionError());
+            SmartDashboard.putNumber("PID_TO_POSE/yError", yProfiledPIDController.getPositionError());
 
             Pose2d currentpose = this.getState().Pose;
 
-            double xOutput = xcontroller.calculate(currentpose.getX(), poseToMoveTo.getX());
-            double yOutput = ycontroller.calculate(currentpose.getY(), poseToMoveTo.getY());
+            double xOutput = xProfiledPIDController.calculate(currentpose.getX(), new State(poseToMoveTo.getX(), endStateVelocity));
+            double yOutput = yProfiledPIDController.calculate(currentpose.getY(), new State(poseToMoveTo.getY(), endStateVelocity));
 
             boolean isRedAlliance = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
             if (isRedAlliance){
@@ -542,7 +546,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
                                     final double distanceToTarget = Units.metersToInches(this.getState().Pose.getTranslation().getDistance(poseToMoveTo.getTranslation()));
 
-                                    System.out.println("PidToPose Reached Target position, distanceToTarget: " + distanceToTarget);
+                                    System.out.println("PidToPose Reached Target position (" + poseToMoveTo.toString() + "), distanceToTarget: " + distanceToTarget);
                                 }
                             );
     }
@@ -561,7 +565,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                         return Commands.none();
                     }
 
-                    return this.runPidToPose(targetPose.get(), 1, false)
+                    return this.runPidToPose(targetPose.get(), 1, false, 0)
                             .alongWith(
                                     Commands.sequence(
                                             Commands.waitUntil(() -> this.getState().Pose.getTranslation()
