@@ -2,6 +2,11 @@ import java.util.Random;
 
 public class Car {
 
+    String name; 
+    public Car(String name){
+        this.name = name;
+    }
+
     private double speed = 0;
     public void exelorate (double pressure) {
         speed = pressure;
