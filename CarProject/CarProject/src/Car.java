@@ -2,12 +2,13 @@ public class Car {
 
     private double speed = 0;
 
-    private static String model = "Ford";
+    private String model = "Ford";
 
     private int carTemperature = 0;
 
+
     public void accelerate(double pressure){
-        speed = pressure;
+        speed = pressure*10;
     }
 
     public double getSpeed(){
@@ -21,6 +22,7 @@ public class Car {
         return model;
     }
     
+
     public void setTemperature(Driver myDriver){
         carTemperature = myDriver.driverPreferedCarTemperature;
     }

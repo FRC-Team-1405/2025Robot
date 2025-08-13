@@ -1,6 +1,11 @@
 public class Station {
-    private static Genre genre = Genre.COUNTRY;
-    public double frequency = 92.5;
+    public double frequency;
+
+    public Station(double frequency){
+
+        //this.genre = genre;
+        this.frequency = frequency;
+    }
 
     @Override 
     public boolean equals(Object other){
