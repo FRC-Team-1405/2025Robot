@@ -97,7 +97,7 @@ public class RobotContainer {
   private static final String NO_SELECTED_AUTO = "None";
 
   // region FeatureSwitches
-  public static final boolean DEBUG_CONSOLE_LOGGING = false;
+  public static final boolean DEBUG_CONSOLE_LOGGING = true;
   public static final boolean AMBIGUITY_FILTER = true;
   public static final boolean LONG_DISTANCE_FILTER = true;
   public static final boolean RESET_CAMERA_RESULTS = false;

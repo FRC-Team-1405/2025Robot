@@ -5,6 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.RobotContainer;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -285,7 +287,11 @@ public final class AllianceSymmetry {
      * @return The flipped pose.
      */
     public static Pose2d flip(Pose2d pose, SymmetryStrategy strategy) {
-        return new Pose2d(flip(pose.getTranslation(), strategy), flip(pose.getRotation(), strategy));
+        Pose2d flippedPose = new Pose2d(flip(pose.getTranslation(), strategy), flip(pose.getRotation(), strategy));
+        if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
+            System.out.println("Flipping Pose (" + pose.toString() + ") to (" + flippedPose.toString() + ")");
+        }
+        return flippedPose;
     }
 
     /**

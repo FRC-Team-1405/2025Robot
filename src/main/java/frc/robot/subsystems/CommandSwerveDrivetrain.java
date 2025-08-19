@@ -526,7 +526,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
 
             if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-                System.out.println("runPidToPose Called with poseToMoveTo: " + poseToMoveTo);
+                //System.out.println("runPidToPose Called with poseToMoveTo: " + poseToMoveTo);
             }
 
             return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
@@ -541,12 +541,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                                 .getDistance(poseToMoveTo.getTranslation())) < toleranceInches;
                             }).andThen(
                                 () -> {
+                                    // Print a debug log that will describe the final position of the robot after the move
                                     final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
                                     final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
 
                                     final double distanceToTarget = Units.metersToInches(this.getState().Pose.getTranslation().getDistance(poseToMoveTo.getTranslation()));
 
-                                    System.out.println("PidToPose Reached Target position (" + poseToMoveTo.toString() + "), distanceToTarget: " + distanceToTarget);
+                                    System.out.println("PidToPose Reached Target position (" + poseToMoveTo.toString() + "), distanceToTarget (in.): " + distanceToTarget);
                                 }
                             );
     }
