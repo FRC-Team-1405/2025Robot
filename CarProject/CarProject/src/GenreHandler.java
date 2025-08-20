@@ -1,5 +1,5 @@
 import java.util.HashMap;
-import java.util.TreeMap;
+//import java.util.TreeMap;
 
 public class GenreHandler{
     // create a new map to associate stations with genres
@@ -7,18 +7,18 @@ public class GenreHandler{
     public static String StationToGenre(String Station) {
         
         // a station object that we insert into a map
-         Station myStation = new Station();
+         //Station myStation = new Station();
 
-        myStation.frequency = 100.3;
+        //myStation.frequency = 100.3;
 
         
 
         // insert a station into the station/genre map
-        StationGenre.put(myStation, Genre.COUNTRY);
+        //StationGenre.put(myStation, Genre.COUNTRY);
        
-        Station myStationTwo = new Station();
+        Station myStationTwo = new Station(Double.valueOf(Station));
 
-        myStationTwo.frequency = Double.valueOf(Station);
+        //myStationTwo.frequency = Double.valueOf(Station);
 
     
         // search through the map and retrieve the associated genre

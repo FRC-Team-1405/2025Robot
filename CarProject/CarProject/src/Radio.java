@@ -8,26 +8,21 @@ public class Radio {
         GenreHandler.registerStation(new Station(100.3), Genre.COUNTRY);
         GenreHandler.registerStation(new Station(106.3), Genre.BROADWAY);
         GenreHandler.registerStation(new Station(127.0), Genre.CALYPSO);
+        GenreHandler.registerStation(new Station(139.5), Genre.KLOVE);
         GenreHandler.registerStation(new Station(666.0), Genre.DEATH_METAL);
-
-
-
-
 
     }
     boolean on;
    // if(on = true){
-
-        
+   
         private Genre station = Genre.COUNTRY;
         public void setStation(Genre Station){
         station = Station;
         }
+        
         public Genre getStation(){
             return station;
         }
-
-        
 
 
    // }

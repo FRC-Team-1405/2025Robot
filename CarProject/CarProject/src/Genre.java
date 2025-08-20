@@ -6,6 +6,7 @@ public enum Genre {
     CALYPSO,
     SKA,
     BROADWAY,
-    DEATH_METAL 
+    DEATH_METAL,
+    KLOVE 
 
 }
