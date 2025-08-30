@@ -6,6 +6,9 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -20,6 +23,8 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -73,6 +78,13 @@ public class RobotContainer {
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
+
+  // Vision publishers
+  StructPublisher<Pose2d> cameraEstimatedPosePublisher1 = NetworkTableInstance.getDefault()
+      .getStructTopic("Camera1_EstimatedPose", Pose2d.struct).publish();
+  StructPublisher<Pose2d> cameraEstimatedPosePublisher2 = NetworkTableInstance.getDefault()
+      .getStructTopic("Camera2_EstimatedPose", Pose2d.struct).publish();
+  List<StructPublisher<Pose2d>> cameraEstimatedPosesPublisher = Arrays.asList(cameraEstimatedPosePublisher1, cameraEstimatedPosePublisher2);  
 
   /* Path follower */
   private final SendableChooser<Command> autoChooser;
@@ -258,6 +270,7 @@ public class RobotContainer {
   public void correctOdometry() {
     var visionSamples = vision.flushSamples();
     vision.updateSpeeds(drivetrain.getState().Speeds);
+    // System.out.println("vision sample count: " + visionSamples.size());
     for (var sample : visionSamples) {
       double thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0;
       drivetrain.addVisionMeasurement(
@@ -265,6 +278,12 @@ public class RobotContainer {
         sample.timestamp(),
         VecBuilder.fill(0.1 / sample.weight(), 0.1 / sample.weight(), thetaStddev)
       );
+    }
+
+    for (int i = 0; i < 2; i++){
+      if (i+1 <= visionSamples.size()){
+        cameraEstimatedPosesPublisher.get(i).set(visionSamples.get(i).pose());
+      }
     }
   }
 

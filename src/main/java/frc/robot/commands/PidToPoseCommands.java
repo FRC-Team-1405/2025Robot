@@ -27,7 +27,7 @@ public class PidToPoseCommands {
   /* Reef Poses */
   public static Pose2d Red_5A = new Pose2d(4.98, 2.84, Rotation2d.fromDegrees( -60));
   public static Pose2d Red_5B = new Pose2d(5.270, 3.000, Rotation2d.fromDegrees(-60));
-  public static Pose2d Red_5B_AWAY = new Pose2d(4.8, 2, Rotation2d.fromDegrees(0));
+  public static Pose2d Red_5B_AWAY = new Pose2d(4.8, 2, Rotation2d.fromDegrees(-60));
   public static Pose2d Red_6A = new Pose2d(3.71, 3, Rotation2d.fromDegrees(-120.0));
   public static Pose2d Red_6B = new Pose2d(3.99, 2.84, Rotation2d.fromDegrees(-120.0));
 
@@ -43,18 +43,29 @@ public class PidToPoseCommands {
     posePublisher.set(new Pose2d(4.8, 2, Rotation2d.kZero));
 
     /* Commands */
-    Command MoveTo_Red_5B = drivetrain.runPidToPose(Red_5B, TOLERANCE, true, 0);
-    Command MoveAway_Red_5B = drivetrain.runPidToPose(Red_5B_AWAY, TOLERANCE, true, 1);
-    Command MoveTo_Red_5A = drivetrain.runPidToPose(Red_5A, TOLERANCE, true, 0);
-    Command MoveTo_Red_6B = drivetrain.runPidToPose(Red_6B, TOLERANCE, true, 0);
-    Command MoveTo_Red_6A = drivetrain.runPidToPose(Red_6A, TOLERANCE, true, 0);
+    Command MoveTo_Red_5B = new PidToPoseCommand(drivetrain, Red_5B, TOLERANCE, true, 0);
+    Command MoveAway_Red_5B = new PidToPoseCommand(drivetrain, Red_5B_AWAY, TOLERANCE, true, 1);
+    Command MoveTo_Red_5A = new PidToPoseCommand(drivetrain, Red_5A, TOLERANCE, true, 0);
+    Command MoveTo_Red_6B = new PidToPoseCommand(drivetrain, Red_6B, TOLERANCE, true, 0);
+    Command MoveTo_Red_6A = new PidToPoseCommand(drivetrain, Red_6A, TOLERANCE, true, 0);
+    
+    Command MoveTo_Blue_2A = new PidToPoseCommand(drivetrain, Blue_2A, TOLERANCE, true, 0);
+    Command MoveTo_Blue_2B = new PidToPoseCommand(drivetrain, Blue_2B, TOLERANCE, true, 0);
+    Command MoveTo_Blue_3A = new PidToPoseCommand(drivetrain, Blue_3A, TOLERANCE, true, 0);
 
-    Command MoveTo_Blue_2A = drivetrain.runPidToPose(Blue_2A, TOLERANCE, true, 0);
-    Command MoveTo_Blue_2B = drivetrain.runPidToPose(Blue_2B, TOLERANCE, true, 0);
-    Command MoveTo_Blue_3A = drivetrain.runPidToPose(Blue_3A, TOLERANCE, true, 0);
+    // Old Commands
+    // Command MoveTo_Red_5B = drivetrain.runPidToPose(Red_5B, TOLERANCE, true, 0);
+    // Command MoveAway_Red_5B = drivetrain.runPidToPose(Red_5B_AWAY, TOLERANCE, true, 1);
+    // Command MoveTo_Red_5A = drivetrain.runPidToPose(Red_5A, TOLERANCE, true, 0);
+    // Command MoveTo_Red_6B = drivetrain.runPidToPose(Red_6B, TOLERANCE, true, 0);
+    // Command MoveTo_Red_6A = drivetrain.runPidToPose(Red_6A, TOLERANCE, true, 0);
+
+    // Command MoveTo_Blue_2A = drivetrain.runPidToPose(Blue_2A, TOLERANCE, true, 0);
+    // Command MoveTo_Blue_2B = drivetrain.runPidToPose(Blue_2B, TOLERANCE, true, 0);
+    // Command MoveTo_Blue_3A = drivetrain.runPidToPose(Blue_3A, TOLERANCE, true, 0);
 
     /* Full Autos */
-    Command P2P_DS_Right_3Piece = new SequentialCommandGroup(MoveTo_Red_5B, MoveAway_Red_5B);
+    Command P2P_DS_Right_3Piece = MoveTo_Red_5B.andThen(MoveAway_Red_5B);
 
     /* Register Commands */
     NamedCommands.registerCommand("MoveTo_Red_5B", MoveTo_Red_5B);

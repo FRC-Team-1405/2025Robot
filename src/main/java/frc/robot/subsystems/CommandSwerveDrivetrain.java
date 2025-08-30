@@ -150,11 +150,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * Vision Odometry Suppliers
      */
 
-  StructPublisher<Pose2d> estimatedPosePublisher1 = NetworkTableInstance.getDefault()
-      .getStructTopic("EstimatedPose_0", Pose2d.struct).publish();
-  StructPublisher<Pose2d> estimatedPosePublisher2 = NetworkTableInstance.getDefault()
-      .getStructTopic("EstimatedPose_1", Pose2d.struct).publish();
-  List<StructPublisher<Pose2d>> estimatedPosesPublisher = new ArrayList<>();
+     //TODO: remove unused publishers
+//   StructPublisher<Pose2d> estimatedPosePublisher1 = NetworkTableInstance.getDefault()
+//       .getStructTopic("EstimatedPose_0", Pose2d.struct).publish();
+//   StructPublisher<Pose2d> estimatedPosePublisher2 = NetworkTableInstance.getDefault()
+//       .getStructTopic("EstimatedPose_1", Pose2d.struct).publish();
+//   List<StructPublisher<Pose2d>> estimatedPosesPublisher = new ArrayList<>();
 
   DoublePublisher driveVsVisionOdometryDifference_0 = NetworkTableInstance.getDefault()
   .getDoubleTopic("DriveVsVisionOdometryDifference_0").publish();
@@ -217,8 +218,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
 
-        estimatedPosesPublisher.add(estimatedPosePublisher1);
-        estimatedPosesPublisher.add(estimatedPosePublisher2);
+        // estimatedPosesPublisher.add(estimatedPosePublisher1);
+        // estimatedPosesPublisher.add(estimatedPosePublisher2);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
     }
@@ -252,8 +253,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
 
-        estimatedPosesPublisher.add(estimatedPosePublisher1);
-        estimatedPosesPublisher.add(estimatedPosePublisher2);
+        // estimatedPosesPublisher.add(estimatedPosePublisher1);
+        // estimatedPosesPublisher.add(estimatedPosePublisher2);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
     }
@@ -302,8 +303,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
 
-        estimatedPosesPublisher.add(estimatedPosePublisher1);
-        estimatedPosesPublisher.add(estimatedPosePublisher2);
+        // estimatedPosesPublisher.add(estimatedPosePublisher1);
+        // estimatedPosesPublisher.add(estimatedPosePublisher2);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_0);
         driveVsVisionOdometryDifference_Publishers.add(driveVsVisionOdometryDifference_1);
     }
@@ -493,13 +494,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @return
      */
     public Command runPidToPose(Pose2d targetPose, double toleranceInches, boolean applyFieldSymmetryToPose, double endStateVelocity) {
-        ProfiledPIDController xProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
-        ProfiledPIDController yProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
-        PIDController thetacontroller = new PIDController(2, 0, 0);
-        thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
-
         // Drivetrain will execute this command periodically
         return this.applyRequest(() -> {
+            ProfiledPIDController xProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
+            ProfiledPIDController yProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
+            PIDController thetacontroller = new PIDController(2, 0, 0);
+            thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
             final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
             final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
 
@@ -526,7 +526,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
 
             if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-                //System.out.println("runPidToPose Called with poseToMoveTo: " + poseToMoveTo);
+                System.out.println("runPidToPose Called with poseToMoveTo: " + poseToMoveTo.getTranslation() + ", currentPose: " + currentpose.getTranslation());
             }
 
             return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
