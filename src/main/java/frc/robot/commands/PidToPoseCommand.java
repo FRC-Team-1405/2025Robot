@@ -36,8 +36,8 @@ public class PidToPoseCommand extends Command {
         this.applyFieldSymmetryToPose = applyFieldSymmetryToPose;
         this.endStateVelocity = endStateVelocity;
 
-        xController = new ProfiledPIDController(2.2, 0, 0, new TrapezoidProfile.Constraints(4, 3));
-        yController = new ProfiledPIDController(2.2, 0, 0, new TrapezoidProfile.Constraints(4, 3));
+        xController = new ProfiledPIDController(2.2, 0, 0, new TrapezoidProfile.Constraints(4, 5));
+        yController = new ProfiledPIDController(2.2, 0, 0, new TrapezoidProfile.Constraints(4, 5));
         thetaController = new PIDController(2, 0, 0);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -55,6 +55,7 @@ public class PidToPoseCommand extends Command {
         log("Pose to move to (after symmetry): " + poseToMoveTo);
         log("Current pose: " + drive.getState().Pose);
 
+        // Without resetting when we chain commands together the robot will drive full speed in a weird direction. unclear why but this fixes it.
         xController.reset(drive.getState().Pose.getX());
         yController.reset(drive.getState().Pose.getY());
         thetaController.reset(); // TODO: provide a value?

@@ -44,7 +44,7 @@ public class PidToPoseCommands {
 
     /* Commands */
     Command MoveTo_Red_5B = new PidToPoseCommand(drivetrain, Red_5B, TOLERANCE, true, 0);
-    Command MoveAway_Red_5B = new PidToPoseCommand(drivetrain, Red_5B_AWAY, TOLERANCE, true, 1);
+    Command MoveAway_Red_5B = new PidToPoseCommand(drivetrain, Red_5B_AWAY, TOLERANCE*3, true, 1);
     Command MoveTo_Red_5A = new PidToPoseCommand(drivetrain, Red_5A, TOLERANCE, true, 0);
     Command MoveTo_Red_6B = new PidToPoseCommand(drivetrain, Red_6B, TOLERANCE, true, 0);
     Command MoveTo_Red_6A = new PidToPoseCommand(drivetrain, Red_6A, TOLERANCE, true, 0);
