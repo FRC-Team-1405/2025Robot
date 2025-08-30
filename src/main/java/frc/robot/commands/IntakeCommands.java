@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Intake;
 
 public class IntakeCommands {
+    public static String INTAKE_CORAL = "Intake Coral";
+    
     /**
      * Creates a trigger following the hasCoral method of the Intake subsystem.
      *
@@ -54,7 +56,7 @@ public class IntakeCommands {
             .finallyDo(() -> intake.stop())
             .until(hasCoral(intake))
             .unless(hasAlgae(intake).or(hasCoral(intake)))
-            .withName("Intake Coral");
+            .withName(INTAKE_CORAL);
     }
 
     /**

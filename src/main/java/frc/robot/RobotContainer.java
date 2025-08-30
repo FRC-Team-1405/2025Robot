@@ -100,12 +100,12 @@ public class RobotContainer {
    * Named Commands Constants
    */
 
-  private final String ELEVATOR_TO_LEVEL_4_AUTO = "Elevator to Level4 Auto";
+  public static final String ELEVATOR_TO_LEVEL_4_AUTO = "Elevator to Level4 Auto";
   private final String SCORE_LEVEL_4_CORAL = "Score Level4 Coral";
   private final String ELEVATOR_TO_LEVEL_4 = "Elevator To Level4";
   private final String ELEVATOR_TO_SELECTED_LEVEL = "Elevator To Selected Level";
-  private final String ELEVATOR_TO_HOME = "Elevator To Home";
-  private final String OUTPUT_CORAL = "Output Coral";
+  public static final String ELEVATOR_TO_HOME = "Elevator To Home";
+  public static final String OUTPUT_CORAL = "Output Coral";
   private static final String NO_SELECTED_AUTO = "None";
 
   // region FeatureSwitches
