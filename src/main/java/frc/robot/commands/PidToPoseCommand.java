@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -13,6 +14,7 @@ import frc.robot.RobotContainer;
 import frc.robot.lib.AllianceSymmetry;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
+@Logged
 public class PidToPoseCommand extends Command {
     private final boolean DEBUG_LOGGING_ENABLED = false;
 
