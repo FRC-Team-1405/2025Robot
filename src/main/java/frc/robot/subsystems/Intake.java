@@ -4,7 +4,11 @@
 
 package frc.robot.subsystems;
 
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -13,7 +17,9 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.CanBus;
 
 import com.playingwithfusion.TimeOfFlight;
@@ -29,6 +35,9 @@ public class Intake extends SubsystemBase {
   private final LinearFilter ampFilter = LinearFilter.movingAverage(5);
   private double cachedSensorValue = 0;
   private final BaseStatusSignal amps, voltage, velocity, position;
+
+  private boolean isSimulatingFeeder = false;
+  private long simulatedFeederStartTime;
 
   public Intake() {
     timeOfFlight.setRangingMode(RangingMode.Short, 24.0);
@@ -57,6 +66,9 @@ public class Intake extends SubsystemBase {
   }
 
   public void controlVolts(double volts){
+    if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
+      System.out.println("Intake is RUNNING at volts: " + volts);
+    }
     motor.setControl(voltageOut.withOutput(volts));
   }
 
@@ -65,7 +77,15 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean hasCoral(){
-    return (cachedSensorValue <= 125);
+    boolean x = (cachedSensorValue <= 125);
+    if (x && isSimulatingFeeder) {
+      isSimulatingFeeder = false;
+      if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
+        System.out.println("\nhasCORAL simulated check during intake. stop intake.");
+      }
+    }
+    
+    return x;
   }
 
   public boolean hasAlgae() {
@@ -74,7 +94,18 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void periodic() {
-    cachedSensorValue = timeOfFlight.getRange();
+    if (Utils.isSimulation() && isSimulatingFeeder){
+      if (TimeUnit.SECONDS.convert(System.nanoTime() - simulatedFeederStartTime, TimeUnit.NANOSECONDS) > 3){
+        // simulated coral has entered intake
+        cachedSensorValue = 100;
+      } else {
+        // simulated coral has not entered intake yet
+        cachedSensorValue = 200;
+      }
+    } else {
+      cachedSensorValue = timeOfFlight.getRange();
+    }
+    
     BaseStatusSignal.refreshAll(
       amps,
       voltage,
@@ -82,5 +113,14 @@ public class Intake extends SubsystemBase {
       position
     );
     ampFilter.calculate(amps.getValueAsDouble());
+  }
+
+  /**
+   * Indicate that the simulation is entering the feeder.
+   * Flip the indicator that will require a timer to elapse before hasCoral will return true again.
+   */
+  public void simulateFeeder() {
+    isSimulatingFeeder = true;
+    simulatedFeederStartTime = System.nanoTime();
   }
 }

@@ -6,17 +6,24 @@ package frc.robot.commands;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.epilogue.Epilogue;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
-
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.Elevator;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
+@Logged
 public class MoveElevator extends Command {
   private Elevator elavator;
   private Supplier<Elevator.ElevationLevel> level;
   /** Creates a new PlaceCoral. */
   public MoveElevator( Elevator elavator, Supplier<Elevator.ElevationLevel> level) {
+    // Epilogue.bind(this); // Starts automatic logging
+    DataLogManager.start(); // Optional: saves logs to disk
+
     this.elavator = elavator;
     this.level = level;
 

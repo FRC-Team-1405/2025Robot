@@ -1,8 +1,12 @@
 package frc.robot.commands;
 
+import com.ctre.phoenix6.Utils;
+
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Intake;
 
@@ -54,12 +58,17 @@ public class IntakeCommands {
      * @return A command that runs the intake until a coral is detected.
      */
     public static Command intakeCoral(Intake intake) {
-        return intake.run(() -> intake.controlVolts(3.0))
-            .finallyDo(() -> intake.stop())
-            .until(hasCoral(intake))
-            .unless(hasAlgae(intake).or(hasCoral(intake)))
-            .withName(INTAKE_CORAL);
-    }
+    Command indicateFeederIfSim = new InstantCommand(() -> intake.simulateFeeder())
+        .unless(() -> !Utils.isSimulation());
+
+    Command coralIntake = intake.run(() -> intake.controlVolts(3.0))
+        .finallyDo(() -> intake.stop())
+        .until(hasCoral(intake))
+        .unless(hasAlgae(intake).or(hasCoral(intake)))
+        .withName(INTAKE_CORAL);
+
+    return new SequentialCommandGroup(indicateFeederIfSim, coralIntake);
+}
 
     /**
      * Runs the intake until no coral is detected and a period of time has passed.

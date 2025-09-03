@@ -7,6 +7,7 @@ package frc.robot.commands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Elevator.ArmLevel;
@@ -24,7 +25,7 @@ public class MoveCoral extends SequentialCommandGroup {
     this.level = level;
 
     addRequirements(elevator);
-    addCommands(IntakeCommands.stopIntake(intake));
+    // addCommands(IntakeCommands.stopIntake(intake)); TODO determine how to add this back in without error: IllegalArgumentException: Multiple commands in a parallel composition cannot require the same subsystems
     addCommands(new ArmPosition(elevator, () -> ArmLevel.Travel));
     addCommands(new MoveElevator(elevator, level));
     addCommands(new ArmPosition(elevator, this::armLevel));

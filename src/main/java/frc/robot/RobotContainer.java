@@ -126,7 +126,7 @@ public class RobotContainer {
 
 
     DriverStation.silenceJoystickConnectionWarning(true);
-    configurePathPlanner();
+    registerCommands();
     SmartDashboard.putBoolean("Auto Mode Enable", false);
     autoChooser = AutoBuilder.buildAutoChooser("DriveStraight3m");
     TestAuto.configureAutos(autoChooser, drivetrain);
@@ -237,7 +237,7 @@ public class RobotContainer {
     }
   }
 
-  void configurePathPlanner() {
+  void registerCommands() {
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4,
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)));
@@ -264,10 +264,11 @@ public class RobotContainer {
         new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_2, intake),
             IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
             new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
-    NamedCommands.registerCommand("Intake Coral", Commands.none());
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
         Commands.sequence(Commands.waitUntil(intake::hasCoral), new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)).unless(() -> !intake.hasCoral()));
+
+    NamedCommands.registerCommand(IntakeCommands.INTAKE_CORAL, IntakeCommands.intakeCoral(intake));
 
     PidToPoseCommands.registerCommands(drivetrain);
   }
