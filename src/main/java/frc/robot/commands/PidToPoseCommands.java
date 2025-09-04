@@ -31,7 +31,7 @@ public class PidToPoseCommands {
   /* Reef Poses */
   public static Pose2d Red_5A = new Pose2d(4.98, 2.84, Rotation2d.fromDegrees( -60));
   public static Pose2d Red_5B = new Pose2d(5.270, 3.000, Rotation2d.fromDegrees(-60));
-  public static Pose2d Red_5B_AWAY = new Pose2d(4.8, 2, Rotation2d.fromDegrees(-60));
+  public static Pose2d Red_5B_AWAY = new Pose2d(4.8, 1, Rotation2d.fromDegrees(-60));
   public static Pose2d Red_6A = new Pose2d(3.71, 3, Rotation2d.fromDegrees(-120.0));
   public static Pose2d Red_6B = new Pose2d(3.99, 2.84, Rotation2d.fromDegrees(-120.0));
 
@@ -48,18 +48,19 @@ public class PidToPoseCommands {
 
     /* Commands */
     // Uses command suppliers instead of commands so that we can reuse the same command in an autonomous
-    Supplier<Command> MoveTo_Red_5B       = () -> new PidToPoseCommand(drivetrain, Red_5B, TOLERANCE, true, 0);
-    Supplier<Command> MoveAway_Red_5B     = () -> new PidToPoseCommand(drivetrain, Red_5B_AWAY, TOLERANCE * 5, true, 2);
-    Supplier<Command> MoveTo_Red_5A       = () -> new PidToPoseCommand(drivetrain, Red_5A, TOLERANCE, true, 0);
-    Supplier<Command> MoveTo_Red_6B       = () -> new PidToPoseCommand(drivetrain, Red_6B, TOLERANCE, true, 0);
-    Supplier<Command> MoveTo_Red_6A       = () -> new PidToPoseCommand(drivetrain, Red_6A, TOLERANCE, true, 0);
+    Supplier<Command> MoveTo_Red_5B       = () -> new PidToPoseCommand(drivetrain, Red_5B, TOLERANCE, true);
+    Supplier<Command> MoveAway_Red_5B     = () -> new PidToPoseCommand(drivetrain, Red_5B_AWAY, 24, true, 0, 2);
+    Supplier<Command> MoveTo_Red_5A       = () -> new PidToPoseCommand(drivetrain, Red_5A, TOLERANCE, true);
+    Supplier<Command> MoveTo_Red_6B       = () -> new PidToPoseCommand(drivetrain, Red_6B, TOLERANCE, true);
+    Supplier<Command> MoveTo_Red_6A       = () -> new PidToPoseCommand(drivetrain, Red_6A, TOLERANCE, true);
 
-    Supplier<Command> MoveTo_Blue_2A      = () -> new PidToPoseCommand(drivetrain, Blue_2A, TOLERANCE, true, 0);
-    Supplier<Command> MoveTo_Blue_2B      = () -> new PidToPoseCommand(drivetrain, Blue_2B, TOLERANCE, true, 0);
-    Supplier<Command> MoveTo_Blue_3A      = () -> new PidToPoseCommand(drivetrain, Blue_3A, TOLERANCE, true, 0);
+    Supplier<Command> MoveTo_Blue_2A      = () -> new PidToPoseCommand(drivetrain, Blue_2A, TOLERANCE, true);
+    Supplier<Command> MoveTo_Blue_2B      = () -> new PidToPoseCommand(drivetrain, Blue_2B, TOLERANCE, true);
+    Supplier<Command> MoveTo_Blue_3A      = () -> new PidToPoseCommand(drivetrain, Blue_3A, TOLERANCE, true);
 
-    Supplier<Command> MoveTo_LeftFeeder   = () -> new PidToPoseCommand(drivetrain, LeftFeeder, TOLERANCE, true, 0);
-    Supplier<Command> MoveTo_RightFeeder  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 0);
+    Supplier<Command> MoveTo_LeftFeeder   = () -> new PidToPoseCommand(drivetrain, LeftFeeder, TOLERANCE, true);
+    Supplier<Command> MoveTo_RightFeeder  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true);
+    Supplier<Command> MoveTo_RightFeeder_InitialVel  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 2, 0);
 
     /* Full Autos */
     Command P2P_DS_Right_3Piece = new SequentialCommandGroup(
@@ -71,7 +72,7 @@ public class PidToPoseCommands {
       MoveAway_Red_5B.get(),
       
       new ParallelCommandGroup(
-        MoveTo_RightFeeder.get(),
+        MoveTo_RightFeeder_InitialVel.get(),
         NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
       ),
       NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
