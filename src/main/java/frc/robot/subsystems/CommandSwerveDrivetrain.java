@@ -50,6 +50,7 @@ import frc.robot.RobotContainer;
 import frc.robot.commands.ArmPosition;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
+import frc.robot.commands.PidToPoseCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.lib.AllianceSymmetry;
@@ -486,73 +487,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return driveToPose(() -> Optional.of(pose));
     }
 
-    /**
-     * 
-     * @param targetPose
-     * @param toleranceInches
-     * @param applyFieldSymmetryToPose iff true assumes Pose is in Blue alliance, will automatically mirror the Pose for Red alliance
-     * @return
-     */
-    public Command runPidToPose(Pose2d targetPose, double toleranceInches, boolean applyFieldSymmetryToPose, double endStateVelocity) {
-        // Drivetrain will execute this command periodically
-        return this.applyRequest(() -> {
-            ProfiledPIDController xProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
-            ProfiledPIDController yProfiledPIDController = new ProfiledPIDController(2.2, 0, 0, new Constraints(4, 3));
-            PIDController thetacontroller = new PIDController(2, 0, 0);
-            thetacontroller.enableContinuousInput(-Math.PI, Math.PI);
-            final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
-            final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
-
-            pidToPosePublisher.set(poseToMoveTo);
-            SmartDashboard.putNumber("PID_TO_POSE/xError", xProfiledPIDController.getPositionError());
-            SmartDashboard.putNumber("PID_TO_POSE/yError", yProfiledPIDController.getPositionError());
-
-            Pose2d currentpose = this.getState().Pose;
-
-            double xOutput = xProfiledPIDController.calculate(currentpose.getX(), new State(poseToMoveTo.getX(), endStateVelocity));
-            double yOutput = yProfiledPIDController.calculate(currentpose.getY(), new State(poseToMoveTo.getY(), endStateVelocity));
-
-            boolean isRedAlliance = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-            if (isRedAlliance){
-                // flip driving direction so we drive towards and not away from the target pose on red alliance
-                xOutput = -xOutput;
-                yOutput = -yOutput;
-            }
-
-            double thetaOutput = thetacontroller.calculate(currentpose.getRotation().getRadians(),
-                poseToMoveTo.getRotation().getRadians());
-            SmartDashboard.putNumber("PID_TO_POSE/xCalculatedOutput", xOutput);
-            SmartDashboard.putNumber("PID_TO_POSE/yCalculatedOutput", yOutput);
-            SmartDashboard.putNumber("PID_TO_POSE/thetaCalculatedOutput", thetaOutput);
-
-            if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-                System.out.println("runPidToPose Called with poseToMoveTo: " + poseToMoveTo.getTranslation() + ", currentPose: " + currentpose.getTranslation());
-            }
-
-            return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
-                    .withVelocityY(yOutput)
-                    .withRotationalRate(thetaOutput);
-        })
-                .until(
-                        () -> {
-                            final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
-                            final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
-                            return Units.metersToInches(this.getState().Pose.getTranslation()
-                                .getDistance(poseToMoveTo.getTranslation())) < toleranceInches;
-                            }).andThen(
-                                () -> {
-                                    // Print a debug log that will describe the final position of the robot after the move
-                                    final Pose2d symmetricPose = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? targetPose : AllianceSymmetry.flip(targetPose);
-                                    final Pose2d poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
-
-                                    final double distanceToTarget = Units.metersToInches(this.getState().Pose.getTranslation().getDistance(poseToMoveTo.getTranslation()));
-
-                                    System.out.println("PidToPose Reached Target position (" + poseToMoveTo.toString() + "), distanceToTarget (in.): " + distanceToTarget);
-                                }
-                            );
-    }
-
-    public Command runAutoAlign(Supplier<Optional<Pose2d>> targetPoseSupplier, Supplier<ElevationLevel> elevationLevelSupplier, Intake intake, Elevator elevator) {
+    public Command runAutoScore(Supplier<Optional<Pose2d>> targetPoseSupplier, Supplier<ElevationLevel> elevationLevelSupplier, Intake intake, Elevator elevator) {
         return Commands.sequence(
                 Commands.runOnce(() -> {
                     if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
@@ -566,22 +501,22 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                         return Commands.none();
                     }
 
-                    return this.runPidToPose(targetPose.get(), 1, false, 0)
-                            .alongWith(
-                                    Commands.sequence(
-                                            Commands.waitUntil(() -> this.getState().Pose.getTranslation()
-                                                    .getDistance(targetPose.get().getTranslation()) < 1)).andThen(
-                                                        () -> {
-                                                            System.out.println("PidToPose is within a meter of target, start moving elevator to level: " + elevationLevelSupplier.get());
-                                                        }
-                                                    ),
-                                    new MoveCoral(elevator, elevationLevelSupplier, intake))
-                                    .andThen(() -> {System.out.println("runAutoAlign is in position to score, deploying coral now.");})
-                            .andThen(
-                                    new ParallelRaceGroup(
-                                            IntakeCommands.expelCoral(intake),
-                                            new ArmPosition(elevator, () -> Elevator.ArmLevel.Travel)
-                                                    .beforeStarting(Commands.waitSeconds(0.25))));
+                    return new PidToPoseCommand(this, targetPose.get(), 1.2, false)
+                    .alongWith(
+                                        Commands.sequence(
+                                                Commands.waitUntil(() -> this.getState().Pose.getTranslation()
+                                                        .getDistance(targetPose.get().getTranslation()) < 1)).andThen(
+                                                            () -> {
+                                                                System.out.println("PidToPose is within a meter of target, start moving elevator to level: " + elevationLevelSupplier.get());
+                                                            }
+                                                        ),
+                                        new MoveCoral(elevator, elevationLevelSupplier, intake))
+                                        .andThen(() -> {System.out.println("runAutoAlign is in position to score, deploying coral now.");})
+                                .andThen(
+                                        new ParallelRaceGroup(
+                                                IntakeCommands.expelCoral(intake),
+                                                new ArmPosition(elevator, () -> Elevator.ArmLevel.Travel)
+                                                        .beforeStarting(Commands.waitSeconds(0.25))));
                 }, Set.of(this)));
     }
 }

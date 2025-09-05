@@ -161,9 +161,9 @@ public class RobotContainer {
         .onTrue(new SequentialCommandGroup(IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
 
-    /* B Button: Auto Align  */
+    /* B Button: Auto Score  */
     driver.b().whileTrue(
-      drivetrain.runAutoAlign(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
+      drivetrain.runAutoScore(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
     ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
 
     driver.back().onTrue(
