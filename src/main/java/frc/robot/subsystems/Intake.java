@@ -36,6 +36,8 @@ public class Intake extends SubsystemBase {
   private double cachedSensorValue = 0;
   private final BaseStatusSignal amps, voltage, velocity, position;
 
+  private final int TOF_CORAL_THRESHOLD = 125;
+
   private boolean isSimulatingFeeder = false;
   private long simulatedFeederStartTime;
 
@@ -70,6 +72,17 @@ public class Intake extends SubsystemBase {
       System.out.println("Intake is RUNNING at volts: " + volts);
     }
     motor.setControl(voltageOut.withOutput(volts));
+
+    if (Utils.isSimulation()) {
+      // when in simulation and intake is ran. flip-flop between coral/no-coral
+
+      cachedSensorValue = cachedSensorValue == 0 ? TOF_CORAL_THRESHOLD + 1 : 0;
+      System.out.println("Simulating TOF sensor value: " + cachedSensorValue);
+    }
+  }
+
+  public double getVoltage() {
+    return motor.get();
   }
 
   public void stop() {
@@ -77,7 +90,7 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean hasCoral(){
-    boolean x = (cachedSensorValue <= 125);
+    boolean x = (cachedSensorValue <= TOF_CORAL_THRESHOLD);
     if (x && isSimulatingFeeder) {
       isSimulatingFeeder = false;
       if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
@@ -89,6 +102,10 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean hasAlgae() {
+    // if (Utils.isSimulation()){
+    //   return false;
+    // } TODO determine if i need this or not
+
     return Math.abs(ampFilter.lastValue()) > 25.0;
   }
 

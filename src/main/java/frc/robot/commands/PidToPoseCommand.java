@@ -111,9 +111,11 @@ public class PidToPoseCommand extends Command {
     public void end(boolean interrupted) {
         //TODO modify command to optionally apply "brakes" where it not only cuts velocity to wheels but moves the wheels into brake formation making the robot harder to move
         if (endStateVelocity == 0) {
+            System.out.println("KILLING DRIVE VELOCITY");
             drive.applyRequest(() -> RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(0)
                 .withVelocityY(0)
                 .withRotationalRate(0));
+
         }
         
         double finalDistance = Units

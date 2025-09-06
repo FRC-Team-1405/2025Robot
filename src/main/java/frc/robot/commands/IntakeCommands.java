@@ -5,15 +5,17 @@ import com.ctre.phoenix6.Utils;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Intake;
 
 @Logged
 public class IntakeCommands {
     public static String INTAKE_CORAL = "Intake Coral";
-    
+
     /**
      * Creates a trigger following the hasCoral method of the Intake subsystem.
      *
@@ -58,17 +60,24 @@ public class IntakeCommands {
      * @return A command that runs the intake until a coral is detected.
      */
     public static Command intakeCoral(Intake intake) {
-    Command indicateFeederIfSim = new InstantCommand(() -> intake.simulateFeeder())
-        .unless(() -> !Utils.isSimulation());
+        Command indicateFeederIfSim = new InstantCommand(() -> intake.simulateFeeder())
+                .unless(() -> !Utils.isSimulation());
 
-    Command coralIntake = intake.run(() -> intake.controlVolts(3.0))
-        .finallyDo(() -> intake.stop())
-        .until(hasCoral(intake))
-        .unless(hasAlgae(intake).or(hasCoral(intake)))
-        .withName(INTAKE_CORAL);
+        Command coralIntake = intake.run(() -> intake.controlVolts(3.0))
+                .finallyDo(() -> intake.stop())
+                .until(hasCoral(intake))
+                .unless(hasAlgae(intake).or(hasCoral(intake)))
+                .withName(INTAKE_CORAL);
 
-    return new SequentialCommandGroup(indicateFeederIfSim, coralIntake);
-}
+        return new SequentialCommandGroup(indicateFeederIfSim, coralIntake);
+    }
+
+    public static Command toggleIntakeCoral(Intake intake) {
+        return new StartEndCommand(() -> intake.run(() -> intake.controlVolts(3.0)),
+                () -> intake.controlVolts(0), intake)
+                .finallyDo(() -> intake.stop())
+                .until(hasCoral(intake));
+    }
 
     /**
      * Runs the intake until no coral is detected and a period of time has passed.
