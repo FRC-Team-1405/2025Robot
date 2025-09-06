@@ -48,19 +48,19 @@ public class PidToPoseCommands {
 
     /* Commands */
     // Uses command suppliers instead of commands so that we can reuse the same command in an autonomous
-    Supplier<Command> MoveTo_Red_5B       = () -> new PidToPoseCommand(drivetrain, Red_5B, TOLERANCE, true);
-    Supplier<Command> MoveAway_Red_5B     = () -> new PidToPoseCommand(drivetrain, Red_5B_AWAY, 24, true, 0, 2);
-    Supplier<Command> MoveTo_Red_5A       = () -> new PidToPoseCommand(drivetrain, Red_5A, TOLERANCE, true);
-    Supplier<Command> MoveTo_Red_6B       = () -> new PidToPoseCommand(drivetrain, Red_6B, TOLERANCE, true);
-    Supplier<Command> MoveTo_Red_6A       = () -> new PidToPoseCommand(drivetrain, Red_6A, TOLERANCE, true);
+    Supplier<Command> MoveTo_Red_5B       = () -> new PidToPoseCommand(drivetrain, Red_5B, TOLERANCE, "MoveTo_Red_5B");
+    Supplier<Command> MoveAway_Red_5B     = () -> new PidToPoseCommand(drivetrain, Red_5B_AWAY, 24, true, 0, 2, "MoveAway_Red_5B");
+    Supplier<Command> MoveTo_Red_5A       = () -> new PidToPoseCommand(drivetrain, Red_5A, TOLERANCE, "MoveTo_Red_5A");
+    Supplier<Command> MoveTo_Red_6B       = () -> new PidToPoseCommand(drivetrain, Red_6B, TOLERANCE, "MoveTo_Red_6B");
+    Supplier<Command> MoveTo_Red_6A       = () -> new PidToPoseCommand(drivetrain, Red_6A, TOLERANCE, "MoveTo_Red_6A");
 
-    Supplier<Command> MoveTo_Blue_2A      = () -> new PidToPoseCommand(drivetrain, Blue_2A, TOLERANCE, true);
-    Supplier<Command> MoveTo_Blue_2B      = () -> new PidToPoseCommand(drivetrain, Blue_2B, TOLERANCE, true);
-    Supplier<Command> MoveTo_Blue_3A      = () -> new PidToPoseCommand(drivetrain, Blue_3A, TOLERANCE, true);
+    Supplier<Command> MoveTo_Blue_2A      = () -> new PidToPoseCommand(drivetrain, Blue_2A, TOLERANCE, "MoveTo_Blue_2A");
+    Supplier<Command> MoveTo_Blue_2B      = () -> new PidToPoseCommand(drivetrain, Blue_2B, TOLERANCE, "MoveTo_Blue_2B");
+    Supplier<Command> MoveTo_Blue_3A      = () -> new PidToPoseCommand(drivetrain, Blue_3A, TOLERANCE, "MoveTo_Blue_3A");
 
-    Supplier<Command> MoveTo_LeftFeeder   = () -> new PidToPoseCommand(drivetrain, LeftFeeder, TOLERANCE, true);
-    Supplier<Command> MoveTo_RightFeeder  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true);
-    Supplier<Command> MoveTo_RightFeeder_InitialVel  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 2, 0);
+    Supplier<Command> MoveTo_LeftFeeder   = () -> new PidToPoseCommand(drivetrain, LeftFeeder, TOLERANCE, "MoveTo_LeftFeeder");
+    Supplier<Command> MoveTo_RightFeeder  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, "MoveTo_RightFeeder");
+    Supplier<Command> MoveTo_RightFeeder_InitialVel  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 2, 0, "MoveTo_RightFeeder_InitialVel");
 
     /* Full Autos */
     Command P2P_DS_Right_3Piece = new SequentialCommandGroup(
