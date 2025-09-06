@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems;
 
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -17,7 +16,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.LinearFilter;
-import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.CanBus;
@@ -40,6 +44,16 @@ public class Intake extends SubsystemBase {
 
   private boolean isSimulatingFeeder = false;
   private long simulatedFeederStartTime;
+
+  // Mechanism2d visualization
+  private final Mechanism2d mech2d = new Mechanism2d(3, 3); // 3x3 canvas
+  private final MechanismRoot2d root = mech2d.getRoot("intakeBase", 1.5, 1.5);
+  private final MechanismLigament2d coralIndicator = root.append(
+    new MechanismLigament2d("coral", 0.5, 90, 5, new Color8Bit(Color.kPink))
+  );
+  private final MechanismLigament2d[] spokes = new MechanismLigament2d[6];
+  private double flywheelRotation = 0.0;
+
 
   public Intake() {
     timeOfFlight.setRangingMode(RangingMode.Short, 24.0);
@@ -65,20 +79,13 @@ public class Intake extends SubsystemBase {
     cfg.Slot0.kP = 20.0;
 
     motor.getConfigurator().apply(cfg);
+
+    initMechanism();
+    SmartDashboard.putData("IntakeMechanism", mech2d);
   }
 
   public void controlVolts(double volts){
-    if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-      System.out.println("Intake is RUNNING at volts: " + volts);
-    }
     motor.setControl(voltageOut.withOutput(volts));
-
-    if (Utils.isSimulation()) {
-      // when in simulation and intake is ran. flip-flop between coral/no-coral
-
-      cachedSensorValue = cachedSensorValue == 0 ? TOF_CORAL_THRESHOLD + 1 : 0;
-      System.out.println("Simulating TOF sensor value: " + cachedSensorValue);
-    }
   }
 
   public double getVoltage() {
@@ -90,36 +97,16 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean hasCoral(){
-    boolean x = (cachedSensorValue <= TOF_CORAL_THRESHOLD);
-    if (x && isSimulatingFeeder) {
-      isSimulatingFeeder = false;
-      if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-        System.out.println("\nhasCORAL simulated check during intake. stop intake.");
-      }
-    }
-    
-    return x;
+    return (cachedSensorValue <= TOF_CORAL_THRESHOLD);
   }
 
   public boolean hasAlgae() {
-    // if (Utils.isSimulation()){
-    //   return false;
-    // } TODO determine if i need this or not
-
     return Math.abs(ampFilter.lastValue()) > 25.0;
   }
 
   @Override
   public void periodic() {
-    if (Utils.isSimulation() && isSimulatingFeeder){
-      if (TimeUnit.SECONDS.convert(System.nanoTime() - simulatedFeederStartTime, TimeUnit.NANOSECONDS) > 3){
-        // simulated coral has entered intake
-        cachedSensorValue = 100;
-      } else {
-        // simulated coral has not entered intake yet
-        cachedSensorValue = 200;
-      }
-    } else {
+    if (!Utils.isSimulation()) {
       cachedSensorValue = timeOfFlight.getRange();
     }
     
@@ -130,6 +117,28 @@ public class Intake extends SubsystemBase {
       position
     );
     ampFilter.calculate(amps.getValueAsDouble());
+
+    if (Utils.isSimulation()){
+      if (isSimulatingFeeder){
+        if (TimeUnit.SECONDS.convert(System.nanoTime() - simulatedFeederStartTime, TimeUnit.NANOSECONDS) > 2){
+          // simulated coral has entered intake
+          cachedSensorValue = TOF_CORAL_THRESHOLD;
+          isSimulatingFeeder = false;
+        } else {
+          // simulated coral has not entered intake yet
+          cachedSensorValue = TOF_CORAL_THRESHOLD + 1;
+        }
+      } else {
+        // we are in sim but not simulating a feeder scenario
+        // if intake motor is running we are trying to expel a coral
+        if (hasCoral() && motor.get() > 0) {
+          // simulated coral has left intake
+          cachedSensorValue = TOF_CORAL_THRESHOLD + 1;
+        }
+      }
+    }
+
+    updateMechanism();    
   }
 
   /**
@@ -139,5 +148,37 @@ public class Intake extends SubsystemBase {
   public void simulateFeeder() {
     isSimulatingFeeder = true;
     simulatedFeederStartTime = System.nanoTime();
+  }
+
+  private void initMechanism() {
+    if (RobotContainer.DEBUG_CONSOLE_LOGGING){
+      // Create 6 spokes spaced 60° apart
+      for (int i = 0; i < spokes.length; i++) {
+        double angle = i * 60.0;
+        spokes[i] = root.append(new MechanismLigament2d(
+          "spoke" + i, 0.8, angle, 5, new Color8Bit(Color.kBlue)
+        ));
+      }
+    }
+  }
+
+  private void updateMechanism() {
+    if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
+      double voltage = motor.get(); // e.g., 4.0 volts
+      double spinSpeed = voltage * 10.0;
+
+      // Update rotation angle
+      flywheelRotation += spinSpeed;
+      flywheelRotation %= 360;
+
+      // Rotate all spokes
+      for (int i = 0; i < spokes.length; i++) {
+        double baseAngle = i * 60.0;
+        spokes[i].setAngle((baseAngle + flywheelRotation) % 360);
+      }
+
+      // Show coral if detected
+      coralIndicator.setLength(hasCoral() ? 0.5 : 0.0);
+    }
   }
 }
