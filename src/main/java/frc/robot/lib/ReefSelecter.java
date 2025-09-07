@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -15,6 +16,8 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.lib.FieldCorrection.FieldCorrectionMap;
+import frc.robot.lib.FieldCorrection.FieldCorrectionMap.AllianceCoralKey;
 import frc.robot.subsystems.Elevator;
 
 /** Add your docs here. */
@@ -229,8 +232,19 @@ public class ReefSelecter {
             };
         }
 
-        System.out.printf("Getting Selected Position: %s", selectedPosition);
-        return Optional.of(selectedPosition);
+        System.out.printf("Getting Selected Position: %s\n", selectedPosition);
+
+        Transform2d correction = FieldCorrectionMap.activeCorrectionMap.getOrDefault(
+            new AllianceCoralKey(currentAlliance, coralToGetRobotPositionFor),
+            new Transform2d() // identity transform
+        );
+        Pose2d adjustedPose = selectedPosition.transformBy(correction);
+
+        if (!Transform2d.kZero.equals(correction)){
+            System.out.printf("Transformed Position (%s) to corrected Position (%s), applied transform of: %s\n", selectedPosition, adjustedPose, correction);
+        }
+        
+        return Optional.of(adjustedPose);
     }
 
     public Optional<Pose2d> getRobotPositionForSelectedCoral() {
