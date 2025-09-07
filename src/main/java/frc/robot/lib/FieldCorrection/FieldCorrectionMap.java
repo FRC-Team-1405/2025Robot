@@ -15,7 +15,8 @@ public class FieldCorrectionMap {
     // List of Field Correction Maps
 
     private static Map<AllianceCoralKey, Transform2d> home = Map.of (
-        new AllianceCoralKey(Alliance.Red, Coral.Position_2),   new Transform2d(new Translation2d(Units.inchesToMeters(2), Units.inchesToMeters(0)), Rotation2d.kZero)
+         new AllianceCoralKey(Alliance.Red, Coral.Position_2),   new Transform2d(new Translation2d(Units.inchesToMeters(2), Units.inchesToMeters(0)), Rotation2d.kZero)
+        ,new AllianceCoralKey(Alliance.Blue, Coral.Position_2),   new Transform2d(new Translation2d(Units.inchesToMeters(2), Units.inchesToMeters(0)), Rotation2d.kZero)
     );
 
     // Currently active Field Correction Map

@@ -31,7 +31,8 @@ public class TestAuto {
         commandsToAddToChooser.put("DriveStraight1m", DriveStraight1m);
 
         commandsToAddToChooser.put("MoveTo_Red_5B", NamedCommands.getCommand("MoveTo_Red_5B"));
-        commandsToAddToChooser.put("P2P_DS_Right_3Piece", NamedCommands.getCommand("P2P_DS_Right_3Piece"));
+        commandsToAddToChooser.put("P2P_DS_Right_3Piece_WaitIntake", NamedCommands.getCommand("P2P_DS_Right_3Piece_WaitIntake"));
+        commandsToAddToChooser.put("P2P_DS_Right_3Piece_ParallelIntake", NamedCommands.getCommand("P2P_DS_Right_3Piece_ParallelIntake"));
 
         // Add all commands in Map to chooser
         commandsToAddToChooser.keySet().stream().forEach(name -> chooser.addOption(name, commandsToAddToChooser.get(name)));

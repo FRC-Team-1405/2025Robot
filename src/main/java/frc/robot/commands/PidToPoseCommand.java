@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Radians;
+
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -37,10 +39,11 @@ public class PidToPoseCommand extends Command {
     private final double initialStateVelocity;
     private final double endStateVelocity;
     private final String commandName; // used to improve logging, if not provided targetPose is used
+    private final TrapezoidProfile.Constraints drivingContraints;
 
     private final ProfiledPIDController xController;
     private final ProfiledPIDController yController;
-    private final PIDController thetaController;
+    private final ProfiledPIDController thetaController;
 
     private Pose2d poseToMoveTo;
     private StructPublisher<Pose2d> pidToPosePublisher = NetworkTableInstance.getDefault().getStructTopic("PID_TO_POSE/Pose", Pose2d.struct).publish();
@@ -50,23 +53,23 @@ public class PidToPoseCommand extends Command {
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches, boolean applyFieldSymmetryToPose, String commandName) {
         this(drive, targetPose, toleranceInches,
-                applyFieldSymmetryToPose, 0, 0, commandName);
+                applyFieldSymmetryToPose, 0, 0, commandName, new TrapezoidProfile.Constraints(4, 5));
     }
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches, String commandName) {
         // used in PidToPoseCommands for Reef Positions
         this(drive, targetPose, toleranceInches,
-                false, 0, 0, commandName);
+                false, 0, 0, commandName, new TrapezoidProfile.Constraints(5, 6));
     }
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches,
             boolean applyFieldSymmetryToPose, double initialStateVelocity, double endStateVelocity) {
         this(drive, targetPose, toleranceInches,
-                applyFieldSymmetryToPose, 0, 0, null);
+                applyFieldSymmetryToPose, 0, 0, null, new TrapezoidProfile.Constraints(4, 5));
     }
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches,
-            boolean applyFieldSymmetryToPose, double initialStateVelocity, double endStateVelocity, String commandName) {
+            boolean applyFieldSymmetryToPose, double initialStateVelocity, double endStateVelocity, String commandName, TrapezoidProfile.Constraints drivingContraints) {
         this.drive = drive;
         this.targetPose = targetPose;
         this.toleranceInches = toleranceInches;
@@ -74,10 +77,11 @@ public class PidToPoseCommand extends Command {
         this.initialStateVelocity = initialStateVelocity;
         this.endStateVelocity = endStateVelocity;
         this.commandName = commandName;
+        this.drivingContraints = drivingContraints;
 
-        xController = new ProfiledPIDController(2.2, 0, 0, new TrapezoidProfile.Constraints(4, 5));
-        yController = new ProfiledPIDController(2.2, 0, 0, new TrapezoidProfile.Constraints(4, 5));
-        thetaController = new PIDController(2, 0, 0);
+        xController = new ProfiledPIDController(2.2, 0, 0, drivingContraints);
+        yController = new ProfiledPIDController(2.2, 0, 0, drivingContraints);
+        thetaController = new ProfiledPIDController(2, 0, 0, new TrapezoidProfile.Constraints(4, 5));
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
         addRequirements(drive);
@@ -99,7 +103,7 @@ public class PidToPoseCommand extends Command {
         Pose2d currentPose = drive.getState().Pose;
         xController.reset(new TrapezoidProfile.State(currentPose.getX(), initialStateVelocity));
         yController.reset(new TrapezoidProfile.State(currentPose.getY(), initialStateVelocity));
-        thetaController.reset(); // TODO: provide a value?
+        thetaController.reset(new TrapezoidProfile.State(currentPose.getRotation().getRadians(), 0)); // TODO: provide a value?
 
         commandLog.append("Initialized: " + getName());
     }

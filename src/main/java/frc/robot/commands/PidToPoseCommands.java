@@ -10,6 +10,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -21,7 +22,10 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class PidToPoseCommands {
-  private static final double TOLERANCE = 1.2; // inches
+  private static final double SCORE_TOLERANCE = 1.2; // inches
+  private static final double TOLERANCE = 2; // inches
+
+  private static final TrapezoidProfile.Constraints drivingContraints = new TrapezoidProfile.Constraints(4, 5);
 
   /* Debug Pose used for finding a position on the field in Advantage scope.
    * You can edit the location in network tables via shuffleboard
@@ -42,26 +46,29 @@ public class PidToPoseCommands {
     /* Commands */
     // Uses command suppliers instead of commands so that we can reuse the same command in an autonomous
     ReefSelecter rs = RobotContainer.reefSelecter;
-    Supplier<Command> MoveTo_Reef2       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_2).get(), TOLERANCE, "MoveTo_Reef2");
-    Supplier<Command> MoveAway_Reef2     = () -> new PidToPoseCommand(drivetrain, Red_5B_AWAY, 24, true, 0, 2, "MoveAway_Reef2");
-    Supplier<Command> MoveTo_Reef5       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_5).get(), TOLERANCE, "MoveTo_Reef5");
-    Supplier<Command> MoveTo_Reef4       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_4).get(), TOLERANCE, "MoveTo_Reef4");
+    Supplier<Command> MoveTo_Reef2       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_2).get(), SCORE_TOLERANCE, "MoveTo_Reef2");
+    Supplier<Command> MoveAway_Reef2     = () -> new PidToPoseCommand(drivetrain, Red_5B_AWAY, 24, true, 0, 2, "MoveAway_Reef2", drivingContraints);
+    Supplier<Command> MoveAway_Reef2_2     = () -> new PidToPoseCommand(drivetrain, () -> new Pose2d(4.67, 2.04, Rotation2d.fromDegrees(-60)), 20, true, 0, 0, "MoveAway_Reef2", drivingContraints);
+    Supplier<Command> MoveTo_Reef5       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_5).get(), SCORE_TOLERANCE, "MoveTo_Reef5");
+    Supplier<Command> MoveTo_Reef4       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_4).get(), SCORE_TOLERANCE, "MoveTo_Reef4");
 
-    Supplier<Command> MoveTo_LeftFeeder   = () -> new PidToPoseCommand(drivetrain, LeftFeeder, TOLERANCE, true, "MoveTo_LeftFeeder");
-    Supplier<Command> MoveTo_RightFeeder  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, "MoveTo_RightFeeder");
-    Supplier<Command> MoveTo_RightFeeder_InitialVel  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 2, 0, "MoveTo_RightFeeder_InitialVel");
+    Supplier<Command> MoveTo_LeftFeeder   = () -> new PidToPoseCommand(drivetrain, LeftFeeder, TOLERANCE, true, 0, 0, "MoveTo_LeftFeeder", drivingContraints);
+    Supplier<Command> MoveTo_RightFeeder  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 0, 0, "MoveTo_RightFeeder", drivingContraints);
+    Supplier<Command> MoveTo_RightFeeder_InitialVel  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 0, 0, "MoveTo_RightFeeder_InitialVel", drivingContraints);
 
     /* Full Autos */
-    Command P2P_DS_Right_3Piece = new SequentialCommandGroup(
+    Command P2P_DS_Right_3Piece_WaitIntake = new SequentialCommandGroup(
       new ParallelCommandGroup(
         MoveTo_Reef2.get(),
         NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
       ),
       NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-      MoveAway_Reef2.get(),
       
       new ParallelCommandGroup(
-        MoveTo_RightFeeder_InitialVel.get(),
+        new SequentialCommandGroup(
+          MoveAway_Reef2_2.get(),
+          MoveTo_RightFeeder_InitialVel.get()
+        ),
         NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
       ),
       NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
@@ -85,6 +92,45 @@ public class PidToPoseCommands {
       NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
     );
 
+    Command P2P_DS_Right_3Piece_ParallelIntake = new SequentialCommandGroup(
+      new ParallelCommandGroup(
+        MoveTo_Reef2.get(),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+      ),
+      NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+      
+      new ParallelCommandGroup(
+        new SequentialCommandGroup(
+          MoveAway_Reef2_2.get(),
+          MoveTo_RightFeeder_InitialVel.get()
+        ),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+      ),
+
+      new ParallelCommandGroup(
+        MoveTo_Reef4.get(),
+        new SequentialCommandGroup(
+          NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+          NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+        )
+      ),
+      NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+      
+      new ParallelCommandGroup(
+        MoveTo_RightFeeder.get(),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+      ),
+
+      new ParallelCommandGroup(
+        MoveTo_Reef5.get(),
+        new SequentialCommandGroup(
+          NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+          NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+        )
+      ),
+      NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
+    );
+
     /* Register Commands */
     NamedCommands.registerCommand("MoveTo_Reef2", MoveTo_Reef2.get());
     NamedCommands.registerCommand("MoveAway_Reef2", MoveAway_Reef2.get());
@@ -92,6 +138,7 @@ public class PidToPoseCommands {
     NamedCommands.registerCommand("MoveTo_Reef5", MoveTo_Reef5.get());
     NamedCommands.registerCommand("MoveTo_Reef4", MoveTo_Reef4.get());
 
-    NamedCommands.registerCommand("P2P_DS_Right_3Piece", P2P_DS_Right_3Piece);
+    NamedCommands.registerCommand("P2P_DS_Right_3Piece_WaitIntake", P2P_DS_Right_3Piece_WaitIntake);
+    NamedCommands.registerCommand("P2P_DS_Right_3Piece_ParallelIntake", P2P_DS_Right_3Piece_ParallelIntake);
   }
 }
