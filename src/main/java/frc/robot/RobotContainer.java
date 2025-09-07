@@ -89,7 +89,7 @@ public class RobotContainer {
 
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private final Elevator elevator = new Elevator();
-  private final ReefSelecter reefSelecter = new ReefSelecter();
+  public static final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
   private final Intake intake = new Intake();
   private final Vision vision = new Vision(Vision.camerasFromConfigs(VisionConstants.CONFIGS));

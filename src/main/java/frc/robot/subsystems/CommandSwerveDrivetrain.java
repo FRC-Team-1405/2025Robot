@@ -137,9 +137,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
 
-    static StructPublisher<Pose2d> pidToPosePublisher = NetworkTableInstance.getDefault().getStructTopic("PID_TO_POSE/Pose", Pose2d.struct)
-      .publish();
-
     /*
      * Vision Odometry Suppliers
      */
@@ -494,7 +491,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                         return Commands.none();
                     }
 
-                    return new PidToPoseCommand(this, targetPose.get(), 1.2, false)
+                    return new PidToPoseCommand(this, () -> targetPose.get(), 1.2, false, null)
                     .alongWith(
                                         Commands.sequence(
                                                 Commands.waitUntil(() -> this.getState().Pose.getTranslation()

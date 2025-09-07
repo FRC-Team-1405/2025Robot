@@ -1,10 +1,18 @@
 package frc.robot.commands;
 
+import java.util.function.Supplier;
+
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -23,7 +31,7 @@ public class PidToPoseCommand extends Command {
 
 
     private final CommandSwerveDrivetrain drive;
-    private final Pose2d targetPose;
+    private final Supplier<Pose2d> targetPose;
     private final double toleranceInches;
     private final boolean applyFieldSymmetryToPose;
     private final double initialStateVelocity;
@@ -35,24 +43,29 @@ public class PidToPoseCommand extends Command {
     private final PIDController thetaController;
 
     private Pose2d poseToMoveTo;
+    private StructPublisher<Pose2d> pidToPosePublisher = NetworkTableInstance.getDefault().getStructTopic("PID_TO_POSE/Pose", Pose2d.struct).publish();
 
-    public PidToPoseCommand(CommandSwerveDrivetrain drive, Pose2d targetPose, double toleranceInches, boolean applyFieldSymmetryToPose) {
+    public static final SwerveRequest.ApplyFieldSpeeds pidToPose_FieldSpeeds = new SwerveRequest.ApplyFieldSpeeds()
+      .withDriveRequestType(DriveRequestType.Velocity);
+
+    public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches, boolean applyFieldSymmetryToPose, String commandName) {
         this(drive, targetPose, toleranceInches,
-                applyFieldSymmetryToPose, 0, 0, null);
+                applyFieldSymmetryToPose, 0, 0, commandName);
     }
 
-    public PidToPoseCommand(CommandSwerveDrivetrain drive, Pose2d targetPose, double toleranceInches, String commandName) {
+    public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches, String commandName) {
+        // used in PidToPoseCommands for Reef Positions
         this(drive, targetPose, toleranceInches,
-                true, 0, 0, commandName);
+                false, 0, 0, commandName);
     }
 
-    public PidToPoseCommand(CommandSwerveDrivetrain drive, Pose2d targetPose, double toleranceInches,
+    public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches,
             boolean applyFieldSymmetryToPose, double initialStateVelocity, double endStateVelocity) {
         this(drive, targetPose, toleranceInches,
                 applyFieldSymmetryToPose, 0, 0, null);
     }
 
-    public PidToPoseCommand(CommandSwerveDrivetrain drive, Pose2d targetPose, double toleranceInches,
+    public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches,
             boolean applyFieldSymmetryToPose, double initialStateVelocity, double endStateVelocity, String commandName) {
         this.drive = drive;
         this.targetPose = targetPose;
@@ -73,9 +86,10 @@ public class PidToPoseCommand extends Command {
     @Override
     public void initialize() {
         Pose2d symmetricPose = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                ? targetPose
-                : AllianceSymmetry.flip(targetPose);
-        poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose;
+                ? targetPose.get()
+                : AllianceSymmetry.flip(targetPose.get());
+        poseToMoveTo = applyFieldSymmetryToPose ? symmetricPose : targetPose.get();
+        pidToPosePublisher.set(poseToMoveTo);
 
         log("Target pose: " + targetPose);
         log("Pose to move to (after symmetry): " + poseToMoveTo);
@@ -92,31 +106,22 @@ public class PidToPoseCommand extends Command {
 
     @Override
     public void execute() {
-        drive.applyRequest(() -> {
-            Pose2d currentPose = drive.getState().Pose;
+        Pose2d currentPose = drive.getState().Pose;
 
-            double xOutput = xController.calculate(currentPose.getX(),
-                    new TrapezoidProfile.State(poseToMoveTo.getX(), endStateVelocity));
-            double yOutput = yController.calculate(currentPose.getY(),
-                    new TrapezoidProfile.State(poseToMoveTo.getY(), endStateVelocity));
-            double thetaOutput = thetaController.calculate(currentPose.getRotation().getRadians(),
-                    poseToMoveTo.getRotation().getRadians());
+        double xOutput = xController.calculate(currentPose.getX(),
+                new TrapezoidProfile.State(poseToMoveTo.getX(), endStateVelocity));
+        double yOutput = yController.calculate(currentPose.getY(),
+                new TrapezoidProfile.State(poseToMoveTo.getY(), endStateVelocity));
+        double thetaOutput = thetaController.calculate(currentPose.getRotation().getRadians(),
+                poseToMoveTo.getRotation().getRadians());
 
-            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-                xOutput = -xOutput;
-                yOutput = -yOutput;
-            }
+        SmartDashboard.putNumber("PID_TO_POSE/xError", xController.getPositionError());
+        SmartDashboard.putNumber("PID_TO_POSE/yError", yController.getPositionError());
+        SmartDashboard.putNumber("PID_TO_POSE/xOutput", xOutput);
+        SmartDashboard.putNumber("PID_TO_POSE/yOutput", yOutput);
+        SmartDashboard.putNumber("PID_TO_POSE/thetaOutput", thetaOutput);
 
-            SmartDashboard.putNumber("PID_TO_POSE/xError", xController.getPositionError());
-            SmartDashboard.putNumber("PID_TO_POSE/yError", yController.getPositionError());
-            SmartDashboard.putNumber("PID_TO_POSE/xOutput", xOutput);
-            SmartDashboard.putNumber("PID_TO_POSE/yOutput", yOutput);
-            SmartDashboard.putNumber("PID_TO_POSE/thetaOutput", thetaOutput);
-
-            return RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(xOutput)
-                    .withVelocityY(yOutput)
-                    .withRotationalRate(thetaOutput);
-        }).execute();
+        drive.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(xOutput, yOutput, thetaOutput)));
     }
 
     @Override
@@ -130,9 +135,7 @@ public class PidToPoseCommand extends Command {
         //TODO modify command to optionally apply "brakes" where it not only cuts velocity to wheels but moves the wheels into brake formation making the robot harder to move
         if (endStateVelocity == 0) {
             log("KILLING DRIVE VELOCITY");
-            drive.setControl(RobotContainer.pidToPose_FieldCentricDrive.withVelocityX(0)
-                .withVelocityY(0)
-                .withRotationalRate(0));
+            drive.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(0, 0, 0)));
 
             SmartDashboard.putNumber("PID_TO_POSE/xError", xController.getPositionError());
             SmartDashboard.putNumber("PID_TO_POSE/yError", yController.getPositionError());
@@ -157,7 +160,7 @@ public class PidToPoseCommand extends Command {
 
     @Override
     public String getName() {
-        String instanceSpecificValue = commandName == null ? formatPose(targetPose) : commandName;
+        String instanceSpecificValue = commandName == null ? formatPose(targetPose.get()) : commandName;
         return "PidToPoseCommand(" + instanceSpecificValue + ")";
     }
 

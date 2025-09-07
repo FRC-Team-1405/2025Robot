@@ -196,7 +196,7 @@ public class ReefSelecter {
         Pose2d selectedPosition;
 
         if (Alliance.Red.equals(currentAlliance)) {
-            selectedPosition = switch(this.coralSelected) {
+            selectedPosition = switch(coralToGetRobotPositionFor) {
                 case Position_1  -> new Pose2d(new Translation2d(11.78, 4.19), new Rotation2d(Units.degreesToRadians(180.00)));
                 case Position_2  -> new Pose2d(new Translation2d(12.28, 5.05), new Rotation2d(Units.degreesToRadians(120.00)));
                 case Position_3  -> new Pose2d(new Translation2d(12.56, 5.21), new Rotation2d(Units.degreesToRadians(120.00)));
@@ -212,7 +212,7 @@ public class ReefSelecter {
                 default -> null;
             };
         } else {
-            selectedPosition = switch(this.coralSelected) {
+            selectedPosition = switch(coralToGetRobotPositionFor) {
                 case Position_1  -> new Pose2d(new Translation2d(5.77, 3.86), new Rotation2d(Units.degreesToRadians(0.00)));
                 case Position_2  -> new Pose2d(new Translation2d(5.27, 3.00), new Rotation2d(Units.degreesToRadians( -60.00)));
                 case Position_3  -> new Pose2d(new Translation2d(4.98, 2.84), new Rotation2d(Units.degreesToRadians( -60.00)));
