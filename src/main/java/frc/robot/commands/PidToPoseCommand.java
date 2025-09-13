@@ -1,13 +1,10 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.Radians;
-
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -22,11 +19,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.RobotContainer;
 import frc.robot.lib.AllianceSymmetry;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class PidToPoseCommand extends Command {
+    private static final TrapezoidProfile.Constraints DEFAULT_CONSTRAINTS = new TrapezoidProfile.Constraints(4, 5);
+    private static final TrapezoidProfile.Constraints REEF_DEFAULT_CONSTRAINTS = new TrapezoidProfile.Constraints(4, 5);
+
     private final boolean DEBUG_LOGGING_ENABLED = false;
     DataLog log = DataLogManager.getLog();
     StringLogEntry commandLog = new StringLogEntry(log, "/Commands/P2P");
@@ -53,19 +52,19 @@ public class PidToPoseCommand extends Command {
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches, boolean applyFieldSymmetryToPose, String commandName) {
         this(drive, targetPose, toleranceInches,
-                applyFieldSymmetryToPose, 0, 0, commandName, new TrapezoidProfile.Constraints(4, 5));
+                applyFieldSymmetryToPose, 0, 0, commandName, DEFAULT_CONSTRAINTS);
     }
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches, String commandName) {
         // used in PidToPoseCommands for Reef Positions
         this(drive, targetPose, toleranceInches,
-                false, 0, 0, commandName, new TrapezoidProfile.Constraints(5, 6));
+                false, 0, 0, commandName, REEF_DEFAULT_CONSTRAINTS);
     }
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches,
             boolean applyFieldSymmetryToPose, double initialStateVelocity, double endStateVelocity) {
         this(drive, targetPose, toleranceInches,
-                applyFieldSymmetryToPose, 0, 0, null, new TrapezoidProfile.Constraints(4, 5));
+                applyFieldSymmetryToPose, 0, 0, null, DEFAULT_CONSTRAINTS);
     }
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches,
@@ -81,7 +80,7 @@ public class PidToPoseCommand extends Command {
 
         xController = new ProfiledPIDController(2.2, 0, 0, drivingContraints);
         yController = new ProfiledPIDController(2.2, 0, 0, drivingContraints);
-        thetaController = new ProfiledPIDController(2, 0, 0, new TrapezoidProfile.Constraints(4, 5));
+        thetaController = new ProfiledPIDController(2, 0, 0, DEFAULT_CONSTRAINTS);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
         addRequirements(drive);

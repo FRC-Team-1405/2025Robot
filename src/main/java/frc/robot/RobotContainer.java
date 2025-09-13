@@ -42,7 +42,9 @@ import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
 import frc.robot.commands.PidToPoseCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.lib.AllianceSymmetry;
 import frc.robot.lib.ReefSelecter;
+import frc.robot.lib.AllianceSymmetry.SymmetryStrategy;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
@@ -118,6 +120,7 @@ public class RobotContainer {
   // endregion FeatureSwitches
 
   public RobotContainer() {
+    Pose2d flippedPose = AllianceSymmetry.flip(new Pose2d(4.67, 2.04, Rotation2d.fromDegrees(-60)), SymmetryStrategy.HORIZONTAL);
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
 
