@@ -24,7 +24,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class PidToPoseCommand extends Command {
     private static final TrapezoidProfile.Constraints DEFAULT_CONSTRAINTS = new TrapezoidProfile.Constraints(4, 5);
-    private static final TrapezoidProfile.Constraints REEF_DEFAULT_CONSTRAINTS = new TrapezoidProfile.Constraints(4, 5);
+    private static final TrapezoidProfile.Constraints REEF_DEFAULT_CONSTRAINTS = new TrapezoidProfile.Constraints(5, 6);
 
     private final boolean DEBUG_LOGGING_ENABLED = false;
     DataLog log = DataLogManager.getLog();

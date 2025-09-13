@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -117,10 +118,10 @@ public class RobotContainer {
                                                                  // (doesn't update robot odometry)
   public static boolean VISION_ROBOT_ODOMETRY_UPDATE = true; // Enable vision odometry updates while driving. Doesn't
                                                              // work without VISION_ODOMETRY_ESTIMATION set to true.
+  public static final boolean SIMULATE_VISION_FAILURES = false; // simulate dropped frames from the camera's 
   // endregion FeatureSwitches
 
   public RobotContainer() {
-    Pose2d flippedPose = AllianceSymmetry.flip(new Pose2d(4.67, 2.04, Rotation2d.fromDegrees(-60)), SymmetryStrategy.HORIZONTAL);
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
 
@@ -274,6 +275,15 @@ public class RobotContainer {
   }
 
   public void correctOdometry() {
+    if (SIMULATE_VISION_FAILURES){
+      int percentageFramesToDrop = 10;
+      Random rnd = new Random();
+
+      if(rnd.nextInt(100) < percentageFramesToDrop){
+        return;
+      }
+    }
+
     var visionSamples = vision.flushSamples();
     vision.updateSpeeds(drivetrain.getState().Speeds);
     // System.out.println("vision sample count: " + visionSamples.size());
