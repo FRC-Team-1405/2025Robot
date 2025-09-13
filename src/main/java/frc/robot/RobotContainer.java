@@ -52,6 +52,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Elevator.ArmLevel;
 import frc.robot.subsystems.Elevator.ElevationLevel;
 import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.Vision.VisionSample;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.Intake;
 
@@ -64,12 +65,8 @@ public class RobotContainer {
 
   /* Setting up bindings for necessary control of the swerve drive platform */
   public static final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+      .withDeadband(MaxSpeed * 0.07).withRotationalDeadband(MaxAngularRate * 0.05) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-
-  public static final SwerveRequest.FieldCentric pidToPose_FieldCentricDrive = new SwerveRequest.FieldCentric()
-      .withDeadband(0).withRotationalDeadband(0)
-      .withDriveRequestType(DriveRequestType.Velocity); // Use open-loop control for drive motors
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -223,7 +220,7 @@ public class RobotContainer {
     climbCommand.setName("Climb Command");
     SmartDashboard.putData(climbCommand);
 
-    operator.start().and(operator.back()).toggleOnTrue(climbCommand);
+    operator.start().and(operator.back()).toggleOnTrue(climbCommand); // left trigger connects the intake, right trigger releases
 
     drivetrain.registerTelemetry(logger::telemeterize);
   }
@@ -276,7 +273,7 @@ public class RobotContainer {
 
   public void correctOdometry() {
     if (SIMULATE_VISION_FAILURES){
-      int percentageFramesToDrop = 10;
+      int percentageFramesToDrop = 80;
       Random rnd = new Random();
 
       if(rnd.nextInt(100) < percentageFramesToDrop){
@@ -284,7 +281,7 @@ public class RobotContainer {
       }
     }
 
-    var visionSamples = vision.flushSamples();
+    List<VisionSample> visionSamples = vision.flushSamples();
     vision.updateSpeeds(drivetrain.getState().Speeds);
     // System.out.println("vision sample count: " + visionSamples.size());
     for (var sample : visionSamples) {

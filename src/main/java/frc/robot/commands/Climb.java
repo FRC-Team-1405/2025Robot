@@ -7,6 +7,7 @@ package frc.robot.commands;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Climber;
 
@@ -14,10 +15,13 @@ import frc.robot.subsystems.Climber;
 public class Climb extends Command {
   private Climber climber;
   private DoubleSupplier distance;
+
+  private Servo myServo;
   /** Creates a new Climb. */
   public Climb(Climber climber, DoubleSupplier distance) {
     this.climber = climber;
     this.distance = distance;
+    myServo = new Servo(9);
     addRequirements(climber);
   }
 
@@ -31,8 +35,16 @@ public class Climb extends Command {
   @Override
   public void execute() {
     double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
-    if (!MathUtil.isNear(0.0, distance, Deadband)){
-        climber.move(distance);
+    // System.out.println("\n\nTRIGGER VALUE: " + distance);
+    // if (!MathUtil.isNear(0.0, distance, Deadband)){
+    //     climber.move(distance);
+    // }
+    if (distance > 0) {
+      myServo.setPulseTimeMicroseconds(1000);
+    } else if(distance < 0) {
+      myServo.setPulseTimeMicroseconds(2000);
+    } else {
+      myServo.setPulseTimeMicroseconds(0); //TODO is this even necessary? servo seems to stop on its own
     }
   }
 
