@@ -127,7 +127,7 @@ public class RobotContainer {
     DriverStation.silenceJoystickConnectionWarning(true);
     registerCommands();
     SmartDashboard.putBoolean("Auto Mode Enable", false);
-    autoChooser = AutoBuilder.buildAutoChooser("DriveStraight3m");
+    autoChooser = AutoBuilder.buildAutoChooser("P2P_DS_Right_3Piece_ParallelIntake");
     TestAuto.configureAutos(autoChooser, drivetrain);
     SmartDashboard.putData("Auto Mode", autoChooser);
 

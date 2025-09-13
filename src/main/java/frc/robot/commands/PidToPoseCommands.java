@@ -62,6 +62,8 @@ public class PidToPoseCommands {
     Supplier<Command> MoveTo_Reef9       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_9).get(), SCORE_TOLERANCE, "MoveTo_Reef9");
     Supplier<Command> MoveTo_Reef8       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_8).get(), SCORE_TOLERANCE, "MoveTo_Reef8");
 
+    Supplier<Command> MoveTo_Reef12       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_12).get(), SCORE_TOLERANCE, "MoveTo_Reef12");
+
     Supplier<Command> MoveTo_LeftFeeder   = () -> new PidToPoseCommand(drivetrain, LeftFeeder, TOLERANCE, true, 0, 0, "MoveTo_LeftFeeder", drivingContraints);
     Supplier<Command> MoveTo_RightFeeder  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 0, 0, "MoveTo_RightFeeder", drivingContraints);
     // Supplier<Command> MoveTo_RightFeeder_InitialVel  = () -> new PidToPoseCommand(drivetrain, RightFeeder, TOLERANCE, true, 0, 0, "MoveTo_RightFeeder_InitialVel", drivingContraints);
@@ -180,6 +182,16 @@ public class PidToPoseCommands {
       NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
     );
 
+    // Score one coral in center position and then stop
+    Command P2P_DS_Center = new SequentialCommandGroup(
+      new ParallelCommandGroup(
+        MoveTo_Reef12.get(),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+      ),
+      NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+      NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+    );
+
     /* Register Commands */
     NamedCommands.registerCommand("MoveTo_Reef2", MoveTo_Reef2.get());
     NamedCommands.registerCommand("MoveAway_Reef2", MoveAway_Reef2.get());
@@ -191,5 +203,7 @@ public class PidToPoseCommands {
     NamedCommands.registerCommand("P2P_DS_Right_3Piece_ParallelIntake", P2P_DS_Right_3Piece_ParallelIntake);
 
     NamedCommands.registerCommand("P2P_DS_Left_3Piece_ParallelIntake", P2P_DS_Left_3Piece_ParallelIntake);
+
+    NamedCommands.registerCommand("P2P_DS_Center", P2P_DS_Center);
   }
 }
