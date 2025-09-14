@@ -53,12 +53,12 @@ public class PidToPoseCommands {
     ReefSelecter rs = RobotContainer.reefSelecter;
     Supplier<Command> MoveTo_Reef2       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_2).get(), SCORE_TOLERANCE, "MoveTo_Reef2");
     // Supplier<Command> MoveAway_Reef2     = () -> new PidToPoseCommand(drivetrain, Reef_2_AWAY, 24, true, 0, 2, "MoveAway_Reef2", drivingContraints);
-    Supplier<Command> MoveAway_Reef2     = () -> new PidToPoseCommand(drivetrain, Reef_2_AWAY, 20, true, 0, 3, "MoveAway_Reef2", drivingContraints);
+    Supplier<Command> MoveAway_Reef2     = () -> new PidToPoseCommand(drivetrain, Reef_2_AWAY, 20, true, 0, 15, "MoveAway_Reef2", drivingContraints); // high end velocity helps maintain momentum
     Supplier<Command> MoveTo_Reef5       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_5).get(), SCORE_TOLERANCE, "MoveTo_Reef5");
     Supplier<Command> MoveTo_Reef4       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_4).get(), SCORE_TOLERANCE, "MoveTo_Reef4");
 
     Supplier<Command> MoveTo_Reef11       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_11).get(), SCORE_TOLERANCE, "MoveTo_Reef11");
-    Supplier<Command> MoveAway_Reef11     = () -> new PidToPoseCommand(drivetrain, Reef_11_AWAY, 20, true, 0, 3, "MoveAway_Reef11", drivingContraints);
+    Supplier<Command> MoveAway_Reef11     = () -> new PidToPoseCommand(drivetrain, Reef_11_AWAY, 20, true, 0, 15, "MoveAway_Reef11", drivingContraints); // high end velocity helps maintain momentum
     Supplier<Command> MoveTo_Reef9       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_9).get(), SCORE_TOLERANCE, "MoveTo_Reef9");
     Supplier<Command> MoveTo_Reef8       = () -> new PidToPoseCommand(drivetrain, () -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_8).get(), SCORE_TOLERANCE, "MoveTo_Reef8");
 

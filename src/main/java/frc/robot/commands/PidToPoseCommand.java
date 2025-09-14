@@ -1,11 +1,13 @@
 package frc.robot.commands;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -42,6 +44,7 @@ public class PidToPoseCommand extends Command {
     private final double toleranceInches;
     private final boolean applyFieldSymmetryToPose;
     private final double initialStateVelocity;
+    private Translation2d initialVelocityVector;
     private final double endStateVelocity;
     private final String commandName; // used to improve logging, if not provided targetPose is used
     private final TrapezoidProfile.Constraints drivingContraints;
@@ -69,6 +72,13 @@ public class PidToPoseCommand extends Command {
     MechanismLigament2d loopDirectionLigament;
     MechanismLigament2d loopVelocityLigament;
 
+    double previousLoopBiggestError = 0;
+    double currentLoopBiggestError = 0;
+    boolean errorIncreasing = true;
+
+    LinearFilter errorAverage = LinearFilter.movingAverage(10); // 10-sample window
+    double previousSmoothedError;
+    double smoothedError;
 
     public static final SwerveRequest.ApplyFieldSpeeds pidToPose_FieldSpeeds = new SwerveRequest.ApplyFieldSpeeds()
       .withDriveRequestType(DriveRequestType.Velocity);
@@ -144,7 +154,7 @@ public class PidToPoseCommand extends Command {
 
         Translation2d delta = poseToMoveTo.getTranslation().minus(currentPose.getTranslation());
         Translation2d direction = delta.div(delta.getNorm()); // get a unit vector
-        Translation2d initialVelocityVector = direction.times(initialStateVelocity);
+        initialVelocityVector = direction.times(initialStateVelocity);
 
         // MECHANISM
 
@@ -168,13 +178,21 @@ public class PidToPoseCommand extends Command {
 
         // MECHANISM
 
-        // if (applyFieldSymmetryToPose && DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-        //     initialVelocityVector = AllianceSymmetry.flip(initialVelocityVector);
-        // }
-
         xController.reset(new TrapezoidProfile.State(currentPose.getX(), initialVelocityVector.getX()));
         yController.reset(new TrapezoidProfile.State(currentPose.getY(), initialVelocityVector.getY()));
         thetaController.reset(new TrapezoidProfile.State(currentPose.getRotation().getRadians(), 0)); // TODO: provide a value?
+
+        // preload controllers
+        if (Math.abs(initialStateVelocity) > 0){
+            for (int i = 0; i < 5; i++) {
+                // arbitrary 5 times preloaded, but it works
+                double xOutput = xController.calculate(currentPose.getX(),
+                        new TrapezoidProfile.State(poseToMoveTo.getX(), 0));
+                double yOutput = yController.calculate(currentPose.getY(),  
+                        new TrapezoidProfile.State(poseToMoveTo.getY(), 0));
+                drive.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(xOutput, yOutput, 0)));
+            }
+        }
 
         commandLog.append("Initialized: " + getName());
     }
@@ -186,10 +204,6 @@ public class PidToPoseCommand extends Command {
         Translation2d delta = poseToMoveTo.getTranslation().minus(currentPose.getTranslation());
         Translation2d direction = delta.div(delta.getNorm()); // get a unit vector
         Translation2d endVelocityVector = direction.times(endStateVelocity);
-
-        // if (applyFieldSymmetryToPose && DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-        //     endVelocityVector = AllianceSymmetry.flip(endVelocityVector);
-        // }
 
         // MECHANISM
 
@@ -220,6 +234,11 @@ public class PidToPoseCommand extends Command {
         double thetaOutput = thetaController.calculate(currentPose.getRotation().getRadians(),
                 poseToMoveTo.getRotation().getRadians());
 
+        if (errorIncreasing && Math.abs(initialStateVelocity) > 0){
+            xOutput = xOutput < initialVelocityVector.getX() ? average(initialVelocityVector.getX(), xOutput) : xOutput;
+            yOutput = yOutput < initialVelocityVector.getY() ? average(initialVelocityVector.getY(), yOutput) : yOutput;
+        }
+
         SmartDashboard.putNumber("PID_TO_POSE/xError", xController.getPositionError());
         SmartDashboard.putNumber("PID_TO_POSE/yError", yController.getPositionError());
         SmartDashboard.putNumber("PID_TO_POSE/xOutput", xOutput);
@@ -227,6 +246,22 @@ public class PidToPoseCommand extends Command {
         SmartDashboard.putNumber("PID_TO_POSE/thetaOutput", thetaOutput);
 
         drive.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(xOutput, yOutput, thetaOutput)));
+
+        previousLoopBiggestError = currentLoopBiggestError;
+        currentLoopBiggestError = xController.getPositionError() > yController.getPositionError() ? xController.getPositionError() : yController.getPositionError();
+        
+        previousSmoothedError = smoothedError;
+        double maxError = Math.max(
+            Math.abs(xController.getPositionError()),
+            Math.abs(yController.getPositionError())
+        );
+        smoothedError = errorAverage.calculate(maxError);
+
+        if (smoothedError < previousSmoothedError) {
+            // error is decreasing, you are halfway through your command.
+            // no longer apply feedforward constant based on initial velocity
+            errorIncreasing = false;
+        }
     }
 
     @Override
@@ -255,6 +290,10 @@ public class PidToPoseCommand extends Command {
                 ", End state velocity: ( x: " + drive.getState().Speeds.vxMetersPerSecond + ", y: " + drive.getState().Speeds.vyMetersPerSecond + " )");
 
         commandLog.append("Finished (interrupt: " + (interrupted ? "Y" : "N") + "): " + getName());
+    }
+
+    public static double average(Double... values) {
+        return List.of(values).stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
     }
 
     private void log(String logMessage) {
