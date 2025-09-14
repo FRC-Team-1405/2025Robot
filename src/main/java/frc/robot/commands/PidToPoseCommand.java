@@ -84,6 +84,7 @@ public class PidToPoseCommand extends Command {
       .withDriveRequestType(DriveRequestType.Velocity);
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches, boolean applyFieldSymmetryToPose, String commandName) {
+        // used by auto score in teleop
         this(drive, targetPose, toleranceInches,
                 applyFieldSymmetryToPose, 0, 0, commandName, DEFAULT_CONSTRAINTS);
     }
@@ -96,6 +97,7 @@ public class PidToPoseCommand extends Command {
 
     public PidToPoseCommand(CommandSwerveDrivetrain drive, Supplier<Pose2d> targetPose, double toleranceInches,
             boolean applyFieldSymmetryToPose, double initialStateVelocity, double endStateVelocity) {
+        // un-used currently
         this(drive, targetPose, toleranceInches,
                 applyFieldSymmetryToPose, 0, 0, null, DEFAULT_CONSTRAINTS);
     }

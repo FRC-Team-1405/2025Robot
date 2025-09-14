@@ -27,7 +27,7 @@ public class PidToPoseCommands {
   private static final double SCORE_TOLERANCE = 1.2; // inches
   private static final double TOLERANCE = 2; // inches
 
-  private static final TrapezoidProfile.Constraints drivingContraints = new TrapezoidProfile.Constraints(4, 5);
+  private static final TrapezoidProfile.Constraints drivingContraints = new TrapezoidProfile.Constraints(5, 6);
 
   /* Debug Pose used for finding a position on the field in Advantage scope.
    * You can edit the location in network tables via shuffleboard
