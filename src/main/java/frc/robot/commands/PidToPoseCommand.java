@@ -7,6 +7,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -17,7 +18,12 @@ import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.AllianceSymmetry;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -46,6 +52,23 @@ public class PidToPoseCommand extends Command {
 
     private Pose2d poseToMoveTo;
     private StructPublisher<Pose2d> pidToPosePublisher = NetworkTableInstance.getDefault().getStructTopic("PID_TO_POSE/Pose", Pose2d.struct).publish();
+
+    // initial velocity mechanism
+    Mechanism2d initialMechanism;
+    MechanismRoot2d initialOrigin;
+
+    MechanismLigament2d initialDeltaLigament;
+    MechanismLigament2d initialDirectionLigament;
+    MechanismLigament2d initialVelocityLigament;
+
+    // execution velocity mechanism
+    Mechanism2d loopMechanism;
+    MechanismRoot2d loopOrigin;
+
+    MechanismLigament2d loopDeltaLigament;
+    MechanismLigament2d loopDirectionLigament;
+    MechanismLigament2d loopVelocityLigament;
+
 
     public static final SwerveRequest.ApplyFieldSpeeds pidToPose_FieldSpeeds = new SwerveRequest.ApplyFieldSpeeds()
       .withDriveRequestType(DriveRequestType.Velocity);
@@ -83,6 +106,24 @@ public class PidToPoseCommand extends Command {
         thetaController = new ProfiledPIDController(2, 0, 0, DEFAULT_CONSTRAINTS);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
+        initialMechanism = new Mechanism2d(2, 2); // 2x2 unit canvas
+        initialOrigin = initialMechanism.getRoot("initialOrigin", 1, 1); // center of canvas
+
+        initialDeltaLigament = initialOrigin.append(new MechanismLigament2d("initialdelta", 0, 0, 1, new Color8Bit(Color.kBlue)));
+        initialDirectionLigament = initialOrigin.append(new MechanismLigament2d("initialdirection", 0, 0, 1, new Color8Bit(Color.kGreen)));
+        initialVelocityLigament = initialOrigin.append(new MechanismLigament2d("initialvelocity", 0, 0, 1, new Color8Bit(Color.kRed)));
+
+
+        loopMechanism = new Mechanism2d(2, 2); // 2x2 unit canvas
+        loopOrigin = loopMechanism.getRoot("loopOrigin", 1, 1); // center of canvas
+
+        loopDeltaLigament = loopOrigin.append(new MechanismLigament2d("loopdelta", 0, 0, 1, new Color8Bit(Color.kBlue)));
+        loopDirectionLigament = loopOrigin.append(new MechanismLigament2d("loopdirection", 0, 0, 1, new Color8Bit(Color.kGreen)));
+        loopVelocityLigament = loopOrigin.append(new MechanismLigament2d("loopvelocity", 0, 0, 1, new Color8Bit(Color.kRed)));
+
+        SmartDashboard.putData("InitialVectorMechanism", initialMechanism);
+        SmartDashboard.putData("LoopVectorMechanism", loopMechanism);
+
         addRequirements(drive);
     }
 
@@ -100,8 +141,39 @@ public class PidToPoseCommand extends Command {
 
         // Without resetting when we chain commands together the robot will drive full speed in a weird direction. unclear why but this fixes it.
         Pose2d currentPose = drive.getState().Pose;
-        xController.reset(new TrapezoidProfile.State(currentPose.getX(), initialStateVelocity));
-        yController.reset(new TrapezoidProfile.State(currentPose.getY(), initialStateVelocity));
+
+        Translation2d delta = poseToMoveTo.getTranslation().minus(currentPose.getTranslation());
+        Translation2d direction = delta.div(delta.getNorm()); // get a unit vector
+        Translation2d initialVelocityVector = direction.times(initialStateVelocity);
+
+        // MECHANISM
+
+        double deltaLength = delta.getNorm();
+        double deltaAngle = delta.getAngle().getDegrees(); // blue
+
+        double directionLength = 1.0; // unit vector
+        double directionAngle = direction.getAngle().getDegrees(); // green
+
+        double velocityLength = initialVelocityVector.getNorm();
+        double velocityAngle = initialVelocityVector.getAngle().getDegrees(); // red
+
+        initialDeltaLigament.setLength(deltaLength);
+        initialDeltaLigament.setAngle(deltaAngle);
+
+        initialDirectionLigament.setLength(directionLength);
+        initialDirectionLigament.setAngle(directionAngle);
+
+        initialVelocityLigament.setLength(velocityLength);
+        initialVelocityLigament.setAngle(velocityAngle);
+
+        // MECHANISM
+
+        // if (applyFieldSymmetryToPose && DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+        //     initialVelocityVector = AllianceSymmetry.flip(initialVelocityVector);
+        // }
+
+        xController.reset(new TrapezoidProfile.State(currentPose.getX(), initialVelocityVector.getX()));
+        yController.reset(new TrapezoidProfile.State(currentPose.getY(), initialVelocityVector.getY()));
         thetaController.reset(new TrapezoidProfile.State(currentPose.getRotation().getRadians(), 0)); // TODO: provide a value?
 
         commandLog.append("Initialized: " + getName());
@@ -111,10 +183,40 @@ public class PidToPoseCommand extends Command {
     public void execute() {
         Pose2d currentPose = drive.getState().Pose;
 
+        Translation2d delta = poseToMoveTo.getTranslation().minus(currentPose.getTranslation());
+        Translation2d direction = delta.div(delta.getNorm()); // get a unit vector
+        Translation2d endVelocityVector = direction.times(endStateVelocity);
+
+        // if (applyFieldSymmetryToPose && DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+        //     endVelocityVector = AllianceSymmetry.flip(endVelocityVector);
+        // }
+
+        // MECHANISM
+
+        double deltaLength = delta.getNorm();
+        double deltaAngle = delta.getAngle().getDegrees(); // blue
+
+        double directionLength = 1.0; // unit vector
+        double directionAngle = direction.getAngle().getDegrees(); // green
+
+        double velocityLength = endVelocityVector.getNorm();
+        double velocityAngle = endVelocityVector.getAngle().getDegrees(); // red
+
+        loopDeltaLigament.setLength(deltaLength);
+        loopDeltaLigament.setAngle(deltaAngle);
+
+        loopDirectionLigament.setLength(directionLength);
+        loopDirectionLigament.setAngle(directionAngle);
+
+        loopVelocityLigament.setLength(velocityLength);
+        loopVelocityLigament.setAngle(velocityAngle);
+
+        // MECHANISM
+
         double xOutput = xController.calculate(currentPose.getX(),
-                new TrapezoidProfile.State(poseToMoveTo.getX(), endStateVelocity));
+                new TrapezoidProfile.State(poseToMoveTo.getX(), endVelocityVector.getX()));
         double yOutput = yController.calculate(currentPose.getY(),
-                new TrapezoidProfile.State(poseToMoveTo.getY(), endStateVelocity));
+                new TrapezoidProfile.State(poseToMoveTo.getY(), endVelocityVector.getY()));
         double thetaOutput = thetaController.calculate(currentPose.getRotation().getRadians(),
                 poseToMoveTo.getRotation().getRadians());
 
