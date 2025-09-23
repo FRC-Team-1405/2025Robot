@@ -15,7 +15,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotContainer;
 import frc.robot.lib.AllianceSymmetry;
 import frc.robot.lib.AllianceSymmetry.SymmetryStrategy;
@@ -81,7 +83,10 @@ public class PidToPoseCommands {
       new ParallelCommandGroup(
         new SequentialCommandGroup(
           MoveAway_Reef2.get(),
-          MoveTo_RightFeeder.get()
+          new ParallelDeadlineGroup(
+            new WaitCommand(2.5),
+            MoveTo_RightFeeder.get()
+          )
         ),
         NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
       ),
@@ -93,7 +98,8 @@ public class PidToPoseCommands {
       ),
       NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
       
-      new ParallelCommandGroup(
+      new ParallelDeadlineGroup(
+        new WaitCommand(2.5),
         MoveTo_RightFeeder.get(),
         NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
       ),
@@ -105,6 +111,42 @@ public class PidToPoseCommands {
       ),
       NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
     );
+
+    Command P2P_DS_Left_3Piece_WaitIntake = new SequentialCommandGroup(
+      new ParallelCommandGroup(
+        MoveTo_Reef11.get(),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+      ),
+      NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+      
+      new ParallelCommandGroup(
+        new SequentialCommandGroup(
+          MoveTo_Reef11.get(),
+          MoveTo_LeftFeeder.get()
+        ),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+      ),
+      NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+
+      new ParallelCommandGroup(
+        MoveTo_Reef9.get(),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+      ),
+      NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+      
+      new ParallelCommandGroup(
+        MoveTo_RightFeeder.get(),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+      ),
+      NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+
+      new ParallelCommandGroup(
+        MoveTo_Reef8.get(),
+        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+      ),
+      NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
+    );
+
 
     Command P2P_DS_Right_3Piece_ParallelIntake = new SequentialCommandGroup(
       new ParallelCommandGroup(
@@ -202,6 +244,8 @@ public class PidToPoseCommands {
     // NamedCommands.registerCommand("MoveTo_Reef4", MoveTo_Reef4.get());
 
     NamedCommands.registerCommand("P2P_DS_Right_3Piece_WaitIntake", P2P_DS_Right_3Piece_WaitIntake);
+    NamedCommands.registerCommand("P2P_DS_Left_3Piece_WaitIntake", P2P_DS_Left_3Piece_WaitIntake);
+
     NamedCommands.registerCommand("P2P_DS_Right_3Piece_ParallelIntake", P2P_DS_Right_3Piece_ParallelIntake);
 
     NamedCommands.registerCommand("P2P_DS_Left_3Piece_ParallelIntake", P2P_DS_Left_3Piece_ParallelIntake);
