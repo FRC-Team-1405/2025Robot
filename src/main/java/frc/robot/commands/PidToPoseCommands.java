@@ -42,7 +42,7 @@ public class PidToPoseCommands {
   public static Supplier<Pose2d> Reef_2_AWAY  = () -> new Pose2d(4.67, 2.04, Rotation2d.fromDegrees(-60));
   public static Supplier<Pose2d> Reef_11_AWAY  = () -> new Pose2d(4.67, 6.01, Rotation2d.fromDegrees(60));
 
-  /* Feeder Station Poses from perspective of DS */
+  /* Feeder Station Poses from perspective of DS, all positions are for the blue alliance. they are flipped if used on red alliance */
   public static Supplier<Pose2d> LeftFeeder   = () -> new Pose2d(0.98, 7.05, Rotation2d.fromDegrees(125.0));
   public static Supplier<Pose2d> RightFeeder  = () -> new Pose2d(0.98, 1, Rotation2d.fromDegrees(-125.0));
 
