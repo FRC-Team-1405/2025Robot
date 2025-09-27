@@ -4,7 +4,10 @@
 
 package frc.robot.commands;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+
+import javax.lang.model.util.ElementScanner14;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Servo;
@@ -15,19 +18,25 @@ import frc.robot.subsystems.Climber;
 public class Climb extends Command {
   private Climber climber;
   private DoubleSupplier distance;
+  private BooleanSupplier open;
+  private BooleanSupplier close;
 
   private Servo myServo;
   /** Creates a new Climb. */
-  public Climb(Climber climber, DoubleSupplier distance) {
+  public Climb(Climber climber, DoubleSupplier distance, BooleanSupplier open, BooleanSupplier close) {
     this.climber = climber;
     this.distance = distance;
+    this.open = open;
+    this.close = close;
     myServo = new Servo(9);
+    myServo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
     addRequirements(climber);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    myServo.set(0.0);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -35,13 +44,11 @@ public class Climb extends Command {
   @Override
   public void execute() {
     double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
-    // System.out.println("\n\nTRIGGER VALUE: " + distance);
-    // if (!MathUtil.isNear(0.0, distance, Deadband)){
-    //     climber.move(distance);
-    // }
-    if (distance > 0) {
+    climber.move(distance);
+
+    if (open.getAsBoolean()) {
       myServo.setPulseTimeMicroseconds(1000);
-    } else if(distance < 0) {
+    } else if (close.getAsBoolean()) {
       myServo.setPulseTimeMicroseconds(2000);
     } else {
       myServo.setPulseTimeMicroseconds(0); //TODO is this even necessary? servo seems to stop on its own
