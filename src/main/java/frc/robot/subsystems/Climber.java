@@ -4,11 +4,15 @@
 
 package frc.robot.subsystems;
 
+import java.rmi.server.ServerCloneException;
+
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -21,6 +25,8 @@ public class Climber extends SubsystemBase {
   private TalonFX primary = new TalonFX(CanBus.ClimberPrimary);
   private TalonFX secondary = new TalonFX(CanBus.ClimberSecondary);
   private MotionMagicVoltage magicSetPosition = new MotionMagicVoltage(0.0);
+  private Servo intakeServo = new Servo(9);
+  private double servoPos = 1.0;
 
 
   /** Creates a new Climber. */
@@ -42,6 +48,17 @@ public class Climber extends SubsystemBase {
       chkCommand.setName("Config/Climber/UpdateSecondary");
       SmartDashboard.putData(chkCommand);
     }
+    if (SmartDashboard.containsKey("intakeServo") == false) {
+      SmartDashboard.putNumber("intakeServo", 0.0);
+    }
+    intakeServo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
+
+    Command closeServo = this.runOnce( () -> { servoPos += 0.1 ; setServoPos(servoPos); });
+    closeServo.setName("Close Servo");
+    Command openServo  = this.runOnce( () -> { servoPos -= 0.1 ; setServoPos(servoPos); });
+    openServo.setName("Open Sero");
+    SmartDashboard.putData(closeServo);
+    SmartDashboard.putData(openServo);
   }
 
   @Override
@@ -65,6 +82,12 @@ public class Climber extends SubsystemBase {
 
     double pos = primary.getPosition().getValueAsDouble() + distance;
     primary.setControl(magicSetPosition.withPosition(pos));
+  }
+
+  public void setServoPos(double pos) {
+    pos = MathUtil.clamp(pos, 0.0, 1.0);
+    intakeServo.set(pos);
+    servoPos = pos; 
   }
 
 }

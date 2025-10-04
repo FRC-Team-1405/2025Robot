@@ -8,6 +8,7 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Climber;
 
@@ -16,36 +17,26 @@ public class Climb extends Command {
   private Climber climber;
   private DoubleSupplier distance;
 
-  private Servo myServo;
   /** Creates a new Climb. */
-  public Climb(Climber climber, DoubleSupplier distance) {
+  public Climb(Climber climber) {
     this.climber = climber;
-    this.distance = distance;
-    myServo = new Servo(9);
     addRequirements(climber);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    climber.setServoPos(0.0);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   private static final double Deadband = 0.1;
   @Override
   public void execute() {
-    double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
     // System.out.println("\n\nTRIGGER VALUE: " + distance);
     // if (!MathUtil.isNear(0.0, distance, Deadband)){
     //     climber.move(distance);
     // }
-    if (distance > 0) {
-      myServo.setPulseTimeMicroseconds(1000);
-    } else if(distance < 0) {
-      myServo.setPulseTimeMicroseconds(2000);
-    } else {
-      myServo.setPulseTimeMicroseconds(0); //TODO is this even necessary? servo seems to stop on its own
-    }
   }
 
   // Called once the command ends or is interrupted.

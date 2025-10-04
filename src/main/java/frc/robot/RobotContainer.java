@@ -214,9 +214,7 @@ public class RobotContainer {
           reefSelecter.levelDown();
         }));
 
-    Command climbCommand = new Climb(climber, () -> {
-      return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
-    });
+    Command climbCommand =  new Climb(climber);
     climbCommand.setName("Climb Command");
     SmartDashboard.putData(climbCommand);
 
