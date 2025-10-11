@@ -10,6 +10,7 @@ import java.util.function.DoubleSupplier;
 import javax.lang.model.util.ElementScanner14;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Climber;
@@ -46,13 +47,12 @@ public class Climb extends Command {
     double distance = MathUtil.applyDeadband(this.distance.getAsDouble(), Deadband);
     climber.move(distance);
 
-    if (open.getAsBoolean()) {
-      myServo.setPulseTimeMicroseconds(1000);
-    } else if (close.getAsBoolean()) {
-      myServo.setPulseTimeMicroseconds(2000);
-    } else {
-      myServo.setPulseTimeMicroseconds(0); //TODO is this even necessary? servo seems to stop on its own
-    }
+    
+    // if (open.getAsBoolean() && !close.getAsBoolean()) {
+    //   myServo.setPulseTimeMicroseconds(1000);
+    // } else if (!open.getAsBoolean() && close.getAsBoolean()) {
+    //   myServo.setPulseTimeMicroseconds(2000);
+    // } 
   }
 
   // Called once the command ends or is interrupted.
@@ -60,6 +60,8 @@ public class Climb extends Command {
   public void end(boolean interrupted) {
     if (interrupted)
       climber.stop();
+    myServo.set(1.0);
+
   }
 
   // Returns true when the command should end.

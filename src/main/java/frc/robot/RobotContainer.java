@@ -67,7 +67,7 @@ public class RobotContainer {
 
   /* Setting up bindings for necessary control of the swerve drive platform */
   public static final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.07).withRotationalDeadband(MaxAngularRate * 0.05) // Add a 10% deadband
+      .withDeadband(MaxSpeed * 0.08).withRotationalDeadband(MaxAngularRate * 0.08) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
@@ -127,7 +127,8 @@ public class RobotContainer {
     DriverStation.silenceJoystickConnectionWarning(true);
     registerCommands();
     SmartDashboard.putBoolean("Auto Mode Enable", false);
-    autoChooser = AutoBuilder.buildAutoChooser("P2P_DS_Right_3Piece_ParallelIntake");
+    // autoChooser = AutoBuilder.buildAutoChooser("P2P_DS_Right_3Piece_ParallelIntake");
+    autoChooser = new SendableChooser<>();
     TestAuto.configureAutos(autoChooser, drivetrain);
     SmartDashboard.putData("Auto Mode", autoChooser);
 
@@ -135,7 +136,7 @@ public class RobotContainer {
     drivetrain.configureShuffleboardCommands();
 
     // Warmup PathPlanner to avoid Java pauses
-    FollowPathCommand.warmupCommand().schedule();
+    // FollowPathCommand.warmupCommand().schedule();
   }
 
   private boolean highAlgae = true;

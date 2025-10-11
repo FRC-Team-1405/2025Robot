@@ -204,7 +204,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
 
-        configureAutoBuilder();
+        // configureAutoBuilder();
         xEntry.setDouble(0.0);
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
@@ -239,7 +239,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
 
-        configureAutoBuilder();
+        // configureAutoBuilder();
         xEntry.setDouble(0.0);
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);
@@ -289,7 +289,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
 
-        configureAutoBuilder();
+        // configureAutoBuilder();
         xEntry.setDouble(0.0);
         yEntry.setDouble(0.0);
         driveToPositionCommand = driveToPose(poseSupplier);

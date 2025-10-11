@@ -16,6 +16,7 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.constants.FieldConstants;
 import frc.robot.lib.FieldCorrection.FieldCorrectionMap;
 import frc.robot.lib.FieldCorrection.FieldCorrectionMap.AllianceCoralKey;
 import frc.robot.subsystems.Elevator;
@@ -198,6 +199,8 @@ public class ReefSelecter {
 
         Pose2d selectedPosition;
 
+        double ROBOT_WIDTH = Units.inchesToMeters(36) / 2;
+
         if (Alliance.Red.equals(currentAlliance)) {
             selectedPosition = switch(coralToGetRobotPositionFor) {
                 // Red alliance reef positions
@@ -219,10 +222,10 @@ public class ReefSelecter {
             selectedPosition = switch(coralToGetRobotPositionFor) {
                 // Blue alliance reef positions
                 case Position_1  -> new Pose2d(new Translation2d(5.77, 3.86), new Rotation2d(Units.degreesToRadians(0.00)));
-                case Position_2  -> new Pose2d(new Translation2d(5.27, 3.00), new Rotation2d(Units.degreesToRadians( -60.00)));
-                case Position_3  -> new Pose2d(new Translation2d(4.98, 2.84), new Rotation2d(Units.degreesToRadians( -60.00)));
-                case Position_4  -> new Pose2d(new Translation2d(3.99, 2.84), new Rotation2d(Units.degreesToRadians( -120.00)));
-                case Position_5  -> new Pose2d(new Translation2d(3.71, 3.00), new Rotation2d(Units.degreesToRadians( -120.00)));
+                case Position_2  -> FieldConstants.Reef.Side.FAR_RIGHT.alignScoreRight(ROBOT_WIDTH, 0);//new Pose2d(new Translation2d(5.27, 3.00), new Rotation2d(Units.degreesToRadians( -60.00)));
+                case Position_3  -> FieldConstants.Reef.Side.FAR_RIGHT.alignScoreLeft(ROBOT_WIDTH, 0);//new Pose2d(new Translation2d(4.98, 2.84), new Rotation2d(Units.degreesToRadians( -60.00)));
+                case Position_4  -> FieldConstants.Reef.Side.CLOSE_RIGHT.alignScoreRight(ROBOT_WIDTH, 0); //new Pose2d(new Translation2d(3.99, 2.83), new Rotation2d(Units.degreesToRadians( -120.00)));
+                case Position_5  -> FieldConstants.Reef.Side.CLOSE_RIGHT.alignScoreLeft(ROBOT_WIDTH, 0); //new Pose2d(new Translation2d(3.71, 3.00), new Rotation2d(Units.degreesToRadians( -120.00)));
                 case Position_6  -> new Pose2d(new Translation2d(3.21, 3.86), new Rotation2d(Units.degreesToRadians(180.00)));
                 case Position_7  -> new Pose2d(new Translation2d(3.21, 4.19), new Rotation2d(Units.degreesToRadians(180.00)));
                 case Position_8  -> new Pose2d(new Translation2d(3.71, 5.05), new Rotation2d(Units.degreesToRadians(120.00)));

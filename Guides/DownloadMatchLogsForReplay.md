@@ -2,6 +2,8 @@
 
 Guide is WIP, has not been tested!
 
+TODO rework this guide and use the DataLog tool to download the wpilog file instead of sshing into the robot. reducing complexity of steps.
+
 This guide explains how to download `.wpilog` files from the robot after a competition match and load them into AdvantageScope for telemetry review and match replay.
 
 ## Prerequisites

@@ -107,7 +107,7 @@ public class FieldConstants {
         FAR_RIGHT.face
       };
 
-      private static final double BRANCH_OFFSET = inchesToMeters(6.5);
+      private static final double BRANCH_OFFSET = inchesToMeters(6.5); // distance right/left to a branch from the middle of a reef face
 
       private Pose2d scorePose(double distFromFace, double yOffset) {
         Translation2d t =
@@ -116,7 +116,7 @@ public class FieldConstants {
                 .getTranslation()
                 .plus(new Translation2d(distFromFace, yOffset + (0.0 * Conv.INCHES_TO_METERS)))
                 .rotateAround(CENTER, this.face.getRotation());
-        return new Pose2d(t, this.face.getRotation().rotateBy(Rotation2d.kPi));
+        return new Pose2d(t, this.face.getRotation().rotateBy(Rotation2d.kPi).plus(Rotation2d.k180deg)); // robot scores backwards so flip by 180 degrees, remove .plus(Rotation2d.k180deg) if this isn't needed anymore
       }
 
       public Pose2d alignScoreLeft(double distFromFace, double yOffset) {

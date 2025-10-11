@@ -47,8 +47,9 @@ public class PidToPoseCommands {
   public static Supplier<Pose2d> RightFeeder  = () -> new Pose2d(0.98, 1, Rotation2d.fromDegrees(-125.0));
 
   public static void registerCommands(CommandSwerveDrivetrain drivetrain) {
-    Pose2d flippedPose = AllianceSymmetry.flip(new Pose2d(4.67, 2.04, Rotation2d.fromDegrees(-60)), SymmetryStrategy.HORIZONTAL);
-    posePublisher.set(flippedPose);
+    Pose2d debugPose = new Pose2d(4.22, 3.22, Rotation2d.fromDegrees(60));
+    // Pose2d flippedPose = AllianceSymmetry.flip(new Pose2d(4.67, 2.04, Rotation2d.fromDegrees(-60)), SymmetryStrategy.HORIZONTAL);
+    posePublisher.set(debugPose);
 
     /* Commands */
     // Uses command suppliers instead of commands so that we can reuse the same command in an autonomous
