@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.lib.ReefSelecter.Coral;
 
 public class FieldCorrectionMap {
+    // a record is a simple generated object that automatically provides hash and equals methods for the given generics
     public record AllianceCoralKey (Alliance alliance, Coral coral) {}
 
     // List of Field Correction Maps
