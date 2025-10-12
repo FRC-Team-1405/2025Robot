@@ -40,6 +40,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.autos.TestAuto;
 import frc.robot.commands.ArmPosition;
+import frc.robot.commands.AutoPilotCommands;
 import frc.robot.commands.Climb;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
@@ -89,7 +90,7 @@ public class RobotContainer {
   /* Path follower */
   private final SendableChooser<Command> autoChooser;
 
-  public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private final Elevator elevator = new Elevator();
   public static final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
@@ -276,6 +277,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(IntakeCommands.INTAKE_CORAL, IntakeCommands.intakeCoral(intake));
 
     PidToPoseCommands.registerCommands(drivetrain);
+    AutoPilotCommands.registerCommands(drivetrain);
   }
 
   public void correctOdometry() {

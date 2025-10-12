@@ -26,7 +26,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class PidToPoseCommands {
-  private static final double SCORE_TOLERANCE = 1.2; // inches
+  public static final double SCORE_TOLERANCE = 1.2; // inches
   private static final double TOLERANCE = 2; // inches
 
   private static final TrapezoidProfile.Constraints drivingContraints = new TrapezoidProfile.Constraints(5, 6);
