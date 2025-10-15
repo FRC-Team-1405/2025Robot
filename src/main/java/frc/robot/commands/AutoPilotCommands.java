@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -42,14 +43,14 @@ public class AutoPilotCommands {
       private static final SwerveRequest.FieldCentricFacingAngle m_request = new SwerveRequest.FieldCentricFacingAngle()
         .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
         .withDriveRequestType(DriveRequestType.Velocity)
-        .withHeadingPID(4, 0, 0); /* change these values for your robot */
+        .withHeadingPID(2.2, 0, 0); /* change these values for your robot */
 
     private static final APConstraints kConstraints = new APConstraints()
     .withAcceleration(7.0) // example was 5
     .withJerk(3); // example was 2
 
     private static final APProfile kProfile = new APProfile(kConstraints)
-        .withErrorXY(Centimeters.of(3))
+        .withErrorXY(Inches.of(1.5))
         .withErrorTheta(Degrees.of(0.5))
         .withBeelineRadius(Centimeters.of(8));
 
@@ -131,7 +132,8 @@ public class AutoPilotCommands {
         ReefSelecter rs = RobotContainer.reefSelecter;
         Supplier<Command> MoveTo_Reef2       = () -> autopilot(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_2).get(), false);
         // Supplier<Command> MoveAway_Reef2     = () -> new PidToPoseCommand(drivetrain, Reef_2_AWAY, 24, true, 0, 2, "MoveAway_Reef2", drivingContraints);
-        Supplier<Command> MoveAway_Reef2     = () -> autopilot(PidToPoseCommands.RightFeeder, true, Optional.of(Rotation2d.kCW_90deg.plus(kCW_30deg))); // high end velocity helps maintain momentum
+        // Supplier<Command> MoveAway_Reef2     = () -> autopilot(PidToPoseCommands.RightFeeder, true, Optional.of(Rotation2d.kCW_90deg.plus(kCW_30deg)));
+        Supplier<Command> MoveAway_Reef2     = () -> autopilot(() -> new Pose2d(1.5, 1.5, Rotation2d.fromDegrees(-125.0)), true, Optional.of(Rotation2d.kCW_90deg.plus(kCW_30deg)));
         Supplier<Command> MoveTo_Reef5       = () -> autopilot(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_5).get(), false);
         Supplier<Command> MoveTo_Reef4       = () -> autopilot(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_4).get(), false);
 
@@ -145,171 +147,175 @@ public class AutoPilotCommands {
         Supplier<Command> MoveTo_LeftFeeder   = () -> autopilot(PidToPoseCommands.LeftFeeder, true);
         Supplier<Command> MoveTo_LeftFeeder_InitialVel   = () -> autopilot(PidToPoseCommands.LeftFeeder, true);
 
-        Supplier<Command> MoveTo_RightFeeder  = () -> autopilot(PidToPoseCommands.RightFeeder, true);
+        // Supplier<Command> MoveTo_RightFeeder  = () -> autopilot(PidToPoseCommands.RightFeeder, true);
+        Supplier<Command> MoveTo_RightFeeder  = () -> autopilot(() -> new Pose2d(1.5, 1.5, Rotation2d.fromDegrees(-125.0)), true); // todo remove this when you fix ap
         Supplier<Command> MoveTo_RightFeeder_InitialVel  = () -> autopilot(PidToPoseCommands.RightFeeder, true);
 
         /* Full Autos */
         Command AP_DS_Right_3Piece_WaitIntake = new SequentialCommandGroup(
-        new ParallelCommandGroup(
-            MoveTo_Reef2.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelCommandGroup(
-            // new SequentialCommandGroup(
-            MoveAway_Reef2.get(),
-            // new ParallelDeadlineGroup(
-            //     new WaitCommand(2.5),
-            //     MoveTo_RightFeeder.get()
-            // )
-            // ),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
-        NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+            new ParallelCommandGroup(
+                MoveTo_Reef2.get()
+                // ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+            ),
+            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelCommandGroup(
+                // new SequentialCommandGroup(
+                MoveAway_Reef2.get(),
+                // new ParallelDeadlineGroup(
+                //     new WaitCommand(2.5),
+                //     MoveTo_RightFeeder.get()
+                // )
+                // ),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
+            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
 
-        new ParallelCommandGroup(
-            MoveTo_Reef4.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelDeadlineGroup(
-            new WaitCommand(2.5),
-            MoveTo_RightFeeder.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
-        NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+            new ParallelCommandGroup(
+                MoveTo_Reef4.get()
+                // ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+            ),
+            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelDeadlineGroup(
+                new WaitCommand(2.5),
+                MoveTo_RightFeeder.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
+            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
 
-        new ParallelCommandGroup(
-            MoveTo_Reef5.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
+            new ParallelCommandGroup(
+                MoveTo_Reef5.get()
+                // ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+            ),
+            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
         );
 
         Command AP_DS_Left_3Piece_WaitIntake = new SequentialCommandGroup(
-        new ParallelCommandGroup(
-            MoveTo_Reef11.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelCommandGroup(
-            new SequentialCommandGroup(
-            MoveTo_Reef11.get(),
-            MoveTo_LeftFeeder.get()
+            new ParallelCommandGroup(
+                MoveTo_Reef11.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
             ),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
-        NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelCommandGroup(
+                new SequentialCommandGroup(
+                MoveTo_Reef11.get(),
+                MoveTo_LeftFeeder.get()
+                ),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
+            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
 
-        new ParallelCommandGroup(
-            MoveTo_Reef9.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelCommandGroup(
-            MoveTo_RightFeeder.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
-        NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+            new ParallelCommandGroup(
+                MoveTo_Reef9.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+            ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelCommandGroup(
+                MoveTo_RightFeeder.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
+            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
 
-        new ParallelCommandGroup(
-            MoveTo_Reef8.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
+            new ParallelCommandGroup(
+                MoveTo_Reef8.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+            ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
         );
 
 
         Command AP_DS_Right_3Piece_ParallelIntake = new SequentialCommandGroup(
-        new ParallelCommandGroup(
-            MoveTo_Reef2.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelCommandGroup(
-            new SequentialCommandGroup(
-            MoveAway_Reef2.get(),
-            MoveTo_RightFeeder_InitialVel.get()
+            new ParallelCommandGroup(
+                MoveTo_Reef2.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
             ),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelCommandGroup(
+                new SequentialCommandGroup(
+                MoveAway_Reef2.get(),
+                MoveTo_RightFeeder_InitialVel.get()
+                ),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
 
-        new ParallelCommandGroup(
-            MoveTo_Reef4.get(),
-            new SequentialCommandGroup(
-            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-            )
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelCommandGroup(
-            MoveTo_RightFeeder.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
+            new ParallelCommandGroup(
+                MoveTo_Reef4.get(),
+                new SequentialCommandGroup(
+                NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+                )
+            ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelCommandGroup(
+                MoveTo_RightFeeder.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
 
-        new ParallelCommandGroup(
-            MoveTo_Reef5.get(),
-            new SequentialCommandGroup(
-            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-            )
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
+            new ParallelCommandGroup(
+                MoveTo_Reef5.get(),
+                new SequentialCommandGroup(
+                NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+                )
+            ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
         );
 
         Command AP_DS_Left_3Piece_ParallelIntake = new SequentialCommandGroup(
-        new ParallelCommandGroup(
-            MoveTo_Reef11.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelCommandGroup(
-            new SequentialCommandGroup(
-            MoveAway_Reef11.get(),
-            MoveTo_LeftFeeder_InitialVel.get()
+            new ParallelCommandGroup(
+                MoveTo_Reef11.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
             ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelCommandGroup(
+                new SequentialCommandGroup(
+                MoveAway_Reef11.get(),
+                MoveTo_LeftFeeder_InitialVel.get()
+                ),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
+
+            new ParallelCommandGroup(
+                MoveTo_Reef9.get(),
+                new SequentialCommandGroup(
+                NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+                )
+            ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
+            
+            new ParallelCommandGroup(
+                MoveTo_LeftFeeder.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
+            ),
+
+            new ParallelCommandGroup(
+                MoveTo_Reef8.get(),
+                new SequentialCommandGroup(
+                NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+                )
+            ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
+            );
+
+            // Score one coral in center position and then stop
+            Command AP_DS_Center = new SequentialCommandGroup(
+            new ParallelCommandGroup(
+                MoveTo_Reef12.get(),
+                NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+            ),
+            NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
             NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
-
-        new ParallelCommandGroup(
-            MoveTo_Reef9.get(),
-            new SequentialCommandGroup(
-            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-            )
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        
-        new ParallelCommandGroup(
-            MoveTo_LeftFeeder.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
-        ),
-
-        new ParallelCommandGroup(
-            MoveTo_Reef8.get(),
-            new SequentialCommandGroup(
-            NamedCommands.getCommand(IntakeCommands.INTAKE_CORAL),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-            )
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
-        );
-
-        // Score one coral in center position and then stop
-        Command AP_DS_Center = new SequentialCommandGroup(
-        new ParallelCommandGroup(
-            MoveTo_Reef12.get(),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
-        ),
-        NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
-        NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
         );
 
         /* Register Commands */

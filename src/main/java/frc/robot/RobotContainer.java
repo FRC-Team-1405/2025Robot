@@ -281,14 +281,14 @@ public class RobotContainer {
   }
 
   public void correctOdometry() {
-    if (SIMULATE_VISION_FAILURES){
-      int percentageFramesToDrop = 80;
-      Random rnd = new Random();
+    // if (SIMULATE_VISION_FAILURES){
+    //   int percentageFramesToDrop = 80;
+    //   Random rnd = new Random();
 
-      if(rnd.nextInt(100) < percentageFramesToDrop){
-        return;
-      }
-    }
+    //   if(rnd.nextInt(100) < percentageFramesToDrop){
+    //     return;
+    //   }
+    // }
 
     List<VisionSample> visionSamples = vision.flushSamples();
     vision.updateSpeeds(drivetrain.getState().Speeds);
