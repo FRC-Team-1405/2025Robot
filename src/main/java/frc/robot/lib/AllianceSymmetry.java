@@ -289,7 +289,7 @@ public final class AllianceSymmetry {
     public static Pose2d flip(Pose2d pose, SymmetryStrategy strategy) {
         Pose2d flippedPose = new Pose2d(flip(pose.getTranslation(), strategy), flip(pose.getRotation(), strategy));
         if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-            System.out.println("Flipping Pose (" + pose.toString() + ") to (" + flippedPose.toString() + ")");
+            // System.out.println("Flipping Pose (" + pose.toString() + ") to (" + flippedPose.toString() + ")");
         }
         return flippedPose;
     }

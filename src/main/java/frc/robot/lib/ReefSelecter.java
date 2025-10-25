@@ -190,7 +190,7 @@ public class ReefSelecter {
      * @return
      */
     public Optional<Pose2d> getRobotPositionForCoral(Coral coralToGetRobotPositionFor) {
-        System.out.println("called getRobotPositionForCoral");
+        // System.out.println("called getRobotPositionForCoral");
         if (DriverStation.getAlliance().isEmpty()){
             return Optional.empty();
         }
@@ -242,7 +242,7 @@ public class ReefSelecter {
             };
         }
 
-        System.out.printf("Getting Selected Position: %s\n", selectedPosition);
+        // System.out.printf("Getting Selected Position: %s\n", selectedPosition);
 
         Transform2d correction = FieldCorrectionMap.activeCorrectionMap.getOrDefault(
             new AllianceCoralKey(currentAlliance, coralToGetRobotPositionFor),
