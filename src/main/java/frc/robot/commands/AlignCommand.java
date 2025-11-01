@@ -33,6 +33,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 public class AlignCommand extends Command {
   public final SwerveRequest.ApplyFieldSpeeds pidToPose_FieldSpeeds = new SwerveRequest.ApplyFieldSpeeds()
       .withDriveRequestType(DriveRequestType.Velocity);
+  public final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds().withDriveRequestType(DriveRequestType.Velocity);
   private static final APConstraints kConstraints = new APConstraints()
       .withAcceleration(5.0)
       .withJerk(2.0);
@@ -52,14 +53,14 @@ public class AlignCommand extends Command {
   private Pose2d startingPosition;
 
   private final ProfiledPIDController m_thetaController = new ProfiledPIDController(
-    4.0, 0.0, 0.0, // PID gains
+    2.0, 0.0, 0.0, // PID gains
     new TrapezoidProfile.Constraints(Math.PI, Math.PI) // max velocity and acceleration
 );
 
   private final SwerveRequest.FieldCentricFacingAngle m_request = new SwerveRequest.FieldCentricFacingAngle()
       .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
       .withDriveRequestType(DriveRequestType.Velocity)
-      .withHeadingPID(4, 0, 0); /* tune this for your robot! */
+      .withHeadingPID(2, 0, 0); /* tune this for your robot! */
 
 
   public AlignCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain) {
@@ -87,6 +88,7 @@ public class AlignCommand extends Command {
   public void execute() {
     ChassisSpeeds robotRelativeSpeeds = m_drivetrain.getState().Speeds;
     Pose2d pose = m_drivetrain.getState().Pose;
+    // System.out.println(String.format("Robot Pose (x: %s, y: %s)", pose.getX(), pose.getY()));
 
     Optional<Rotation2d> correctedEntryAngle = m_entryAngle;
 
@@ -116,22 +118,30 @@ public class AlignCommand extends Command {
         targetRotation.getRadians()
     );
 
-    ChassisSpeeds fieldRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-        out.vx().times(100),
-        out.vy().times(100),
+    ChassisSpeeds outRobotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        out.vx(),//.times(100),
+        out.vy(),//.times(100),
         AngularVelocity.ofBaseUnits(thetaOutput, RadiansPerSecond),
         m_drivetrain.getState().Pose.getRotation()
     );
 
-    if(0.2 < getPercentageOfDistanceToTarget()){
-      // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), thetaOutput)));
-      // m_drivetrain.setControl(m_request
-      //   .withVelocityX(out.vx())
-      //   .withVelocityY(out.vy())
-      //   .withTargetDirection(correctedHeading));
 
-      m_drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(fieldRelativeSpeeds));
+    //this worked
+    // m_drivetrain.setControl(applyRobotSpeeds.withSpeeds(outRobotRelativeSpeeds));
+    if(0.6 < getPercentageOfDistanceToTarget()){
+      // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), thetaOutput)));
+      
+      System.out.println("thetaOutput, " + thetaOutput + ", currentRotation: " + pose.getRotation().getDegrees() + ", targetRotation: " + m_target.getReference().getRotation().getDegrees());
+      System.out.println("percentageToTarget: +60%");
+      m_drivetrain.setControl(applyRobotSpeeds.withSpeeds(outRobotRelativeSpeeds));
+    } else if(0.2 < getPercentageOfDistanceToTarget()){
+      System.out.println("percentageToTarget: +20%");
+      m_drivetrain.setControl(m_request
+        .withVelocityX(out.vx())
+        .withVelocityY(out.vy())
+        .withTargetDirection(targetRotation));
     } else {
+      System.out.println("percentageToTarget: +0%");
       // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), 0)));
       m_drivetrain.setControl(m_request
         .withVelocityX(out.vx())
@@ -141,6 +151,10 @@ public class AlignCommand extends Command {
 
   @Override
   public boolean isFinished() {
+    System.out.println(String.format("Angle Difference: %.1f, Target angle: %.1f, Current Angle: %.1f",
+        m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees(),
+        m_target.getReference().getRotation().getDegrees(), m_drivetrain.getState().Pose.getRotation().getDegrees()));
+    System.out.println(String.format("Location Difference: %.1f", m_target.getReference().getTranslation().getDistance(m_drivetrain.getState().Pose.getTranslation())));
     return kAutopilot.atTarget(m_drivetrain.getState().Pose, m_target);
   }
 

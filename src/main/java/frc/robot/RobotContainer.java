@@ -295,7 +295,7 @@ public class RobotContainer {
     vision.updateSpeeds(drivetrain.getState().Speeds);
     // System.out.println("vision sample count: " + visionSamples.size());
     for (var sample : visionSamples) {
-      double thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0;
+      double thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0; //effects the speed at which the camera updates the robot rotation odom in disabled, not sure how to update in non-disabled yet. lower = update faster/more
       drivetrain.addVisionMeasurement(
         sample.pose(),
         sample.timestamp(),
