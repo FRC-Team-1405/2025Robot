@@ -1,5 +1,9 @@
 package frc.robot.constants;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
@@ -147,8 +151,40 @@ public class AprilTags {
                                     new Quaternion(-0.8660254037844387, -0.0, 0.0, 0.49999999999999994))))
     };
 
+    public static final AprilTag[] TAGS_OVERRIDES = new AprilTag[] {
+        // used for testing robot odometry, put the tag on the left wall and drive the robot forward.
+        new AprilTag(
+                22,
+                new Pose3d(
+                    new Translation3d(2, 8.05561, 0.308102),
+                    new Rotation3d(new Quaternion(0.7071067811865476, 0.0, 0.0,
+            0.7071067811865476))
+            .plus(new Rotation3d(0, 0, Math.PI)) // rotate by 180 deg 
+            ))
+    };
+
+    /**
+     * Returns a new array of AprilTags, replacing any tags in TAGS with overrides in TAGS_OVERRIDES if they match by ID.
+     * @return AprilTag[] with overrides applied
+     */
+    public static AprilTag[] getTagsWithOverrides() {
+        Map<Integer, AprilTag> overrideMap = new HashMap<>();
+        for (AprilTag tag : TAGS_OVERRIDES) {
+            overrideMap.put(tag.ID, tag);
+        }
+
+        AprilTag[] result = new AprilTag[TAGS.length];
+        for (int i = 0; i < TAGS.length; i++) {
+            int id = TAGS[i].ID;
+            result[i] = overrideMap.getOrDefault(id, TAGS[i]);
+        }
+
+        return result;
+    }
+
+
     public static boolean observableTag(int id) {
-        for (AprilTag tag : TAGS) {
+        for (AprilTag tag : getTagsWithOverrides()) {
             if (tag.ID == id) {
                 if (AllianceSymmetry.isBlue()) {
                     return tag.pose.getX() < FieldConstants.FIELD_LENGTH / 2.0;

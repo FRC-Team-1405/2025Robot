@@ -24,13 +24,13 @@ public class TunerConstants {
     // The steer motor uses any SwerveModule.SteerRequestType control request with the
     // output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
     private static final Slot0Configs steerGains = new Slot0Configs()
-        .withKP(80).withKI(0).withKD(0.75)
+        .withKP(20).withKI(0).withKD(0.15)
         .withKS(0.1).withKV(0).withKA(0)
         .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
     // When using closed-loop control, the drive motor uses the control
     // output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
     private static final Slot0Configs driveGains = new Slot0Configs()
-        .withKP(0.15).withKI(0).withKD(0)
+        .withKP(0.3).withKI(0).withKD(0)
         .withKS(0.2).withKV(0.129); // kV was calculated theoretically by multiplying the krakenx60's kV by the gear ratio
 
     // The closed-loop output type to use for the steer motors;

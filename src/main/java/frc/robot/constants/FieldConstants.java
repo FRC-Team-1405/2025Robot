@@ -146,7 +146,7 @@ public class FieldConstants {
 
   public static final AprilTagFieldLayout APRIL_TAG_FIELD =
       new AprilTagFieldLayout(
-          List.of(AprilTags.TAGS), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
+          List.of(AprilTags.getTagsWithOverrides()), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
 
   public static final Translation2d TRANSLATION2D_CENTER =
       new Translation2d(FieldConstants.FIELD_LENGTH / 2.0, FieldConstants.FIELD_WIDTH / 2.0);

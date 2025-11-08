@@ -117,7 +117,7 @@ public class RobotContainer {
   public static final boolean RESET_CAMERA_RESULTS = false;
   public static final boolean VISION_ODOMETRY_ESTIMATION = true; // Enable vision and publish its estimated position
                                                                  // (doesn't update robot odometry)
-  public static boolean VISION_ROBOT_ODOMETRY_UPDATE = true; // Enable vision odometry updates while driving. Doesn't
+  public static boolean VISION_ROBOT_ODOMETRY_UPDATE = false; // Enable vision odometry updates while driving. Doesn't
                                                              // work without VISION_ODOMETRY_ESTIMATION set to true.
   public static final boolean SIMULATE_VISION_FAILURES = false; // simulate dropped frames from the camera's 
   // endregion FeatureSwitches
@@ -296,11 +296,13 @@ public class RobotContainer {
     // System.out.println("vision sample count: " + visionSamples.size());
     for (var sample : visionSamples) {
       double thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0; //effects the speed at which the camera updates the robot rotation odom in disabled, not sure how to update in non-disabled yet. lower = update faster/more
-      drivetrain.addVisionMeasurement(
+      if (VISION_ROBOT_ODOMETRY_UPDATE || DriverStation.isDisabled()) {
+        drivetrain.addVisionMeasurement(
         sample.pose(),
         sample.timestamp(),
         VecBuilder.fill(0.1 / sample.weight(), 0.1 / sample.weight(), thetaStddev)
       );
+      }
     }
 
     for (int i = 0; i < 2; i++){
