@@ -4,21 +4,14 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
-import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.FollowPathCommand;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.therekrab.autopilot.Autopilot;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -37,28 +30,25 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.autos.TestAuto;
 import frc.robot.commands.ArmPosition;
-import frc.robot.commands.AutoPilotCommands;
 import frc.robot.commands.Climb;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
-import frc.robot.commands.PidToPoseCommands;
+import frc.robot.commands.AutoPilot.AutoPilotCommands;
+import frc.robot.commands.PidToPose.PidToPoseCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.lib.AllianceSymmetry;
 import frc.robot.lib.ReefSelecter;
-import frc.robot.lib.AllianceSymmetry.SymmetryStrategy;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Elevator.ArmLevel;
 import frc.robot.subsystems.Elevator.ElevationLevel;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.Vision.VisionSample;
 import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
   public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired

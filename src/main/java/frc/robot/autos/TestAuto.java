@@ -34,6 +34,7 @@ public class TestAuto {
         commandsToAddToChooser.put("AP_DS_Right_3Piece_WaitIntake", NamedCommands.getCommand("AP_DS_Right_3Piece_WaitIntake"));
         commandsToAddToChooser.put("AP_DS_Right_3Piece_ParallelIntake", NamedCommands.getCommand("AP_DS_Right_3Piece_ParallelIntake"));
 
+        commandsToAddToChooser.put("AP_DS_Left_3Piece_WaitIntake", NamedCommands.getCommand("AP_DS_Left_3Piece_WaitIntake"));
         commandsToAddToChooser.put("AP_DS_Left_3Piece_ParallelIntake", NamedCommands.getCommand("AP_DS_Left_3Piece_ParallelIntake"));
 
         commandsToAddToChooser.put("AP_DS_Center", NamedCommands.getCommand("AP_DS_Center"));

@@ -56,6 +56,8 @@ public class FieldConstants {
         new Pose2d(inchesToMeters(48), inchesToMeters(86.5), new Rotation2d());
   }
 
+  // region reef
+
   public static final class Reef {
     public static final Translation2d CENTER =
         new Translation2d(inchesToMeters(176.746), inchesToMeters(158.501));
@@ -135,6 +137,8 @@ public class FieldConstants {
     }
   }
 
+  // region reef
+
   public enum FaceSubLocation implements StructSerializable {
     LEFT,
     RIGHT,
@@ -144,9 +148,57 @@ public class FieldConstants {
         ProceduralStructGenerator.genEnum(FaceSubLocation.class);
   }
 
+  // region feeder station
+
+  public enum FeederSide {
+    LEFT,
+    RIGHT;
+  }
+  
+  public static class FeederStation {
+    public static Pose2d LEFT_FEEDER_FACE = new Pose2d(0.851154, 7.3964799999999995, Rotation2d.fromDegrees(125.0));
+    public static Pose2d RIGHT_FEEDER_FACE = new Pose2d(0.851154, 0.65532, Rotation2d.fromDegrees(-125.0));
+  
+    /**
+     * Returns the robot pose for retrieving from the left feeder station.
+     * @param robotLengthMeters Total length of the robot in meters.
+     * @return Pose2d offset from the feeder face by half the robot length.
+     */
+    public static Pose2d getLeftRetrievalPose(double robotLengthMeters) {
+      return offsetFromFeederFace(LEFT_FEEDER_FACE, robotLengthMeters);
+    }
+  
+    /**
+     * Returns the robot pose for retrieving from the right feeder station.
+     * @param robotLengthMeters Total length of the robot in meters.
+     * @return Pose2d offset from the feeder face by half the robot length.
+     */
+    public static Pose2d getRightRetrievalPose(double robotLengthMeters) {
+      return offsetFromFeederFace(RIGHT_FEEDER_FACE, robotLengthMeters);
+    }
+  
+    /**
+     * Returns the robot pose for retrieving from a specified feeder side.
+     * @param side FeederSide enum (LEFT or RIGHT).
+     * @param robotLengthMeters Total length of the robot in meters.
+     * @return Pose2d offset from the feeder face by half the robot length.
+     */
+    public static Pose2d getRetrievalPose(FeederSide side, double robotLengthMeters) {
+      Pose2d face = (side == FeederSide.LEFT) ? LEFT_FEEDER_FACE : RIGHT_FEEDER_FACE;
+      return offsetFromFeederFace(face, robotLengthMeters);
+    }
+  
+    private static Pose2d offsetFromFeederFace(Pose2d face, double robotLengthMeters) {
+      Translation2d offset = new Translation2d(robotLengthMeters / 2.0, 0.0).rotateBy(face.getRotation());
+      return new Pose2d(face.getTranslation().minus(offset), face.getRotation());
+    }
+  }
+
+  //region feeder station
+
   public static final AprilTagFieldLayout APRIL_TAG_FIELD =
       new AprilTagFieldLayout(
-          List.of(AprilTags.TAGS), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
+          List.of(AprilTags.getTagsWithOverrides()), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
 
   public static final Translation2d TRANSLATION2D_CENTER =
       new Translation2d(FieldConstants.FIELD_LENGTH / 2.0, FieldConstants.FIELD_WIDTH / 2.0);

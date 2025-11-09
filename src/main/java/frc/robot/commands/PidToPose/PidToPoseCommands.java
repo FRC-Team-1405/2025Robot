@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands;
+package frc.robot.commands.PidToPose;
 
 import java.util.function.Supplier;
 
@@ -19,8 +19,10 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotContainer;
-import frc.robot.lib.AllianceSymmetry;
-import frc.robot.lib.AllianceSymmetry.SymmetryStrategy;
+import frc.robot.commands.IntakeCommands;
+import frc.robot.constants.FieldConstants.FeederSide;
+import frc.robot.constants.FieldConstants.FeederStation;
+import frc.robot.constants.RobotConstants;
 import frc.robot.lib.ReefSelecter;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
@@ -42,9 +44,9 @@ public class PidToPoseCommands {
   public static Supplier<Pose2d> Reef_2_AWAY  = () -> new Pose2d(4.67, 2.04, Rotation2d.fromDegrees(-60));
   public static Supplier<Pose2d> Reef_11_AWAY  = () -> new Pose2d(4.67, 6.01, Rotation2d.fromDegrees(60));
 
-  /* Feeder Station Poses from perspective of DS, all positions are for the blue alliance. they are flipped if used on red alliance */
-  public static Supplier<Pose2d> LeftFeeder   = () -> new Pose2d(0.98, 7.05, Rotation2d.fromDegrees(125.0));
-  public static Supplier<Pose2d> RightFeeder  = () -> new Pose2d(0.98, 1, Rotation2d.fromDegrees(-125.0));
+  /* Feeder Station Poses from perspective of DS, all positions are for the blue alliance. they are flipped later if used on red alliance */
+  public static Supplier<Pose2d> LeftFeeder   = () -> FeederStation.getRetrievalPose(FeederSide.LEFT, RobotConstants.ROBOT_WIDTH);
+  public static Supplier<Pose2d> RightFeeder  = () -> FeederStation.getRetrievalPose(FeederSide.RIGHT, RobotConstants.ROBOT_WIDTH);
 
   public static void registerCommands(CommandSwerveDrivetrain drivetrain) {
     Pose2d debugPose = new Pose2d(4.22, 3.22, Rotation2d.fromDegrees(60));

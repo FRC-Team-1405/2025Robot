@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.PidToPose;
 
 import java.util.List;
 import java.util.function.Supplier;

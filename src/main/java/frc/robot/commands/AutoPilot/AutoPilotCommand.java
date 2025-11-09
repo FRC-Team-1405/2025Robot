@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands;
+package frc.robot.commands.AutoPilot;
 
 import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Degrees;
@@ -26,11 +26,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.lib.AllianceSymmetry;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignCommand extends Command {
+public class AutoPilotCommand extends Command {
   public final SwerveRequest.ApplyFieldSpeeds pidToPose_FieldSpeeds = new SwerveRequest.ApplyFieldSpeeds()
       .withDriveRequestType(DriveRequestType.Velocity);
   public final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds().withDriveRequestType(DriveRequestType.Velocity);
@@ -49,6 +51,7 @@ public class AlignCommand extends Command {
     private final Supplier<Pose2d> m_targetSupplier;
   private final CommandSwerveDrivetrain m_drivetrain;
   private final Optional<Rotation2d> m_entryAngle;
+  private final boolean m_flipPoseForAlliance;
   private double startingDistanceFromTarget;
   private Pose2d startingPosition;
 
@@ -63,21 +66,32 @@ public class AlignCommand extends Command {
       .withHeadingPID(2, 0, 0); /* tune this for your robot! */
 
 
-  public AlignCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain) {
+  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain) {
     this(target, drivetrain, Optional.empty());
   }
 
-  public AlignCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, Optional<Rotation2d> entryAngle) {
+  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, Optional<Rotation2d> entryAngle) {
+    this(target, drivetrain, entryAngle, false);
+  }
+
+  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, Optional<Rotation2d> entryAngle, boolean flipPoseForAlliance) {
     m_targetSupplier = target;
     m_drivetrain = drivetrain;
     m_entryAngle = entryAngle;
+    m_flipPoseForAlliance = flipPoseForAlliance;
     addRequirements(drivetrain);
   }
 
   @Override
   public void initialize() {
     /* no-op */
-    m_target = new APTarget(m_targetSupplier.get());
+    if (m_flipPoseForAlliance && DriverStation.Alliance.Red.equals(DriverStation.getAlliance().get())) {
+      // flip pose for red alliance
+      m_target = new APTarget(AllianceSymmetry.flip(m_targetSupplier.get()));
+    } else {
+      m_target = new APTarget(m_targetSupplier.get());
+    }
+    
     startingDistanceFromTarget = getDistanceToTarget();
     startingPosition = m_drivetrain.getState().Pose;
 
