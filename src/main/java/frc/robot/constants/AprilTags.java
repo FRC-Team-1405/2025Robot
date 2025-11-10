@@ -189,7 +189,6 @@ public class AprilTags {
 
     // used for testing robot odometry, put the tag on the left wall and drive the robot forward.
     public static final AprilTag[] ROBOT_ODOMETRY_TAG = new AprilTag[] {
-        // used for testing robot odometry, put the tag on the left wall and drive the robot forward.
         new AprilTag(
                 22,
                 new Pose3d(
