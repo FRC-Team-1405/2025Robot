@@ -6,7 +6,11 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
+import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.constants.ConstValues.Conv;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import frc.robot.lib.ProceduralStructGenerator;
 
@@ -196,9 +200,26 @@ public class FieldConstants {
 
   //region feeder station
 
-  public static final AprilTagFieldLayout APRIL_TAG_FIELD =
-      new AprilTagFieldLayout(
-          List.of(AprilTags.getTagsWithOverrides()), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
+  // public static final AprilTagFieldLayout APRIL_TAG_FIELD =
+  //     new AprilTagFieldLayout(
+  //         List.of(AprilTags.getTagsWithOverrides()), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
+
+  private static AprilTagFieldLayout APRIL_TAG_FIELD = null;
+
+  public static AprilTagFieldLayout getAprilTagFieldLayout(){
+    if(APRIL_TAG_FIELD != null) {
+      return APRIL_TAG_FIELD;
+    }
+
+    try {
+      APRIL_TAG_FIELD = new AprilTagFieldLayout(new File(Filesystem.getDeployDirectory(), "field_calibration.json").getAbsolutePath());
+      return APRIL_TAG_FIELD;
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return null;
+    }
+  }
 
   public static final Translation2d TRANSLATION2D_CENTER =
       new Translation2d(FieldConstants.FIELD_LENGTH / 2.0, FieldConstants.FIELD_WIDTH / 2.0);

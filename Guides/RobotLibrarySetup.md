@@ -11,11 +11,13 @@ Ensure the folder structure looks similar to this:
     ├── 2025Robot/  
     └── robot_library/
 
-3. **Reload Projects in VS Code**
+3. **Gradle Build the `robot_library` Repository**
+
+4. **Reload Projects in VS Code**
 - Open VS Code.
 - Press Ctrl+Shift+P and select Java: Reload Projects.
 
-4. **Build and Run the Robot Code**
+5. **Build and Run the Robot Code**
 - The robot code should now build and run successfully, including the robot_library dependencies.
 
 

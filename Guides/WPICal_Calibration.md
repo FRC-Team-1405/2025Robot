@@ -1,5 +1,6 @@
 # How to Generate a Field Map with WPICal
 
+.fmap files are for Limelight only, we don't use them in PhotonVision
 
 ![alt text](image.png)
 

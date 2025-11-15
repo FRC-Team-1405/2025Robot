@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -39,6 +41,7 @@ import frc.robot.commands.MoveCoral;
 import frc.robot.commands.AutoPilot.AutoPilotCommands;
 import frc.robot.commands.PidToPose.PidToPoseCommands;
 import frc.robot.constants.AprilTags;
+import frc.robot.constants.FieldConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.lib.ReefSelecter;
 import frc.robot.subsystems.Climber;
@@ -128,7 +131,8 @@ public class RobotContainer {
     configureBindings();
     drivetrain.configureShuffleboardCommands();
 
-    AprilTags.publishTagsFromJson("C:\\Users\\larry\\VS Code\\2025Robot\\src\\main\\java\\frc\\robot\\lib\\TagMapper\\field_calibration.json");
+    AprilTags.publishTags(
+      FieldConstants.getAprilTagFieldLayout());
 
     // Warmup PathPlanner to avoid Java pauses
     // FollowPathCommand.warmupCommand().schedule();

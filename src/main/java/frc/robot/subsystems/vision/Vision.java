@@ -132,7 +132,7 @@ public class Vision extends SubsystemBase {
 
     Pose2d[] tagLoc =
         seenTags.stream()
-            .map(i -> FieldConstants.APRIL_TAG_FIELD.getTagPose(i))
+            .map(i -> FieldConstants.getAprilTagFieldLayout().getTagPose(i))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .map(Pose3d::toPose2d)
