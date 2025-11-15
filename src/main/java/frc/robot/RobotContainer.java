@@ -38,6 +38,7 @@ import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
 import frc.robot.commands.AutoPilot.AutoPilotCommands;
 import frc.robot.commands.PidToPose.PidToPoseCommands;
+import frc.robot.constants.AprilTags;
 import frc.robot.generated.TunerConstants;
 import frc.robot.lib.ReefSelecter;
 import frc.robot.subsystems.Climber;
@@ -126,6 +127,8 @@ public class RobotContainer {
 
     configureBindings();
     drivetrain.configureShuffleboardCommands();
+
+    AprilTags.publishTagsFromJson("C:\\Users\\larry\\VS Code\\2025Robot\\src\\main\\java\\frc\\robot\\lib\\TagMapper\\field_calibration.json");
 
     // Warmup PathPlanner to avoid Java pauses
     // FollowPathCommand.warmupCommand().schedule();

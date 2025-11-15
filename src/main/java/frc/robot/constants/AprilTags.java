@@ -1,15 +1,22 @@
 package frc.robot.constants;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.finneyrobotics.library.AllianceSymmetry;
 
 import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 
 public class AprilTags {
     /**
@@ -203,4 +210,23 @@ public class AprilTags {
     // region tag overrides
 
     public static final AprilTag[] TAGS_OVERRIDES = NONE;
+
+    public static void publishTagsFromJson(String pathToJson){
+        try {
+                AprilTagFieldLayout aprilTagFieldLayout = new AprilTagFieldLayout(pathToJson);
+                publishTags(aprilTagFieldLayout);
+        } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+        }
+    }
+
+    public static void publishTags(AprilTagFieldLayout aprilTagFieldLayout) {
+        List<AprilTag> aprilTags = aprilTagFieldLayout.getTags();
+        for (int i = 0; i < aprilTags.size(); i++) {
+                StructPublisher<Pose2d> aprilTagPublisher = NetworkTableInstance.getDefault()
+                                .getStructTopic("TagMap/AprilTags_" + (i+1), Pose2d.struct).publish();
+                aprilTagPublisher.set(aprilTags.get(i).pose.toPose2d());
+        }
+    }
 }
