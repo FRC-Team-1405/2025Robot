@@ -16,8 +16,11 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -55,15 +58,14 @@ import frc.robot.subsystems.vision.Vision.VisionSample;
 import frc.robot.subsystems.vision.VisionConstants;
 
 public class RobotContainer {
-  public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired
-                                                                                            // top speed
+  public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
   public static final double MaxAngularRate = 11.22;// in radians per second
   
   // max angular velocity
 
   /* Setting up bindings for necessary control of the swerve drive platform */
   public static final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.08).withRotationalDeadband(MaxAngularRate * 0.08) // Add a 10% deadband
+      .withDeadband(MaxSpeed * 0.08).withRotationalDeadband(MaxAngularRate * 0.08) // Add a 8% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
@@ -71,7 +73,7 @@ public class RobotContainer {
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
-  private final CommandXboxController driver = new CommandXboxController(0);
+  private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
 
@@ -81,6 +83,9 @@ public class RobotContainer {
   StructPublisher<Pose2d> cameraEstimatedPosePublisher2 = NetworkTableInstance.getDefault()
       .getStructTopic("Camera2_EstimatedPose", Pose2d.struct).publish();
   List<StructPublisher<Pose2d>> cameraEstimatedPosesPublisher = Arrays.asList(cameraEstimatedPosePublisher1, cameraEstimatedPosePublisher2);  
+  
+  private final NetworkTable table = NetworkTableInstance.getDefault().getTable("VisionDebug");
+  private final DoublePublisher yawErrorPub = table.getDoubleTopic("YawErrorDeg").publish();
 
   /* Path follower */
   private final SendableChooser<Command> autoChooser;
@@ -114,6 +119,8 @@ public class RobotContainer {
   public static boolean VISION_ROBOT_ODOMETRY_UPDATE = true; // Enable vision odometry updates while driving. Doesn't
                                                              // work without VISION_ODOMETRY_ESTIMATION set to true.
   public static final boolean SIMULATE_VISION_FAILURES = false; // simulate dropped frames from the camera's 
+  public static final boolean REDUCE_VISION_WEIGHT_WHEN_MOVING = true; // reduce the weight of vision measurements when the robot is moving quickly
+  public static final boolean STRICT_VISION_ORIENTATION_WEIGHTING = true; // high sample weight threshold for orientation updates, essentially meaning no updates when enabled
   // endregion FeatureSwitches
 
   public RobotContainer() {
@@ -292,7 +299,16 @@ public class RobotContainer {
     vision.updateSpeeds(drivetrain.getState().Speeds);
     // System.out.println("vision sample count: " + visionSamples.size());
     for (var sample : visionSamples) {
-      double thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0; //effects the speed at which the camera updates the robot rotation odom in disabled, not sure how to update in non-disabled yet. lower = update faster/more
+
+      double thetaStddev = 99999.0;
+      if(STRICT_VISION_ORIENTATION_WEIGHTING) {
+        // if sample weight isn't essentially perfect, don't trust orientation, sample weighting is perfect when disabled
+        thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0;
+      } else {
+        // You will need to TUNE this scalar. A higher value (e.g., 5.0) means less trust.
+        thetaStddev = 1.0 / sample.weight();
+      }
+      
       drivetrain.addVisionMeasurement(
         sample.pose(),
         sample.timestamp(),
@@ -300,11 +316,17 @@ public class RobotContainer {
       );
     }
 
+    Pose2d visionPose = null;
+    Pose2d odomPose = drivetrain.getState().Pose;
     for (int i = 0; i < 2; i++){
       if (i+1 <= visionSamples.size()){
         cameraEstimatedPosesPublisher.get(i).set(visionSamples.get(i).pose());
+        visionPose =  visionSamples.get(i).pose();
       }
     }
+    
+    double yawError = yawDiffDegrees(visionPose, odomPose);
+    yawErrorPub.set(yawError);
   }
 
   private double getYSpeed(){
@@ -324,4 +346,14 @@ public class RobotContainer {
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
     return -driver.getRightX() * speedMultiplication * MaxAngularRate;
   }
+
+  public static double yawDiffDegrees(Pose2d visionPose, Pose2d odomPose) {
+    double visionYaw = visionPose.getRotation().getDegrees();
+    double odomYaw   = odomPose.getRotation().getDegrees();
+    double diff = visionYaw - odomYaw;
+
+    // Normalize to [-180, 180]
+    diff = ((diff + 180) % 360 + 360) % 360 - 180;
+    return diff;
+}
 }

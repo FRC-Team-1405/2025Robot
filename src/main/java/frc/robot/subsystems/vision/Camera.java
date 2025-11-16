@@ -194,7 +194,7 @@ public class Camera {
 
   public void periodic() {
     if (Robot.isReal()){
-      poseEstimator.addHeadingData(Timer.getFPGATimestamp(), Rotation2d.kZero);
+      // poseEstimator.addHeadingData(Timer.getFPGATimestamp(), Rotation2d.kZero); TODO determine if this had any effect on vision. i think it might only be used in PNP_DISTANCE_TRIG_SOLVE PoseStrategy
       seenTags.clear();
       final var results = camera.getAllUnreadResults();
       for (var result : results) {

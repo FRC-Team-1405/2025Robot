@@ -179,7 +179,12 @@ public class AprilTags {
 
 
     public static boolean observableTag(int id) {
-        for (AprilTag tag : getTagsWithOverrides()) {
+        AprilTagFieldLayout fieldLayout = FieldConstants.getAprilTagFieldLayout();
+
+        // Convert the list of AprilTags to an array
+        AprilTag[] aprilTagsArray = fieldLayout.getTags().toArray(new AprilTag[0]);
+
+        for (AprilTag tag : aprilTagsArray) {
             if (tag.ID == id) {
                 if (AllianceSymmetry.isBlue()) {
                     return tag.pose.getX() < FieldConstants.FIELD_LENGTH / 2.0;
@@ -207,7 +212,7 @@ public class AprilTags {
             ))
     };
 
-    // region tag overrides
+    // endregion tag overrides
 
     public static final AprilTag[] TAGS_OVERRIDES = NONE;
 

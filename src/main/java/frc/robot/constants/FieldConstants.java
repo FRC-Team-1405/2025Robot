@@ -141,7 +141,7 @@ public class FieldConstants {
     }
   }
 
-  // region reef
+  // endregion reef
 
   public enum FaceSubLocation implements StructSerializable {
     LEFT,
@@ -198,7 +198,7 @@ public class FieldConstants {
     }
   }
 
-  //region feeder station
+  //  endregion feeder station
 
   // public static final AprilTagFieldLayout APRIL_TAG_FIELD =
   //     new AprilTagFieldLayout(

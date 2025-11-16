@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.constants.FieldConstants;
 import frc.robot.lib.GlobalField;
 import frc.robot.lib.ProceduralStructGenerator;
@@ -75,6 +76,10 @@ public class Vision extends SubsystemBase {
   }
 
   private Optional<VisionSample> gaugeWeight(final VisionUpdate update) {
+    if (!RobotContainer.REDUCE_VISION_WEIGHT_WHEN_MOVING) {
+      return Optional.of(new VisionSample(update.pose(), update.timestamp(), 1.0));
+    }
+
     double weight = update.weightScalar();
 
     // Completely arbitrary values for the velocity thresholds.

@@ -20,17 +20,17 @@ public class TestAuto {
     public static void configureAutos(SendableChooser<Command> chooser, CommandSwerveDrivetrain drivetrain) {
         HashMap<String, Command> commandsToAddToChooser = new HashMap<>();
 
-        //region PidToPose
+        // region PidToPose
         commandsToAddToChooser.put("P2P_DS_Right_3Piece_WaitIntake", NamedCommands.getCommand("P2P_DS_Right_3Piece_WaitIntake"));
         commandsToAddToChooser.put("P2P_DS_Right_3Piece_ParallelIntake", NamedCommands.getCommand("P2P_DS_Right_3Piece_ParallelIntake"));
 
         commandsToAddToChooser.put("P2P_DS_Left_3Piece_ParallelIntake", NamedCommands.getCommand("P2P_DS_Left_3Piece_ParallelIntake"));
 
         commandsToAddToChooser.put("P2P_DS_Center", NamedCommands.getCommand("P2P_DS_Center"));
-        //region PidToPose
+        // endregion PidToPose
 
 
-        //region autopilot
+        // region autopilot
         commandsToAddToChooser.put("AP_DS_Right_3Piece_WaitIntake", NamedCommands.getCommand("AP_DS_Right_3Piece_WaitIntake"));
         commandsToAddToChooser.put("AP_DS_Right_3Piece_ParallelIntake", NamedCommands.getCommand("AP_DS_Right_3Piece_ParallelIntake"));
 
@@ -38,7 +38,7 @@ public class TestAuto {
         commandsToAddToChooser.put("AP_DS_Left_3Piece_ParallelIntake", NamedCommands.getCommand("AP_DS_Left_3Piece_ParallelIntake"));
 
         commandsToAddToChooser.put("AP_DS_Center", NamedCommands.getCommand("AP_DS_Center"));
-        //region autopilot
+        // endregion autopilot
 
 
         chooser.setDefaultOption("P2P_DS_Right_3Piece_WaitIntake", commandsToAddToChooser.get("P2P_DS_Right_3Piece_WaitIntake"));
