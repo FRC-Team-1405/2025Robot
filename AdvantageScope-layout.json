@@ -1,13 +1,13 @@
 {
   "hubs": [
     {
-      "x": 1280,
-      "y": 0,
-      "width": 1280,
-      "height": 1392,
+      "x": -7,
+      "y": -7,
+      "width": 1550,
+      "height": 926,
       "state": {
         "sidebar": {
-          "width": 276,
+          "width": 212,
           "expanded": [
             "/SwervePose",
             "/SwervePose/translation",
@@ -29,11 +29,16 @@
             "/Commands",
             "/PID_TO_POSE",
             "/DriveState",
-            "/DriveState/Pose"
+            "/DriveState/Pose",
+            "/Preferences",
+            "/Preferences/Intake",
+            "/SmartDashboard",
+            "/TagMap",
+            "/AUTOPILOT"
           ]
         },
         "tabs": {
-          "selected": 1,
+          "selected": 2,
           "tabs": [
             {
               "type": 0,
@@ -50,67 +55,16 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/PID_TO_POSE/xError",
+                    "logKey": "NT:/SmartDashboard/intakeServo",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/PID_TO_POSE/yError",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b",
+                      "color": "#c0b487",
                       "size": "normal"
                     }
                   }
                 ],
-                "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/PID_TO_POSE/xCalculatedOutput",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#e48b32",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/PID_TO_POSE/yCalculatedOutput",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#d993aa",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/DriveState/ModuleStates/0/speed",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#af2437",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/DriveState/ModuleTargets/0/speed",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e",
-                      "size": "normal"
-                    }
-                  }
-                ],
+                "rightSources": [],
                 "discreteSources": [],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
@@ -167,17 +121,53 @@
                     "options": {
                       "position": "center"
                     }
+                  },
+                  {
+                    "type": "arrow",
+                    "logKey": "NT:AUTOPILOT/Pose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "position": "center"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:DebugPose",
+                    "logType": "Pose2d",
+                    "visible": false,
+                    "options": {
+                      "color": "#ff00ff"
+                    }
+                  },
+                  {
+                    "type": "arrow",
+                    "logKey": "NT:TagMap/AprilTags_17",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "position": "center"
+                    }
+                  },
+                  {
+                    "type": "arrow",
+                    "logKey": "NT:TagMap/AprilTags_22",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "position": "center"
+                    }
                   }
                 ],
                 "game": "2025 Field (AndyMark)",
                 "bumpers": "auto",
                 "origin": "blue",
-                "orientation": 1,
+                "orientation": 0,
                 "size": 30
               },
               "controllerUUID": "2twufrs0yajcglh0yvrzwnw5wsr6cki7",
               "renderer": null,
-              "controlsHeight": 333
+              "controlsHeight": 0
             },
             {
               "type": 5,
@@ -289,31 +279,6 @@
       }
     }
   ],
-  "satellites": [
-    {
-      "x": 893,
-      "y": 897,
-      "width": 499,
-      "height": 499,
-      "state": {
-        "type": 10,
-        "visualizer": null
-      },
-      "uuid": "pcrik6pprcz8tncp50lo8gx03kx8elns"
-    },
-    {
-      "x": 1382,
-      "y": 0,
-      "width": 1184,
-      "height": 1398,
-      "state": {
-        "type": 5,
-        "visualizer": {
-          "highlight": false
-        }
-      },
-      "uuid": "tpqsfemeceu7wxgaxmzodmsbd6enmuec"
-    }
-  ],
-  "version": "4.1.5"
+  "satellites": [],
+  "version": "4.1.1"
 }

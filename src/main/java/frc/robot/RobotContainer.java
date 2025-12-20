@@ -121,6 +121,7 @@ public class RobotContainer {
   public static final boolean SIMULATE_VISION_FAILURES = false; // simulate dropped frames from the camera's 
   public static final boolean REDUCE_VISION_WEIGHT_WHEN_MOVING = true; // reduce the weight of vision measurements when the robot is moving quickly
   public static final boolean STRICT_VISION_ORIENTATION_WEIGHTING = true; // high sample weight threshold for orientation updates, essentially meaning no updates when enabled
+  public static final boolean VISUALIZE_REEF_SELECTER_POSITION = true; // publish a pose of the current selected reef position
   // endregion FeatureSwitches
 
   public RobotContainer() {
@@ -325,8 +326,10 @@ public class RobotContainer {
       }
     }
     
-    double yawError = yawDiffDegrees(visionPose, odomPose);
-    yawErrorPub.set(yawError);
+    if (visionPose != null){
+      double yawError = yawDiffDegrees(visionPose, odomPose);
+      yawErrorPub.set(yawError);
+    }
   }
 
   private double getYSpeed(){

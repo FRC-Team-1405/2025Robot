@@ -14,7 +14,6 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
-import com.finneyrobotics.library.AllianceSymmetry;
 import com.therekrab.autopilot.APConstraints;
 import com.therekrab.autopilot.APProfile;
 import com.therekrab.autopilot.APTarget;
@@ -26,13 +25,19 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.lib.AllianceSymmetry;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AutoPilotCommand extends Command {
+  // Publishes AP's target position
+  private StructPublisher<Pose2d> apPublisher = NetworkTableInstance.getDefault().getStructTopic("AUTOPILOT/Pose", Pose2d.struct).publish();
+
   public final SwerveRequest.ApplyFieldSpeeds pidToPose_FieldSpeeds = new SwerveRequest.ApplyFieldSpeeds()
       .withDriveRequestType(DriveRequestType.Velocity);
   public final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds().withDriveRequestType(DriveRequestType.Velocity);
@@ -40,10 +45,11 @@ public class AutoPilotCommand extends Command {
       .withAcceleration(5.0)
       .withJerk(2.0);
 
+  // AutoPilot Thresholds
   private static final APProfile kProfile = new APProfile(kConstraints)
       .withErrorXY(Centimeters.of(2))
       .withErrorTheta(Degrees.of(0.5))
-      .withBeelineRadius(Centimeters.of(8));
+      .withBeelineRadius(Centimeters.of(16));
 
   public static final Autopilot kAutopilot = new Autopilot(kProfile);
 
@@ -91,6 +97,7 @@ public class AutoPilotCommand extends Command {
     } else {
       m_target = new APTarget(m_targetSupplier.get());
     }
+    apPublisher.set(m_target.getReference());
     
     startingDistanceFromTarget = getDistanceToTarget();
     startingPosition = m_drivetrain.getState().Pose;
@@ -102,7 +109,7 @@ public class AutoPilotCommand extends Command {
   public void execute() {
     ChassisSpeeds robotRelativeSpeeds = m_drivetrain.getState().Speeds;
     Pose2d pose = m_drivetrain.getState().Pose;
-    // System.out.println(String.format("Robot Pose (x: %s, y: %s)", pose.getX(), pose.getY()));
+    // System.out.println(String.format("Robot Pose (x: %.1f, y: %.1f)", pose.getX(), pose.getY()));
 
     Optional<Rotation2d> correctedEntryAngle = m_entryAngle;
 
@@ -143,23 +150,30 @@ public class AutoPilotCommand extends Command {
     //this worked
     // m_drivetrain.setControl(applyRobotSpeeds.withSpeeds(outRobotRelativeSpeeds));
     if(0.6 < getPercentageOfDistanceToTarget()){
+      // Target approach section. at the end of motion towards target
+      // custom theta PID controller used to ensure we reach target rotation
+
       // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), thetaOutput)));
       
-      System.out.println("thetaOutput, " + thetaOutput + ", currentRotation: " + pose.getRotation().getDegrees() + ", targetRotation: " + m_target.getReference().getRotation().getDegrees());
-      System.out.println("percentageToTarget: +60%");
+      System.out.println(String.format("vx: %s, vy: %s, thetaOutput: %s, rotationDifference(deg): %.1f", out.vx(), out.vy(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees())));
+      // System.out.println("percentageToTarget: +60%");
       m_drivetrain.setControl(applyRobotSpeeds.withSpeeds(outRobotRelativeSpeeds));
     } else if(0.2 < getPercentageOfDistanceToTarget()){
-      System.out.println("percentageToTarget: +20%");
+      // System.out.println("percentageToTarget: +20%");
       m_drivetrain.setControl(m_request
         .withVelocityX(out.vx())
         .withVelocityY(out.vy())
         .withTargetDirection(targetRotation));
     } else {
-      System.out.println("percentageToTarget: +0%");
+      // Beginning of motion towards target, don't start rotation yet
+      // to allow for movement away from walls before rotation begins.
+
+      // System.out.println(String.format("percentageToTarget: +0%, out.vx: %s, out.vy: %s", out.vx(), out.vy()));
       // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), 0)));
       m_drivetrain.setControl(m_request
         .withVelocityX(out.vx())
-        .withVelocityY(out.vy()).withTargetDirection(startingPosition.getRotation()));
+        .withVelocityY(out.vy())
+        .withTargetDirection(startingPosition.getRotation()));
     }
   }
 
@@ -176,7 +190,8 @@ public class AutoPilotCommand extends Command {
   public void end(boolean interrupted) {
     m_drivetrain.setControl(m_request
         .withVelocityX(0)
-        .withVelocityY(0));
+        .withVelocityY(0)
+        .withTargetDirection(m_drivetrain.getState().Pose.getRotation()));
   }
 
   public double getDistanceToTarget(){

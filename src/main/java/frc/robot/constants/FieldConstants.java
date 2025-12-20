@@ -11,7 +11,10 @@ import frc.robot.constants.ConstValues.Conv;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.StackWalker.Option;
 import java.util.List;
+import java.util.Optional;
+
 import frc.robot.lib.ProceduralStructGenerator;
 
 /**
@@ -215,10 +218,24 @@ public class FieldConstants {
       APRIL_TAG_FIELD = new AprilTagFieldLayout(new File(Filesystem.getDeployDirectory(), "field_calibration.json").getAbsolutePath());
       return APRIL_TAG_FIELD;
     } catch (IOException e) {
-      // TODO Auto-generated catch block
+      System.err.println("field_calibration.json not found in deploy directory");
       e.printStackTrace();
       return null;
     }
+  }
+
+  /**
+   * Throws error if april tag id doesn't exist!
+   * @param aprilTagId
+   * @return
+      * @throws Exception 
+      */
+     public static Pose2d getAprilTagPose(int aprilTagId) {
+    if (APRIL_TAG_FIELD == null || !APRIL_TAG_FIELD.getTagPose(aprilTagId).isPresent()){
+      // april tag isn't present, robot is likely booting up
+      return new Pose2d();
+    }
+    return APRIL_TAG_FIELD.getTagPose(aprilTagId).get().toPose2d();
   }
 
   public static final Translation2d TRANSLATION2D_CENTER =
