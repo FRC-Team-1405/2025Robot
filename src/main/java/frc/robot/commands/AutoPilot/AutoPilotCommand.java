@@ -31,10 +31,13 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.AllianceSymmetry;
+import frc.robot.lib.FinneyLogger;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AutoPilotCommand extends Command {
+  private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
+
   // Publishes AP's target position
   private StructPublisher<Pose2d> apPublisher = NetworkTableInstance.getDefault().getStructTopic("AUTOPILOT/Pose", Pose2d.struct).publish();
 
@@ -155,7 +158,7 @@ public class AutoPilotCommand extends Command {
 
       // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), thetaOutput)));
       
-      System.out.println(String.format("vx: %.3f, vy: %.3f, thetaOutput: %.3f, rotationDifference(deg): %.2f", out.vx().baseUnitMagnitude(), out.vy().baseUnitMagnitude(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees())));
+      fLogger.log(String.format("vx: %.3f, vy: %.3f, thetaOutput: %.3f, rotationDifference(deg): %.2f", out.vx().baseUnitMagnitude(), out.vy().baseUnitMagnitude(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees())));
       // System.out.println("percentageToTarget: +60%");
       m_drivetrain.setControl(applyRobotSpeeds.withSpeeds(outRobotRelativeSpeeds));
     } else if(0.2 < getPercentageOfDistanceToTarget()){
@@ -182,7 +185,7 @@ public class AutoPilotCommand extends Command {
     // System.out.println(String.format("Angle Difference: %.1f, Target angle: %.1f, Current Angle: %.1f",
     //     m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees(),
     //     m_target.getReference().getRotation().getDegrees(), m_drivetrain.getState().Pose.getRotation().getDegrees()));
-    System.out.println(String.format("Location Difference: %.1f, Angle Difference: %.1f", m_target.getReference().getTranslation().getDistance(m_drivetrain.getState().Pose.getTranslation()), m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees()));
+    fLogger.log(String.format("Location Difference: %.1f, Angle Difference: %.1f", m_target.getReference().getTranslation().getDistance(m_drivetrain.getState().Pose.getTranslation()), m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees()));
     return kAutopilot.atTarget(m_drivetrain.getState().Pose, m_target);
   }
 

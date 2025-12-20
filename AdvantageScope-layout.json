@@ -1,13 +1,13 @@
 {
   "hubs": [
     {
-      "x": -7,
-      "y": -7,
-      "width": 1550,
-      "height": 926,
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 1392,
       "state": {
         "sidebar": {
-          "width": 212,
+          "width": 293,
           "expanded": [
             "/SwervePose",
             "/SwervePose/translation",
@@ -28,13 +28,9 @@
             "/SmartDashboard/Elavator",
             "/Commands",
             "/PID_TO_POSE",
-            "/DriveState",
             "/DriveState/Pose",
             "/Preferences",
-            "/Preferences/Intake",
-            "/SmartDashboard",
-            "/TagMap",
-            "/AUTOPILOT"
+            "/Preferences/Intake"
           ]
         },
         "tabs": {
@@ -133,6 +129,15 @@
                   },
                   {
                     "type": "ghost",
+                    "logKey": "NT:SelectedReefPosition",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ffff"
+                    }
+                  },
+                  {
+                    "type": "ghost",
                     "logKey": "NT:DebugPose",
                     "logType": "Pose2d",
                     "visible": false,
@@ -144,7 +149,7 @@
                     "type": "arrow",
                     "logKey": "NT:TagMap/AprilTags_17",
                     "logType": "Pose2d",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "position": "center"
                     }
@@ -153,7 +158,7 @@
                     "type": "arrow",
                     "logKey": "NT:TagMap/AprilTags_22",
                     "logType": "Pose2d",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "position": "center"
                     }
@@ -172,7 +177,7 @@
             {
               "type": 5,
               "title": "Console",
-              "controller": "/Commands/P2P",
+              "controller": "NT:/AdvantageScopeLogs/AutoPilotCommand",
               "controllerUUID": "tpqsfemeceu7wxgaxmzodmsbd6enmuec",
               "renderer": {
                 "highlight": false
@@ -280,5 +285,5 @@
     }
   ],
   "satellites": [],
-  "version": "4.1.1"
+  "version": "4.1.5"
 }
