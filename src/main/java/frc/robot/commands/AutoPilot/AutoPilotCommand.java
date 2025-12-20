@@ -155,7 +155,7 @@ public class AutoPilotCommand extends Command {
 
       // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), thetaOutput)));
       
-      System.out.println(String.format("vx: %s, vy: %s, thetaOutput: %s, rotationDifference(deg): %.1f", out.vx(), out.vy(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees())));
+      System.out.println(String.format("vx: %.3f, vy: %.3f, thetaOutput: %.3f, rotationDifference(deg): %.2f", out.vx().baseUnitMagnitude(), out.vy().baseUnitMagnitude(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees())));
       // System.out.println("percentageToTarget: +60%");
       m_drivetrain.setControl(applyRobotSpeeds.withSpeeds(outRobotRelativeSpeeds));
     } else if(0.2 < getPercentageOfDistanceToTarget()){
@@ -179,10 +179,10 @@ public class AutoPilotCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    System.out.println(String.format("Angle Difference: %.1f, Target angle: %.1f, Current Angle: %.1f",
-        m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees(),
-        m_target.getReference().getRotation().getDegrees(), m_drivetrain.getState().Pose.getRotation().getDegrees()));
-    System.out.println(String.format("Location Difference: %.1f", m_target.getReference().getTranslation().getDistance(m_drivetrain.getState().Pose.getTranslation())));
+    // System.out.println(String.format("Angle Difference: %.1f, Target angle: %.1f, Current Angle: %.1f",
+    //     m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees(),
+    //     m_target.getReference().getRotation().getDegrees(), m_drivetrain.getState().Pose.getRotation().getDegrees()));
+    System.out.println(String.format("Location Difference: %.1f, Angle Difference: %.1f", m_target.getReference().getTranslation().getDistance(m_drivetrain.getState().Pose.getTranslation()), m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees()));
     return kAutopilot.atTarget(m_drivetrain.getState().Pose, m_target);
   }
 

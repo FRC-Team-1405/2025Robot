@@ -281,7 +281,7 @@ public class ReefSelecter {
         Pose2d adjustedPose = selectedPosition.transformBy(correction);
 
         if (!Transform2d.kZero.equals(correction)){
-            System.out.printf("Transformed Position (%s) to corrected Position (%s), applied transform of: %s\n", selectedPosition, adjustedPose, correction);
+            System.out.printf("Field Correction Map applied transform (in.) of: x=%.1f, y=%.1f, deg=%.1f\n", Units.metersToInches(correction.getX()), Units.metersToInches(correction.getY()), correction.getRotation().getDegrees());
         }
         
         return Optional.of(adjustedPose);

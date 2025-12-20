@@ -21,8 +21,7 @@ public class FieldCorrectionMap {
     // Positive X moves away from face (forward from face's perspective), Positive Y moves to the right of a face (left from face's perspective)
     // Y: pos = left / neg = right, tag's perspective
     private static Map<AllianceCoralKey, Transform2d> home = Map.of (
-         new AllianceCoralKey(Alliance.Red, Coral.Position_2),   new Transform2d(new Translation2d(Units.inchesToMeters(2), Units.inchesToMeters(0)), Rotation2d.kZero)
-        ,new AllianceCoralKey(Alliance.Blue, Coral.Position_5),   new Transform2d(new Translation2d(Units.inchesToMeters(0), Units.inchesToMeters(0.75)), Rotation2d.kZero)
+        new AllianceCoralKey(Alliance.Blue, Coral.Position_5),   new Transform2d(new Translation2d(Units.inchesToMeters(0), Units.inchesToMeters(0.75)), Rotation2d.kZero)
         ,new AllianceCoralKey(Alliance.Blue, Coral.Position_4),   new Transform2d(new Translation2d(Units.inchesToMeters(0), Units.inchesToMeters(0.4)), Rotation2d.kZero)
     );
 
