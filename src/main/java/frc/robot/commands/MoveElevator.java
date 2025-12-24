@@ -40,9 +40,7 @@ public class MoveElevator extends Command {
   // Stops if interrupted
   @Override
   public void end(boolean interrupted) {
-      if (interrupted) {
-        elavator.stopElevator();
-      }
+    elavator.stopElevator();
   }
 
   // Checks motor positoin and stops the elevator

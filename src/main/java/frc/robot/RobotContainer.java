@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SimSwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -91,6 +92,7 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
 
   public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  // SimSwerveDrivetrain simSwerveDrivetrain = new SimSwerveDrivetrain(null, null, null);
   private final Elevator elevator = new Elevator();
   public static final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();

@@ -133,8 +133,8 @@ public class PidToPoseCommand extends Command {
         loopDirectionLigament = loopOrigin.append(new MechanismLigament2d("loopdirection", 0, 0, 1, new Color8Bit(Color.kGreen)));
         loopVelocityLigament = loopOrigin.append(new MechanismLigament2d("loopvelocity", 0, 0, 1, new Color8Bit(Color.kRed)));
 
-        SmartDashboard.putData("InitialVectorMechanism", initialMechanism);
-        SmartDashboard.putData("LoopVectorMechanism", loopMechanism);
+        SmartDashboard.putData("P2P_InitialVectorMechanism", initialMechanism);
+        SmartDashboard.putData("P2P_LoopVectorMechanism", loopMechanism);
 
         addRequirements(drive);
     }
