@@ -6,8 +6,15 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
+import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.constants.ConstValues.Conv;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.StackWalker.Option;
 import java.util.List;
+import java.util.Optional;
+
 import frc.robot.lib.ProceduralStructGenerator;
 
 /**
@@ -55,6 +62,8 @@ public class FieldConstants {
     public static final Pose2d RIGHT_GAMEPIECE_STACK =
         new Pose2d(inchesToMeters(48), inchesToMeters(86.5), new Rotation2d());
   }
+
+  // region reef
 
   public static final class Reef {
     public static final Translation2d CENTER =
@@ -135,6 +144,8 @@ public class FieldConstants {
     }
   }
 
+  // endregion reef
+
   public enum FaceSubLocation implements StructSerializable {
     LEFT,
     RIGHT,
@@ -144,9 +155,88 @@ public class FieldConstants {
         ProceduralStructGenerator.genEnum(FaceSubLocation.class);
   }
 
-  public static final AprilTagFieldLayout APRIL_TAG_FIELD =
-      new AprilTagFieldLayout(
-          List.of(AprilTags.TAGS), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
+  // region feeder station
+
+  public enum FeederSide {
+    LEFT,
+    RIGHT;
+  }
+  
+  public static class FeederStation {
+    public static Pose2d LEFT_FEEDER_FACE = new Pose2d(0.851154, 7.3964799999999995, Rotation2d.fromDegrees(125.0));
+    public static Pose2d RIGHT_FEEDER_FACE = new Pose2d(0.851154, 0.65532, Rotation2d.fromDegrees(-125.0));
+  
+    /**
+     * Returns the robot pose for retrieving from the left feeder station.
+     * @param robotLengthMeters Total length of the robot in meters.
+     * @return Pose2d offset from the feeder face by half the robot length.
+     */
+    public static Pose2d getLeftRetrievalPose(double robotLengthMeters) {
+      return offsetFromFeederFace(LEFT_FEEDER_FACE, robotLengthMeters);
+    }
+  
+    /**
+     * Returns the robot pose for retrieving from the right feeder station.
+     * @param robotLengthMeters Total length of the robot in meters.
+     * @return Pose2d offset from the feeder face by half the robot length.
+     */
+    public static Pose2d getRightRetrievalPose(double robotLengthMeters) {
+      return offsetFromFeederFace(RIGHT_FEEDER_FACE, robotLengthMeters);
+    }
+  
+    /**
+     * Returns the robot pose for retrieving from a specified feeder side.
+     * @param side FeederSide enum (LEFT or RIGHT).
+     * @param robotLengthMeters Total length of the robot in meters.
+     * @return Pose2d offset from the feeder face by half the robot length.
+     */
+    public static Pose2d getRetrievalPose(FeederSide side, double robotLengthMeters) {
+      Pose2d face = (side == FeederSide.LEFT) ? LEFT_FEEDER_FACE : RIGHT_FEEDER_FACE;
+      return offsetFromFeederFace(face, robotLengthMeters);
+    }
+  
+    private static Pose2d offsetFromFeederFace(Pose2d face, double robotLengthMeters) {
+      Translation2d offset = new Translation2d(robotLengthMeters / 2.0, 0.0).rotateBy(face.getRotation());
+      return new Pose2d(face.getTranslation().minus(offset), face.getRotation());
+    }
+  }
+
+  //  endregion feeder station
+
+  // public static final AprilTagFieldLayout APRIL_TAG_FIELD =
+  //     new AprilTagFieldLayout(
+  //         List.of(AprilTags.getTagsWithOverrides()), FieldConstants.FIELD_LENGTH, FieldConstants.FIELD_WIDTH);
+
+  private static AprilTagFieldLayout APRIL_TAG_FIELD = null;
+
+  public static AprilTagFieldLayout getAprilTagFieldLayout(){
+    if(APRIL_TAG_FIELD != null) {
+      return APRIL_TAG_FIELD;
+    }
+
+    try {
+      APRIL_TAG_FIELD = new AprilTagFieldLayout(new File(Filesystem.getDeployDirectory(), "field_calibration.json").getAbsolutePath());
+      return APRIL_TAG_FIELD;
+    } catch (IOException e) {
+      System.err.println("field_calibration.json not found in deploy directory");
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  /**
+   * Throws error if april tag id doesn't exist!
+   * @param aprilTagId
+   * @return
+      * @throws Exception 
+      */
+     public static Pose2d getAprilTagPose(int aprilTagId) {
+    if (APRIL_TAG_FIELD == null || !APRIL_TAG_FIELD.getTagPose(aprilTagId).isPresent()){
+      // april tag isn't present, robot is likely booting up
+      return new Pose2d();
+    }
+    return APRIL_TAG_FIELD.getTagPose(aprilTagId).get().toPose2d();
+  }
 
   public static final Translation2d TRANSLATION2D_CENTER =
       new Translation2d(FieldConstants.FIELD_LENGTH / 2.0, FieldConstants.FIELD_WIDTH / 2.0);
