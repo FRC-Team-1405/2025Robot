@@ -6,18 +6,15 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.swerve.SimSwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoublePublisher;
@@ -26,7 +23,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -47,6 +43,7 @@ import frc.robot.commands.PidToPose.PidToPoseCommands;
 import frc.robot.constants.AprilTags;
 import frc.robot.constants.FieldConstants;
 import frc.robot.generated.TunerConstants;
+import frc.robot.lib.CommandTracker;
 import frc.robot.lib.ReefSelecter;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -59,9 +56,10 @@ import frc.robot.subsystems.vision.Vision.VisionSample;
 import frc.robot.subsystems.vision.VisionConstants;
 
 public class RobotContainer {
-  public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+  public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired
+                                                                                            // top speed
   public static final double MaxAngularRate = 11.22;// in radians per second
-  
+
   // max angular velocity
 
   /* Setting up bindings for necessary control of the swerve drive platform */
@@ -77,14 +75,14 @@ public class RobotContainer {
   private final CommandXboxController driver = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController operator = new CommandXboxController(OperatorConstants.kOperatorPort);
 
-
   // Vision publishers
   StructPublisher<Pose2d> cameraEstimatedPosePublisher1 = NetworkTableInstance.getDefault()
       .getStructTopic("Camera1_EstimatedPose", Pose2d.struct).publish();
   StructPublisher<Pose2d> cameraEstimatedPosePublisher2 = NetworkTableInstance.getDefault()
       .getStructTopic("Camera2_EstimatedPose", Pose2d.struct).publish();
-  List<StructPublisher<Pose2d>> cameraEstimatedPosesPublisher = Arrays.asList(cameraEstimatedPosePublisher1, cameraEstimatedPosePublisher2);  
-  
+  List<StructPublisher<Pose2d>> cameraEstimatedPosesPublisher = Arrays.asList(cameraEstimatedPosePublisher1,
+      cameraEstimatedPosePublisher2);
+
   private final NetworkTable table = NetworkTableInstance.getDefault().getTable("VisionDebug");
   private final DoublePublisher yawErrorPub = table.getDoubleTopic("YawErrorDeg").publish();
 
@@ -92,11 +90,12 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
 
   public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-  // SimSwerveDrivetrain simSwerveDrivetrain = new SimSwerveDrivetrain(null, null, null);
+  // SimSwerveDrivetrain simSwerveDrivetrain = new SimSwerveDrivetrain(null, null,
+  // null);
   private final Elevator elevator = new Elevator();
   public static final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
-  private final Intake intake = new Intake();
+  public final Intake intake = new Intake();
   private final Vision vision = new Vision(Vision.camerasFromConfigs(VisionConstants.CONFIGS));
 
   /*
@@ -120,10 +119,14 @@ public class RobotContainer {
                                                                  // (doesn't update robot odometry)
   public static boolean VISION_ROBOT_ODOMETRY_UPDATE = true; // Enable vision odometry updates while driving. Doesn't
                                                              // work without VISION_ODOMETRY_ESTIMATION set to true.
-  public static final boolean SIMULATE_VISION_FAILURES = false; // simulate dropped frames from the camera's 
-  public static final boolean REDUCE_VISION_WEIGHT_WHEN_MOVING = true; // reduce the weight of vision measurements when the robot is moving quickly
-  public static final boolean STRICT_VISION_ORIENTATION_WEIGHTING = true; // high sample weight threshold for orientation updates, essentially meaning no updates when enabled
-  public static final boolean VISUALIZE_REEF_SELECTER_POSITION = true; // publish a pose of the current selected reef position
+  public static final boolean SIMULATE_VISION_FAILURES = false; // simulate dropped frames from the camera's
+  public static final boolean REDUCE_VISION_WEIGHT_WHEN_MOVING = true; // reduce the weight of vision measurements when
+                                                                       // the robot is moving quickly
+  public static final boolean STRICT_VISION_ORIENTATION_WEIGHTING = true; // high sample weight threshold for
+                                                                          // orientation updates, essentially meaning no
+                                                                          // updates when enabled
+  public static final boolean VISUALIZE_REEF_SELECTER_POSITION = true; // publish a pose of the current selected reef
+                                                                       // position
   // endregion FeatureSwitches
 
   public RobotContainer() {
@@ -133,7 +136,8 @@ public class RobotContainer {
     DriverStation.silenceJoystickConnectionWarning(true);
     registerCommands();
     SmartDashboard.putBoolean("Auto Mode Enable", false);
-    // autoChooser = AutoBuilder.buildAutoChooser("P2P_DS_Right_3Piece_ParallelIntake");
+    // autoChooser =
+    // AutoBuilder.buildAutoChooser("P2P_DS_Right_3Piece_ParallelIntake");
     autoChooser = new SendableChooser<>();
     TestAuto.configureAutos(autoChooser, drivetrain);
     SmartDashboard.putData("Auto Mode", autoChooser);
@@ -142,7 +146,7 @@ public class RobotContainer {
     drivetrain.configureShuffleboardCommands();
 
     AprilTags.publishTags(
-      FieldConstants.getAprilTagFieldLayout());
+        FieldConstants.getAprilTagFieldLayout());
 
     // Warmup PathPlanner to avoid Java pauses
     // FollowPathCommand.warmupCommand().schedule();
@@ -156,11 +160,11 @@ public class RobotContainer {
     drivetrain.setDefaultCommand(
         // Drivetrain will execute this command periodically
         drivetrain.applyRequest(() -> drive.withVelocityX(getXSpeed()) // Drive forward with
-                                                                                           // negative Y
-                                                                                           // (forward)
+                                                                       // negative Y
+                                                                       // (forward)
             .withVelocityY(getYSpeed()) // Drive left with negative X (left)
             .withRotationalRate(getRotationSpeed()) // Drive counterclockwise with
-                                                                        // negative X (left)
+                                                    // negative X (left)
         ));
 
     // Idle while the robot is disabled. This ensures the configured
@@ -172,22 +176,21 @@ public class RobotContainer {
     driver.rightBumper().toggleOnTrue(IntakeCommands.intakeCoral(intake));
     // driver.rightBumper().toggleOnTrue(IntakeCommands.toggleIntakeCoral(intake));
     driver.leftBumper()
-        .onTrue(new SequentialCommandGroup(IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel)));
+        .onTrue(new SequentialCommandGroup(IntakeCommands.expelCoral(intake),
+            new ArmPosition(elevator, () -> ArmLevel.Travel)));
     driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
 
-    /* B Button: Auto Score  */
+    /* B Button: Auto Score */
     driver.b().whileTrue(
-      drivetrain.runAutoScore(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake, elevator)
-    ).onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+        drivetrain.runAutoScore(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake,
+            elevator))
+        .onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
 
     driver.back().onTrue(
-      Commands.runOnce(() -> {
-        double angleToResetTo = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? 0 : 180;
-        drivetrain.resetRotation(new Rotation2d(Units.degreesToRadians(angleToResetTo)));
-      }
-      ).ignoringDisable(true));
-
-    
+        Commands.runOnce(() -> {
+          double angleToResetTo = DriverStation.Alliance.Blue.equals(DriverStation.getAlliance().get()) ? 0 : 180;
+          drivetrain.resetRotation(new Rotation2d(Units.degreesToRadians(angleToResetTo)));
+        }).ignoringDisable(true));
 
     SmartDashboard.putBoolean("Algae/High", highAlgae);
     SmartDashboard.putBoolean("Algae/Low", !highAlgae);
@@ -202,7 +205,7 @@ public class RobotContainer {
       SmartDashboard.putBoolean("Algae/Low", !highAlgae);
     }));
     // operator.b().onTrue(new GrabAlgae(elevator, intake, () -> {
-    //   return highAlgae;
+    // return highAlgae;
     // }));
 
     operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
@@ -227,16 +230,16 @@ public class RobotContainer {
         }));
 
     Command climbCommand = new Climb(climber, () -> {
-        return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
-      },
-      () -> operator.back().getAsBoolean(),
-      () -> operator.start().getAsBoolean()
-    );
+      return operator.getRightTriggerAxis() - operator.getLeftTriggerAxis();
+    },
+        () -> operator.back().getAsBoolean(),
+        () -> operator.start().getAsBoolean());
 
     climbCommand.setName("Climb Command");
     SmartDashboard.putData(climbCommand);
 
-    operator.start().and(operator.back()).toggleOnTrue(climbCommand); // left trigger connects the intake, right trigger releases
+    operator.start().and(operator.back()).toggleOnTrue(climbCommand); // left trigger connects the intake, right trigger
+                                                                      // releases
 
     drivetrain.registerTelemetry(logger::telemeterize);
   }
@@ -280,7 +283,8 @@ public class RobotContainer {
             new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
-        Commands.sequence(Commands.waitUntil(intake::hasCoral), new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)).unless(() -> !intake.hasCoral()));
+        Commands.sequence(Commands.waitUntil(intake::hasCoral),
+            new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)).unless(() -> !intake.hasCoral()));
 
     NamedCommands.registerCommand(IntakeCommands.INTAKE_CORAL, IntakeCommands.intakeCoral(intake));
 
@@ -290,12 +294,12 @@ public class RobotContainer {
 
   public void correctOdometry() {
     // if (SIMULATE_VISION_FAILURES){
-    //   int percentageFramesToDrop = 80;
-    //   Random rnd = new Random();
+    // int percentageFramesToDrop = 80;
+    // Random rnd = new Random();
 
-    //   if(rnd.nextInt(100) < percentageFramesToDrop){
-    //     return;
-    //   }
+    // if(rnd.nextInt(100) < percentageFramesToDrop){
+    // return;
+    // }
     // }
 
     List<VisionSample> visionSamples = vision.flushSamples();
@@ -304,43 +308,44 @@ public class RobotContainer {
     for (var sample : visionSamples) {
 
       double thetaStddev = 99999.0;
-      if(STRICT_VISION_ORIENTATION_WEIGHTING) {
-        // if sample weight isn't essentially perfect, don't trust orientation, sample weighting is perfect when disabled
+      if (STRICT_VISION_ORIENTATION_WEIGHTING) {
+        // if sample weight isn't essentially perfect, don't trust orientation, sample
+        // weighting is perfect when disabled
         thetaStddev = sample.weight() > 0.9 ? 10.0 : 99999.0;
       } else {
-        // You will need to TUNE this scalar. A higher value (e.g., 5.0) means less trust.
+        // You will need to TUNE this scalar. A higher value (e.g., 5.0) means less
+        // trust.
         thetaStddev = 1.0 / sample.weight();
       }
-      
+
       drivetrain.addVisionMeasurement(
-        sample.pose(),
-        sample.timestamp(),
-        VecBuilder.fill(0.1 / sample.weight(), 0.1 / sample.weight(), thetaStddev)
-      );
+          sample.pose(),
+          sample.timestamp(),
+          VecBuilder.fill(0.1 / sample.weight(), 0.1 / sample.weight(), thetaStddev));
     }
 
     Pose2d visionPose = null;
     Pose2d odomPose = drivetrain.getState().Pose;
-    for (int i = 0; i < 2; i++){
-      if (i+1 <= visionSamples.size()){
+    for (int i = 0; i < 2; i++) {
+      if (i + 1 <= visionSamples.size()) {
         cameraEstimatedPosesPublisher.get(i).set(visionSamples.get(i).pose());
-        visionPose =  visionSamples.get(i).pose();
+        visionPose = visionSamples.get(i).pose();
       }
     }
-    
-    if (visionPose != null){
+
+    if (visionPose != null) {
       double yawError = yawDiffDegrees(visionPose, odomPose);
       yawErrorPub.set(yawError);
     }
   }
 
-  private double getYSpeed(){
+  private double getYSpeed() {
     double speedMultiplication = 0.6;
-    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);    
+    speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
     return -driver.getLeftX() * speedMultiplication * MaxSpeed;
   }
 
-  private double getXSpeed(){
+  private double getXSpeed() {
     double speedMultiplication = 0.6;
     speedMultiplication += (driver.getLeftTriggerAxis() - driver.getRightTriggerAxis()) * (1 - speedMultiplication);
     return -driver.getLeftY() * speedMultiplication * MaxSpeed;
@@ -354,11 +359,30 @@ public class RobotContainer {
 
   public static double yawDiffDegrees(Pose2d visionPose, Pose2d odomPose) {
     double visionYaw = visionPose.getRotation().getDegrees();
-    double odomYaw   = odomPose.getRotation().getDegrees();
+    double odomYaw = odomPose.getRotation().getDegrees();
     double diff = visionYaw - odomYaw;
 
     // Normalize to [-180, 180]
     diff = ((diff + 180) % 360 + 360) % 360 - 180;
     return diff;
-}
+  }
+
+  public static void updateNT() {
+    var inst = NetworkTableInstance.getDefault();
+    var table = inst.getTable("CommandTracker");
+
+    // Write active commands
+    int i = 0;
+    for (Command cmd : CommandTracker.getRunning()) {
+        table.getEntry("cmd_" + i).setString(cmd.getName());
+        i++;
+    }
+
+    // Clear leftover slots
+    for (int j = i; j < 2; j++) {
+        table.getEntry("cmd_" + j).setString("");
+    }
+
+    table.getEntry("count").setNumber(CommandTracker.getRunning().size());
+  }
 }

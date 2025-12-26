@@ -1,13 +1,13 @@
 {
   "hubs": [
     {
-      "x": 0,
-      "y": 0,
-      "width": 1280,
-      "height": 1392,
+      "x": -8,
+      "y": -8,
+      "width": 2576,
+      "height": 1408,
       "state": {
         "sidebar": {
-          "width": 293,
+          "width": 500,
           "expanded": [
             "/SwervePose",
             "/SwervePose/translation",
@@ -25,12 +25,15 @@
             "/SmartDashboard/Command Scheduler/Names",
             "/SmartDashboard/Intake Subsystem",
             "/SmartDashboard/Elevator",
-            "/SmartDashboard/Elavator",
             "/Commands",
             "/PID_TO_POSE",
             "/DriveState/Pose",
             "/Preferences",
-            "/Preferences/Intake"
+            "/Preferences/Intake",
+            "/SmartDashboard",
+            "/SmartDashboard/Elavator/Mech2d",
+            "/SmartDashboard/Commands",
+            "/CommandTracker"
           ]
         },
         "tabs": {
@@ -175,16 +178,6 @@
               "controlsHeight": 0
             },
             {
-              "type": 5,
-              "title": "Console",
-              "controller": "NT:/AdvantageScopeLogs/AutoPilotCommand",
-              "controllerUUID": "tpqsfemeceu7wxgaxmzodmsbd6enmuec",
-              "renderer": {
-                "highlight": false
-              },
-              "controlsHeight": 0
-            },
-            {
               "type": 9,
               "title": "Swerve",
               "controller": {
@@ -228,7 +221,7 @@
             },
             {
               "type": 10,
-              "title": "SwerveMechanism",
+              "title": "SwerveMech",
               "controller": [
                 {
                   "type": "mechanism",
@@ -265,7 +258,7 @@
             },
             {
               "type": 10,
-              "title": "IntakeMechanism",
+              "title": "IntakeMech",
               "controller": [
                 {
                   "type": "mechanism",
@@ -278,6 +271,32 @@
               "controllerUUID": "pcrik6pprcz8tncp50lo8gx03kx8elns",
               "renderer": null,
               "controlsHeight": 200
+            },
+            {
+              "type": 10,
+              "title": "ElevatorMech",
+              "controller": [
+                {
+                  "type": "mechanism",
+                  "logKey": "NT:/SmartDashboard/Elavator/Mech2d",
+                  "logType": "Mechanism2d",
+                  "visible": true,
+                  "options": {}
+                }
+              ],
+              "controllerUUID": "4wivo916zfzjsca9v23vctp0aiwlf49b",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 5,
+              "title": "AutoPilotLogs",
+              "controller": "NT:/AdvantageScopeLogs/AutoPilotCommand",
+              "controllerUUID": "tpqsfemeceu7wxgaxmzodmsbd6enmuec",
+              "renderer": {
+                "highlight": false
+              },
+              "controlsHeight": 0
             }
           ]
         }

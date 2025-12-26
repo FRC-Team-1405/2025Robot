@@ -37,32 +37,34 @@ public class AutoPilotCommands {
         ReefSelecter rs = RobotContainer.reefSelecter;
 
         // Right
-        Supplier<Command> MoveTo_Reef2       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_2).get(), drivetrain);
-        Supplier<Command> MoveTo_Reef5       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_5).get(), drivetrain);
-        Supplier<Command> MoveTo_Reef4       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_4).get(), drivetrain);
+        Supplier<Command> MoveTo_Reef2       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_2).get(), drivetrain, "MoveTo_Reef2");
+        Supplier<Command> MoveTo_Reef5       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_5).get(), drivetrain, "MoveTo_Reef5");
+        Supplier<Command> MoveTo_Reef4       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_4).get(), drivetrain, "MoveTo_Reef4");
 
         // Left
-        Supplier<Command> MoveTo_Reef11      = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_11).get(), drivetrain);
-        Supplier<Command> MoveTo_Reef9       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_9).get(), drivetrain);
-        Supplier<Command> MoveTo_Reef8       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_8).get(), drivetrain);
+        Supplier<Command> MoveTo_Reef11      = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_11).get(), drivetrain, "MoveTo_Reef11");
+        Supplier<Command> MoveTo_Reef9       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_9).get(), drivetrain, "MoveTo_Reef9");
+        Supplier<Command> MoveTo_Reef8       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_8).get(), drivetrain, "MoveTo_Reef8");
 
         // Center
-        Supplier<Command> MoveTo_Reef12       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_12).get(), drivetrain);
+        Supplier<Command> MoveTo_Reef12       = () -> new AutoPilotCommand(() -> rs.getRobotPositionForCoral(ReefSelecter.Coral.Position_12).get(), drivetrain, "MoveTo_Reef12");
 
         // Feeders
-        Supplier<Command> MoveTo_LeftFeeder                = () -> new AutoPilotCommand(LeftFeeder, drivetrain, Optional.empty(), true);
-        Supplier<Command> MoveTo_LeftFeeder_EntryAngle     = () -> new AutoPilotCommand(LeftFeeder, drivetrain, Optional.of(CCW_30deg.minus(CW_30deg)), true);
+        Supplier<Command> MoveTo_LeftFeeder                = () -> new AutoPilotCommand(LeftFeeder, drivetrain, Optional.empty(), true, "MoveTo_LeftFeeder");
+        Supplier<Command> MoveTo_LeftFeeder_EntryAngle     = () -> new AutoPilotCommand(LeftFeeder, drivetrain, Optional.of(CCW_30deg.minus(CW_30deg)), true, "MoveTo_LeftFeeder_EntryAngle");
 
-        Supplier<Command> MoveTo_RightFeeder                = () -> new AutoPilotCommand(RightFeeder, drivetrain, Optional.empty(), true);
-        Supplier<Command> MoveTo_RightFeeder_EntryAngle     = () -> new AutoPilotCommand(RightFeeder, drivetrain, Optional.of(CW_30deg.plus(CW_30deg)), true);
+        Supplier<Command> MoveTo_RightFeeder                = () -> new AutoPilotCommand(RightFeeder, drivetrain, Optional.empty(), true, "MoveTo_RightFeeder");
+        Supplier<Command> MoveTo_RightFeeder_EntryAngle     = () -> new AutoPilotCommand(RightFeeder, drivetrain, Optional.of(CW_30deg.plus(CW_30deg)), true, "MoveTo_RightFeeder_EntryAngle");
 
         /* Full Autos */
         Command AP_DS_Right_3Piece_WaitIntake = new SequentialCommandGroup(
             new ParallelCommandGroup(
                 MoveTo_Reef2.get()
-                // ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+                ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
             ),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
+
+            // Score first coral
+            // NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
             NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
             
             new ParallelCommandGroup(
@@ -74,13 +76,14 @@ public class AutoPilotCommands {
 
             new ParallelCommandGroup(
                 MoveTo_Reef4.get()
-                // ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+                ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
             ),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
+            // NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
             NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL),
             
-            new ParallelDeadlineGroup(
-                new WaitCommand(2.5),
+            new ParallelCommandGroup(
+                // new ParallelDeadlineGroup(
+                // new WaitCommand(2.5), TODO was breaking simulation, when simulation elevator is fixed readd
                 MoveTo_RightFeeder.get(),
                 NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_HOME)
             ),
@@ -88,9 +91,9 @@ public class AutoPilotCommands {
 
             new ParallelCommandGroup(
                 MoveTo_Reef5.get()
-                // ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
+                ,NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO)
             ),
-            NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
+            // NamedCommands.getCommand(RobotContainer.ELEVATOR_TO_LEVEL_4_AUTO), // todo remove when you fix ap
             NamedCommands.getCommand(RobotContainer.OUTPUT_CORAL)
         );
 

@@ -25,15 +25,11 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
-import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Preferences;
-import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
@@ -127,7 +123,8 @@ public class Elevator extends SubsystemBase {
 
   // private double elevatorPosition = 0.0; // Simulated elevator position in meters
 
-  private MotorSim_Mech motorSim_Mech = new MotorSim_Mech("ElevatorMechanism");
+  private MotorSim_Mech elevator_motorSimMech = new MotorSim_Mech("ElevatorMotorSimMech");
+  private MotorSim_Mech arm_motorSimMech = new MotorSim_Mech("ArmMotorSimMech");
 
   public enum ElevationControl {
     Home, Stopped, Zeroizing, Moving,
@@ -137,9 +134,10 @@ public class Elevator extends SubsystemBase {
   private double position = targetLevel.getposition();
   private StatusSignal<ReverseLimitValue> motorReverseLimit = mainMotor.getReverseLimit();
   private Alert motorTorquewarning = new Alert("Elavator motor is using more power than permiter (possible stall)", AlertType.kWarning);
-  private Mechanism2d mechanism = new Mechanism2d(3, 40);
-  private MechanismRoot2d root = mechanism.getRoot("ElevatorRoot", 1.5, 0);
-  private MechanismLigament2d elavatorLigament = new MechanismLigament2d("Elevator", 0, 90, 6, new Color8Bit(Color.kGray));
+  private Mechanism2d mechanism = new Mechanism2d(3, 44);
+  private static final double ROOT_Y_OFFSET = 4.0;
+  private MechanismRoot2d root = mechanism.getRoot("ElevatorRoot", 1.5, ROOT_Y_OFFSET);
+  private MechanismLigament2d elavatorLigament;
   private Map<ElevationLevel, MechanismLigament2d> levelIndicators = new HashMap<>();
   private Map<ElevationLevel, Color> levelBaseColors = new HashMap<>();
   private MechanismLigament2d armMechanismLigament;
@@ -201,10 +199,9 @@ public class Elevator extends SubsystemBase {
   }
 
   public boolean isArmAtLevel(ArmLevel level) {
-    if (Robot.isSimulation()){
-      return true;
-    }
-    return Math.abs(level.getposition() - armMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+    boolean isWithinTolerance = Math.abs(level.getposition() - armMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+    boolean isStopped = Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
+    return isWithinTolerance && isStopped;
   }
 
   public boolean isAtPosition(){
@@ -212,7 +209,11 @@ public class Elevator extends SubsystemBase {
     //   return true;
     // }
     
-    return Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+    boolean isWithinTolerance = Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+    boolean isStopped = Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
+    // boolean isGreaterThanPosition = mainMotor.getPosition().getValue().in(Rotations) > position; // Prevents overshoot on downward movements
+
+    return isWithinTolerance && isStopped;
   }
 
   private void checkCurrentLimit(){
@@ -224,45 +225,80 @@ public class Elevator extends SubsystemBase {
   }
 
   public Elevator() {
+    setupMotors();
     simulationInit();
     initElevatorMechanism();
+  }
 
-    TalonFXConfiguration cfg = new TalonFXConfiguration();
+  private void setupMotors() {
+    //
+    // Elevator Motor Configuration
+    //
+
+    TalonFXConfiguration elevator_cfg = new TalonFXConfiguration();
 
     /* Configure gear ratio */
-    FeedbackConfigs fdb = cfg.Feedback;
-    fdb.SensorToMechanismRatio = 12.8; // 12.8 rotor rotations per mechanism rotation
+    FeedbackConfigs elevator_fdb = elevator_cfg.Feedback;
+    elevator_fdb.SensorToMechanismRatio = 12.8; // 12.8 rotor rotations per mechanism rotation
 
      /* Configure Motion Magic */
-    MotionMagicConfigs mm = cfg.MotionMagic;
-    mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(5)) // 5 (mechanism) rotations per second cruise
-      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(10)) // Take approximately 0.5 seconds to reach max vel
+    MotionMagicConfigs elevator_mm = elevator_cfg.MotionMagic;
+    elevator_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(50)) // 5 (mechanism) rotations per second cruise
+      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(30)); // Take approximately 0.5 seconds to reach max vel
       // Take approximately 0.1 seconds to reach max accel 
-      .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
+      // .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
 
-    Slot0Configs slot0 = cfg.Slot0;
-    slot0.kS = 0.25; // Add 0.25 V output to overcome static friction
-    slot0.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
-    slot0.kA = 0.01; // An acceleration of 1 rps/s requires 0.01 V output
-    slot0.kP = 60; // A position error of 0.2 rotations results in 12 V output
-    slot0.kI = 0; // No output for integrated error
-    slot0.kD = 0.5; // A velocity error of 1 rps results in 0.5 V output
+    Slot0Configs elevator_slot0 = elevator_cfg.Slot0;
+    elevator_slot0.kS = 0.25;
+    elevator_slot0.kV = 0.0;
+    elevator_slot0.kA = 0.0;
+    elevator_slot0.kP = 60;
+    elevator_slot0.kI = 0;
+    elevator_slot0.kD = 5;
 
-    StatusCode status = StatusCode.StatusCodeNotInitialized;
+    StatusCode elevator_status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      status = mainMotor.getConfigurator().apply(cfg);
-      if (status.isOK()) break;
+      elevator_status = mainMotor.getConfigurator().apply(elevator_cfg);
+      if (elevator_status.isOK()) break;
     }
-    if (!status.isOK()) {
-      System.out.println("Could not configure device. Error: " + status.toString());
+    if (!elevator_status.isOK()) {
+      System.out.println("Could not configure Elevator. Error: " + elevator_status.toString());
     }
 
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, false));
 
-    MechanismRoot2d root = mechanism.getRoot("Root", 2, 0);
-    elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90, 10, new Color8Bit(Color.kYellow)));
-    armMechanismLigament = elavatorLigament.append( new MechanismLigament2d("Arm", 0.5, 90, 10, new Color8Bit(Color.kDarkGreen)));
-    SmartDashboard.putData("Elavator/Mech2d", mechanism);
+    //
+    // Arm Motor Configuration
+    //
+
+    TalonFXConfiguration arm_cfg = new TalonFXConfiguration();
+
+    /* Configure gear ratio */
+    FeedbackConfigs arm_fdb = arm_cfg.Feedback;
+    arm_fdb.SensorToMechanismRatio = 12.8; // x rotor rotations per mechanism rotation
+
+     /* Configure Motion Magic */
+    MotionMagicConfigs arm_mm = arm_cfg.MotionMagic;
+    arm_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(50))
+      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(30));
+      // .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
+
+    Slot0Configs arm_slot0 = arm_cfg.Slot0;
+    arm_slot0.kS = 0.25;
+    arm_slot0.kV = 0.0;
+    arm_slot0.kA = 0.0;
+    arm_slot0.kP = 30;
+    arm_slot0.kI = 0;
+    arm_slot0.kD = 0;
+
+    StatusCode arm_status = StatusCode.StatusCodeNotInitialized;
+    for (int i = 0; i < 5; ++i) {
+      arm_status = armMotor.getConfigurator().apply(arm_cfg);
+      if (arm_status.isOK()) break;
+    }
+    if (!arm_status.isOK()) {
+      System.out.println("Could not configure Arm. Error: " + arm_status.toString());
+    }
   }
 
   @Override
@@ -299,37 +335,17 @@ public class Elevator extends SubsystemBase {
 
     updateElevatorMechanism();
 
-    System.out.println(String.format("targetState: %s, main motor position: %.1f", targetState, mainMotor.getPosition().getValue().in(Rotations)));
-    motorSim_Mech.update(mainMotor.getPosition(), mainMotor.getVelocity());
+    // System.out.println(String.format("Elevator targetState: %s, position: %.1f, velocity: %.2f", targetState, mainMotor.getPosition().getValue().in(Rotations), Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond))));
+    // System.out.println(String.format("Arm position: %.1f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
+    elevator_motorSimMech.update(mainMotor.getPosition(), mainMotor.getVelocity());
+    arm_motorSimMech.update(armMotor.getPosition(), armMotor.getVelocity());
     SmartDashboard.putNumber("Elevator/Position", getElevatorPos());
     SmartDashboard.putNumber("Elevator/Arm Position", getArmPosition());
   }
 
-  // @Override
-  // public void simulationPeriodic() {
-  //   // Update the motor simulation state based on the main motor's control input
-  //   mainMotorSim.setSupplyVoltage(mainMotor.getSimState().getMotorVoltage());
-  //   slaveMotorSim.setInputVoltage(slaveMotor.getSimState().getMotorVoltage());
-
-  //   // Simulate the motor voltage
-  //   double motorVoltage = mainMotorSim.getMotorVoltage();
-
-  //   // Update the elevator simulation
-  //   elevatorSim.setInput(motorVoltage);
-  //   elevatorSim.update(0.02); // 20ms simulation step
-
-  //   // Update the simulated elevator position
-  //   elevatorPosition = elevatorSim.getPositionMeters();
-
-  //   // Simulate encoder position
-  //   // Convert elevator position (meters) to motor rotor position (rotations)
-  //   double rotorPositionRotations = elevatorPosition / (2 * Math.PI * kElevatorDrumRadius) * kElevatorGearRatio;
-  //   mainMotorSim.setRawRotorPosition(rotorPositionRotations);
-  //   slaveMotorSim.setRawRotorPosition(rotorPositionRotations);
-  // }
-
   public void simulationInit() {
     PhysicsSim.getInstance().addTalonFX(mainMotor, 0.001);
+    PhysicsSim.getInstance().addTalonFX(armMotor, 0.001);
   }
 
   @Override
@@ -339,6 +355,7 @@ public class Elevator extends SubsystemBase {
 
   private MechanismLigament2d createLevelIndicator(String name, double position, Color color) {
     // Create an invisible/neutral vertical anchor to position the ticks at 'position' along the root
+    // offset anchor by ROOT_Y_OFFSET so ticks line up with the visualized ligament (which is shifted)
     MechanismLigament2d anchor = new MechanismLigament2d(name + "_anchor", position, 90, 0.1, new Color8Bit(Color.kGray));
     root.append(anchor);
     // small ticks left/right to look like ruler markings
@@ -351,11 +368,16 @@ public class Elevator extends SubsystemBase {
   }
 
   private void initElevatorMechanism() {
+    // Use the class-level root (already created with ROOT_Y_OFFSET).
+    // Initialize elevator ligament so 0 maps to ROOT_Y_OFFSET and allow negative overshoot to be visible.
+    elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90, 10, new Color8Bit(Color.kYellow)));
+    // Create arm ligament attached to the elevator ligament. Angle maps to ArmLevel values (assumed degrees).
+    armMechanismLigament = elavatorLigament.append(new MechanismLigament2d("Arm", 1.5, (float)ArmLevel.Home.getposition() + 90, 10, new Color8Bit(Color.kDarkGreen)));
+
     // Add the elevator spine and the moving ligament
     // spine gives context for the ruler; elevator ligament shows current position
     // MechanismLigament2d spine = new MechanismLigament2d("Spine", 40.0, 90, 3, new Color8Bit(Color.kBlack));
     // root.append(spine);
-    root.append(elavatorLigament);
 
     // create level indicators (ticks) with distinct colors
     levelIndicators.put(ElevationLevel.Home, createLevelIndicator("Home", ElevationLevel.Home.getposition(), Color.kGreen));
@@ -372,6 +394,8 @@ public class Elevator extends SubsystemBase {
     levelBaseColors.put(ElevationLevel.Inverted_Low, Color.kPurple);
     levelIndicators.put(ElevationLevel.Level_4_Auto, createLevelIndicator("Level_4_Auto", ElevationLevel.Level_4_Auto.getposition(), Color.kCyan));
     levelBaseColors.put(ElevationLevel.Level_4_Auto, Color.kCyan);
+
+    SmartDashboard.putData("Elavator/Mech2d", mechanism);
   }
 
   private void updateElevatorMechanism() {
@@ -389,6 +413,24 @@ public class Elevator extends SubsystemBase {
         tick.setColor(new Color8Bit(Color.kGreen));
       } else {
         tick.setColor(new Color8Bit(base));
+      }
+    }
+    
+    // Update arm visual: map arm position/level to ligament angle.
+    // Prefer using the real motor position (in degrees) if available; otherwise use configured levels.
+    if (armMechanismLigament != null) {
+      double armAngleDeg = armMotor.getPosition().getValue().in(Rotations) + 90;
+      // If motor position is zero/invalid in simulation, fall back to configured level value
+      // if (Double.isNaN(armAngleDeg) || Math.abs(armAngleDeg) < 1e-6) {
+      //   armAngleDeg = ArmLevel.Home.getposition() + 90;
+      // }
+      // If your ArmLevel values are already degrees, you can directly set the angle.
+      armMechanismLigament.setAngle(armAngleDeg);
+
+      if (Robot.m_robotContainer.intake.hasCoral()){
+        armMechanismLigament.setColor(new Color8Bit(Color.kWhite));
+      } else {
+        armMechanismLigament.setColor(new Color8Bit(Color.kDarkGreen));
       }
     }
   }

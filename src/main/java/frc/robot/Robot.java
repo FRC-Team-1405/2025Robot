@@ -14,7 +14,7 @@ import frc.robot.lib.Tracer;
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
-  private final RobotContainer m_robotContainer;
+  public static RobotContainer m_robotContainer;
 
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -35,6 +35,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_robotContainer.correctOdometry();
+    RobotContainer.updateNT();
   }
 
   @Override

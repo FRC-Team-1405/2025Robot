@@ -7,16 +7,16 @@ package frc.robot.commands;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-import javax.lang.model.util.ElementScanner14;
-
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.lib.FinneyCommand;
+import frc.robot.lib.FinneyLogger;
 import frc.robot.subsystems.Climber;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class Climb extends Command {
+public class Climb extends FinneyCommand {
+  private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
+
   private Climber climber;
   private DoubleSupplier distance;
   private BooleanSupplier open;
@@ -32,12 +32,17 @@ public class Climb extends Command {
     myServo = new Servo(9);
     myServo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
     addRequirements(climber);
+
+    this.setName("Climb");
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    super.initialize();
     myServo.set(0.0);
+
+    fLogger.log("Initializing Climb");
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -58,10 +63,12 @@ public class Climb extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    super.end(interrupted);
     if (interrupted)
       climber.stop();
     myServo.set(1.0);
 
+    fLogger.log("Ending Climb, interrupted: %s", interrupted);
   }
 
   // Returns true when the command should end.

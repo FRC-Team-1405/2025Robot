@@ -26,11 +26,14 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.AllianceSymmetry;
+import frc.robot.lib.FinneyCommand;
+import frc.robot.lib.FinneyLogger;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
-public class PidToPoseCommand extends Command {
+public class PidToPoseCommand extends FinneyCommand {
+    private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
+
     private static final TrapezoidProfile.Constraints DEFAULT_CONSTRAINTS = new TrapezoidProfile.Constraints(4, 5);
     private static final TrapezoidProfile.Constraints REEF_DEFAULT_CONSTRAINTS = new TrapezoidProfile.Constraints(5, 6);
 
@@ -137,10 +140,13 @@ public class PidToPoseCommand extends Command {
         SmartDashboard.putData("P2P_LoopVectorMechanism", loopMechanism);
 
         addRequirements(drive);
+
+        this.setName("PidToPose");
     }
 
     @Override
     public void initialize() {
+        super.initialize();
         Pose2d symmetricPose = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
                 ? targetPose.get()
                 : AllianceSymmetry.flip(targetPose.get());
@@ -197,6 +203,10 @@ public class PidToPoseCommand extends Command {
         }
 
         commandLog.append("Initialized: " + getName());
+
+        fLogger.log("Initializing %s to target Pose (x: %.1f, y: %.1f, rot: %.1f deg)",
+            getName(),
+            poseToMoveTo.getX(), poseToMoveTo.getY(), poseToMoveTo.getRotation().getDegrees());
     }
 
     @Override
@@ -274,6 +284,7 @@ public class PidToPoseCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        super.end(interrupted);
         //TODO modify command to optionally apply "brakes" where it not only cuts velocity to wheels but moves the wheels into brake formation making the robot harder to move
         if (endStateVelocity == 0) {
             log("KILLING DRIVE VELOCITY");
@@ -292,6 +303,12 @@ public class PidToPoseCommand extends Command {
                 ", End state velocity: ( x: " + drive.getState().Speeds.vxMetersPerSecond + ", y: " + drive.getState().Speeds.vyMetersPerSecond + " )");
 
         commandLog.append("Finished (interrupt: " + (interrupted ? "Y" : "N") + "): " + getName());
+
+        fLogger.log("%s ended, final Pose (x: %.1f, y: %.1f, rot: %.1f deg), target Pose (x: %.1f, y: %.1f, rot: %.1f deg), interrupted: %s",
+        getName(),
+        drive.getState().Pose.getX(), drive.getState().Pose.getY(), drive.getState().Pose.getRotation().getDegrees(),
+        poseToMoveTo.getX(), poseToMoveTo.getY(), poseToMoveTo.getRotation().getDegrees(),
+        interrupted);
     }
 
     public static double average(Double... values) {
@@ -307,7 +324,7 @@ public class PidToPoseCommand extends Command {
     @Override
     public String getName() {
         String instanceSpecificValue = commandName == null ? formatPose(targetPose.get()) : commandName;
-        return "PidToPoseCommand(" + instanceSpecificValue + ")";
+        return "PidToPose(" + instanceSpecificValue + ")";
     }
 
     private String formatPose(Pose2d pose) {

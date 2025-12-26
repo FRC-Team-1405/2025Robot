@@ -26,6 +26,8 @@ public class MoveCoral extends SequentialCommandGroup {
     addCommands(new ArmPosition(elevator, () -> ArmLevel.Travel));
     addCommands(new MoveElevator(elevator, level));
     addCommands(new ArmPosition(elevator, this::armLevel));
+
+    this.setName("MoveCoral");
   }
 
   private ArmLevel armLevel() {

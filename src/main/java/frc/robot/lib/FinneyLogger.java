@@ -24,4 +24,10 @@ public class FinneyLogger {
         System.out.println(message);
         logEntry.setString(message);
     }
+
+    // Overloaded log method for formatted messages
+    public void log(String format, Object... args) {
+        String message = String.format(format, args);
+        log(message);
+    }
 }

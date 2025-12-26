@@ -7,11 +7,14 @@ package frc.robot.commands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.lib.FinneyCommand;
 import frc.robot.subsystems.Elevator;
+import frc.robot.lib.FinneyLogger;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class MoveElevator extends Command {
+public class MoveElevator extends FinneyCommand {
+  private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
+
   private Elevator elavator;
   private Supplier<Elevator.ElevationLevel> level;
   /** Creates a new PlaceCoral. */
@@ -23,14 +26,16 @@ public class MoveElevator extends Command {
     this.level = level;
 
     addRequirements(elavator);
-    // Use addRequirements() here to declare subsystem dependencies.
 
+    this.setName("MoveElevator");
   }
 
   // Tell the motor where to go
   @Override
   public void initialize() {
-      elavator.setLevel(level.get());
+    super.initialize();
+    elavator.setLevel(level.get());
+    fLogger.log("Initializing MoveElevator to level: " + level.get().toString());
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -40,7 +45,9 @@ public class MoveElevator extends Command {
   // Stops if interrupted
   @Override
   public void end(boolean interrupted) {
+    super.end(interrupted);
     elavator.stopElevator();
+    fLogger.log("Ending MoveElevator at level %s with position %.1f, interrupted: %s", level.get().toString(), elavator.getElevatorPos(), interrupted);
   }
 
   // Checks motor positoin and stops the elevator

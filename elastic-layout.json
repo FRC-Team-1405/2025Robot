@@ -89,13 +89,13 @@
           },
           {
             "title": "Algae",
-            "x": 1088.0,
-            "y": 448.0,
-            "width": 256.0,
-            "height": 256.0,
+            "x": 1152.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 192.0,
             "type": "List Layout",
             "properties": {
-              "label_position": "LEFT"
+              "label_position": "TOP"
             },
             "children": [
               {
@@ -141,7 +141,7 @@
             "x": 1280.0,
             "y": 0.0,
             "width": 256.0,
-            "height": 320.0,
+            "height": 640.0,
             "type": "Alerts",
             "properties": {
               "topic": "/SmartDashboard/Alerts",
@@ -605,7 +605,7 @@
             "title": "Auto Mode Enable",
             "x": 0.0,
             "y": 0.0,
-            "width": 192.0,
+            "width": 128.0,
             "height": 128.0,
             "type": "Toggle Button",
             "properties": {
@@ -1149,6 +1149,31 @@
               "max_value": 1.0,
               "divisions": 5,
               "update_continuously": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Commands",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "ArmPosition",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Commands/ArmPosition/running",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           }
         ]

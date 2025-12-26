@@ -29,13 +29,13 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.AllianceSymmetry;
+import frc.robot.lib.FinneyCommand;
 import frc.robot.lib.FinneyLogger;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AutoPilotCommand extends Command {
+public class AutoPilotCommand extends FinneyCommand {
   private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
 
   // Publishes AP's target position
@@ -56,13 +56,14 @@ public class AutoPilotCommand extends Command {
 
   public static final Autopilot kAutopilot = new Autopilot(kProfile);
 
-    private APTarget m_target;
-    private final Supplier<Pose2d> m_targetSupplier;
+  private APTarget m_target;
+  private final Supplier<Pose2d> m_targetSupplier;
   private final CommandSwerveDrivetrain m_drivetrain;
   private final Optional<Rotation2d> m_entryAngle;
   private final boolean m_flipPoseForAlliance;
   private double startingDistanceFromTarget;
   private Pose2d startingPosition;
+  private final String commandName;
 
   private final ProfiledPIDController m_thetaController = new ProfiledPIDController(
     2.0, 0.0, 0.0, // PID gains
@@ -75,24 +76,26 @@ public class AutoPilotCommand extends Command {
       .withHeadingPID(2, 0, 0); /* tune this for your robot! */
 
 
-  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain) {
-    this(target, drivetrain, Optional.empty());
+  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, String commandName) {
+    this(target, drivetrain, Optional.empty(), false, commandName);
   }
 
-  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, Optional<Rotation2d> entryAngle) {
-    this(target, drivetrain, entryAngle, false);
+  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, Optional<Rotation2d> entryAngle, String commandName) {
+    this(target, drivetrain, entryAngle, false, commandName);
   }
 
-  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, Optional<Rotation2d> entryAngle, boolean flipPoseForAlliance) {
+  public AutoPilotCommand(Supplier<Pose2d> target, CommandSwerveDrivetrain drivetrain, Optional<Rotation2d> entryAngle, boolean flipPoseForAlliance, String commandName) {
     m_targetSupplier = target;
     m_drivetrain = drivetrain;
     m_entryAngle = entryAngle;
     m_flipPoseForAlliance = flipPoseForAlliance;
+    this.commandName = commandName;
     addRequirements(drivetrain);
   }
 
   @Override
   public void initialize() {
+    super.initialize();
     /* no-op */
     if (m_flipPoseForAlliance && DriverStation.Alliance.Red.equals(DriverStation.getAlliance().get())) {
       // flip pose for red alliance
@@ -106,6 +109,10 @@ public class AutoPilotCommand extends Command {
     startingPosition = m_drivetrain.getState().Pose;
 
     m_thetaController.reset(startingPosition.getRotation().getRadians());
+
+    fLogger.log("Initializing %s to target Pose (x: %.1f, y: %.1f, rot: %.1f deg)",
+      getName(),
+      m_target.getReference().getX(), m_target.getReference().getY(), m_target.getReference().getRotation().getDegrees());
   }
 
   @Override
@@ -158,7 +165,7 @@ public class AutoPilotCommand extends Command {
 
       // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), thetaOutput)));
       
-      fLogger.log(String.format("vx: %.3f, vy: %.3f, thetaOutput: %.3f, rotationDifference(deg): %.2f", out.vx().baseUnitMagnitude(), out.vy().baseUnitMagnitude(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees())));
+      fLogger.log("vx: %.3f, vy: %.3f, thetaOutput: %.3f, rotationDifference(deg): %.2f", out.vx().baseUnitMagnitude(), out.vy().baseUnitMagnitude(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees()));
       // System.out.println("percentageToTarget: +60%");
       m_drivetrain.setControl(applyRobotSpeeds.withSpeeds(outRobotRelativeSpeeds));
     } else if(0.2 < getPercentageOfDistanceToTarget()){
@@ -171,8 +178,7 @@ public class AutoPilotCommand extends Command {
       // Beginning of motion towards target, don't start rotation yet
       // to allow for movement away from walls before rotation begins.
 
-      // System.out.println(String.format("percentageToTarget: +0%, out.vx: %s, out.vy: %s", out.vx(), out.vy()));
-      // drivetrain.setControl(pidToPose_FieldSpeeds.withSpeeds(new ChassisSpeeds(veloX.magnitude(), veloY.magnitude(), 0)));
+      // fLogger.log("vx: %.3f, vy: %.3f, thetaOutput: %.3f, rotationDifference(deg): %.2f", out.vx().baseUnitMagnitude(), out.vy().baseUnitMagnitude(), thetaOutput, (m_target.getReference().getRotation().getDegrees() - pose.getRotation().getDegrees()));
       m_drivetrain.setControl(m_request
         .withVelocityX(out.vx())
         .withVelocityY(out.vy())
@@ -182,20 +188,33 @@ public class AutoPilotCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    // System.out.println(String.format("Angle Difference: %.1f, Target angle: %.1f, Current Angle: %.1f",
+    // SystfLoggerem.out.println(String.format("Angle Difference: %.1f, Target angle: %.1f, Current Angle: %.1f",
     //     m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees(),
     //     m_target.getReference().getRotation().getDegrees(), m_drivetrain.getState().Pose.getRotation().getDegrees()));
-    fLogger.log(String.format("Location Difference: %.1f, Angle Difference: %.1f", m_target.getReference().getTranslation().getDistance(m_drivetrain.getState().Pose.getTranslation()), m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees()));
+    // .log(String.format("Location Difference: %.1f, Angle Difference: %.1f", m_target.getReference().getTranslation().getDistance(m_drivetrain.getState().Pose.getTranslation()), m_target.getReference().getRotation().minus(m_drivetrain.getState().Pose.getRotation()).getDegrees()));
     return kAutopilot.atTarget(m_drivetrain.getState().Pose, m_target);
   }
 
   @Override
   public void end(boolean interrupted) {
+    super.end(interrupted);
     m_drivetrain.setControl(m_request
         .withVelocityX(0)
         .withVelocityY(0)
         .withTargetDirection(m_drivetrain.getState().Pose.getRotation()));
+
+    fLogger.log("%s ended, final Pose (x: %.1f, y: %.1f, rot: %.1f deg), target Pose (x: %.1f, y: %.1f, rot: %.1f deg), interrupted: %s",
+        getName(),
+        m_drivetrain.getState().Pose.getX(), m_drivetrain.getState().Pose.getY(), m_drivetrain.getState().Pose.getRotation().getDegrees(),
+        m_target.getReference().getX(), m_target.getReference().getY(), m_target.getReference().getRotation().getDegrees(),
+        interrupted);
   }
+
+  @Override
+    public String getName() {
+        String instanceSpecificValue = commandName;
+        return "AutoPilot(" + instanceSpecificValue + ")";
+    }
 
   public double getDistanceToTarget(){
     Pose2d currentPose = m_drivetrain.getState().Pose;

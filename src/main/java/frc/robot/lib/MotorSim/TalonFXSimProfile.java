@@ -28,7 +28,7 @@ class TalonFXSimProfile extends SimProfile {
      */
     public TalonFXSimProfile(final TalonFX talonFX, final double rotorInertia) {
         this._talonFXSim = talonFX.getSimState();
-        var gearbox = DCMotor.getKrakenX60Foc(1);
+        DCMotor gearbox = DCMotor.getKrakenX60Foc(1);
         this._motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(gearbox, rotorInertia, 1.0), gearbox);
     }
  
