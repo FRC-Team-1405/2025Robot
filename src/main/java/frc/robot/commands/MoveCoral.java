@@ -4,8 +4,12 @@
 
 package frc.robot.commands;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Elevator.ArmLevel;
@@ -23,9 +27,31 @@ public class MoveCoral extends SequentialCommandGroup {
 
     addRequirements(elevator);
     // addCommands(IntakeCommands.stopIntake(intake)); TODO determine how to add this back in without error: IllegalArgumentException: Multiple commands in a parallel composition cannot require the same subsystems
-    addCommands(new ArmPosition(elevator, () -> ArmLevel.Travel));
-    addCommands(new MoveElevator(elevator, level));
-    addCommands(new ArmPosition(elevator, this::armLevel));
+    
+    BooleanSupplier alreadyAtLevel = () -> elevator.isAtLevel(level.get());
+
+    // Commands to run ONLY if we are NOT already at the target level
+    Command moveToLevelSequence =
+        new SequentialCommandGroup(
+            new ArmPosition(elevator, () -> ArmLevel.Travel),
+            new MoveElevator(elevator, level)
+        );
+
+    // Conditional: skip the above if already at level
+    Command conditionalMove =
+        new ConditionalCommand(
+            new InstantCommand(),   // If true: do nothing
+            moveToLevelSequence,    // If false: run the sequence
+            alreadyAtLevel
+        );
+
+    Command finalArmMove = new ArmPosition(elevator, this::armLevel);
+
+    // Build the full command sequence
+    addCommands(
+        conditionalMove,
+        finalArmMove
+    );
 
     this.setName("MoveCoral");
   }

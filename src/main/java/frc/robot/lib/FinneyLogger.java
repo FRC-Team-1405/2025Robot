@@ -17,6 +17,7 @@ public class FinneyLogger {
     // Constructor takes a string to determine the log entry key
     public FinneyLogger(String entryKey) {
         this.logEntry = logTable.getEntry(entryKey);
+        log("loggerInit");
     }
 
     // Logs a message to the specific log entry

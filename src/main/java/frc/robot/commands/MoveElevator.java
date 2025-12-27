@@ -15,17 +15,17 @@ import frc.robot.lib.FinneyLogger;
 public class MoveElevator extends FinneyCommand {
   private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
 
-  private Elevator elavator;
+  private Elevator elevator;
   private Supplier<Elevator.ElevationLevel> level;
   /** Creates a new PlaceCoral. */
-  public MoveElevator( Elevator elavator, Supplier<Elevator.ElevationLevel> level) {
+  public MoveElevator( Elevator elevator, Supplier<Elevator.ElevationLevel> level) {
     // Epilogue.bind(this); // Starts automatic logging
     DataLogManager.start(); // Optional: saves logs to disk
 
-    this.elavator = elavator;
+    this.elevator = elevator;
     this.level = level;
 
-    addRequirements(elavator);
+    addRequirements(elevator);
 
     this.setName("MoveElevator");
   }
@@ -34,7 +34,7 @@ public class MoveElevator extends FinneyCommand {
   @Override
   public void initialize() {
     super.initialize();
-    elavator.setLevel(level.get());
+    elevator.setLevel(level.get());
     fLogger.log("Initializing MoveElevator to level: " + level.get().toString());
   }
 
@@ -46,13 +46,13 @@ public class MoveElevator extends FinneyCommand {
   @Override
   public void end(boolean interrupted) {
     super.end(interrupted);
-    elavator.stopElevator();
-    fLogger.log("Ending MoveElevator at level %s with position %.1f, interrupted: %s", level.get().toString(), elavator.getElevatorPos(), interrupted);
+    elevator.stopElevator();
+    fLogger.log("Ending MoveElevator at level %s with position %.1f, interrupted: %s", level.get().toString(), elevator.getElevatorPos(), interrupted);
   }
 
   // Checks motor positoin and stops the elevator
   @Override
   public boolean isFinished() {
-    return elavator.isAtPosition();
+    return elevator.isAtPosition(level.get().getposition());
   }
 }

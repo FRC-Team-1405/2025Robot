@@ -34,8 +34,8 @@ public final class Constants {
   }
 
   public static class ElavationConstants{
-    public static final double POSITIONACCURACY = 0.1;
-    public static final double ELEVATOR_POSITION_ACCURACY = 0.5;
+    public static final double ARM_POSITION_ACCURACY = 0.005;
+    public static final double ELEVATOR_POSITION_ACCURACY = 0.2;
     public static final double CURRENTLIMIT = 70.0;
   }
 

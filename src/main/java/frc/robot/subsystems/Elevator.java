@@ -53,12 +53,22 @@ public class Elevator extends SubsystemBase {
   private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
 
   public enum ElevationLevel {
-    Home(0.0), Level_1(0.0), Level_2(6.5), Level_3(18.0), Level_4(36.5), Inverted_Low(12.6), Level_4_Auto(39.3);
+    // Home(0.0), Level_1(0.0), Level_2(6.5), Level_3(18.0), Level_4(36.5), Inverted_Low(12.6), Level_4_Auto(39.3); 1:1 gear ratio
+
+    // Gear ratio of 7.75
+    Home(0.0),
+    Level_1(0.0),
+    Level_2(0.839),
+    Level_3(2.323),
+    Level_4(5.071),
+    Inverted_Low(1.626),
+    Level_4_Auto(5.071);
+
 
     private double pos;
     private ElevationLevel(Double pos) {
-      Preferences.initDouble("Elavator/Position/" + this.name(), pos);
-      this.pos = Preferences.getDouble("Elavator/Position/" + this.name(), pos);
+      Preferences.initDouble("Elevator/Position/" + this.name(), pos);
+      this.pos = Preferences.getDouble("Elevator/Position/" + this.name(), pos);
     }
 
     public double getposition(){
@@ -67,17 +77,33 @@ public class Elevator extends SubsystemBase {
   };
 
   public enum ArmLevel {
-    Home(0.0), 
-    Travel(3.5), 
-    Low_Score(0.0), 
-    Middle_Score(3.0), 
-    High_Score(7.5),
-    Max_Value(30.8),
-    Inverted_Low(27.0),
-    Climb(15.0),
-    Algae(20.0),
-    Algae_Output(20.0),
-    High_Score_Auto(9.0);
+    // gear ratio of 1:1
+    // Home(0.0), 
+    // Travel(3.5), 
+    // Low_Score(0.0), 
+    // Middle_Score(3.0), 
+    // High_Score(7.5),
+    // Max_Value(30.8),
+    // Inverted_Low(27.0),
+    // Climb(15.0),
+    // Algae(20.0),
+    // Algae_Output(20.0),
+    // High_Score_Auto(9.0);
+
+    // Gear ratio of 61.2
+    Home(0.0),
+    Travel(0.0341),
+    Low_Score(0.0),
+    Middle_Score(0.0292),
+    High_Score(0.0731),
+    Max_Value(0.3000),
+    Inverted_Low(0.2630),
+    Climb(0.1461),
+    Algae(0.1948),
+    Algae_Output(0.1948),
+    High_Score_Auto(0.0877);
+
+
 
     private double pos;
     private ArmLevel(Double pos) {
@@ -139,11 +165,11 @@ public class Elevator extends SubsystemBase {
   private ElevationLevel targetLevel = ElevationLevel.Home;
   private double position = targetLevel.getposition();
   private StatusSignal<ReverseLimitValue> motorReverseLimit = mainMotor.getReverseLimit();
-  private Alert motorTorquewarning = new Alert("Elavator motor is using more power than permiter (possible stall)", AlertType.kWarning);
-  private Mechanism2d mechanism = new Mechanism2d(3, 44);
+  private Alert motorTorquewarning = new Alert("Elevator motor is using more power than permiter (possible stall)", AlertType.kWarning);
+  private Mechanism2d mechanism = new Mechanism2d(3, ElevationLevel.Level_4_Auto.getposition() + ROOT_Y_OFFSET);
   private static final double ROOT_Y_OFFSET = 4.0;
   private MechanismRoot2d root = mechanism.getRoot("ElevatorRoot", 1.5, ROOT_Y_OFFSET);
-  private MechanismLigament2d elavatorLigament;
+  private MechanismLigament2d elevatorLigament;
   private Map<ElevationLevel, MechanismLigament2d> levelIndicators = new HashMap<>();
   private Map<ElevationLevel, Color> levelBaseColors = new HashMap<>();
   private MechanismLigament2d armMechanismLigament;
@@ -167,7 +193,6 @@ public class Elevator extends SubsystemBase {
 
   public double getArmPosition(){
    return armMotor.getPosition().getValue().in(Rotations);
-
   }
 
   public void moveTo(double position) {
@@ -199,7 +224,7 @@ public class Elevator extends SubsystemBase {
     fLogger.log("Stop Elevator called");
 
     // hold current elevator position, set(0) or stopMotor() doesn't hold position
-    mainMotor.setControl(new PositionVoltage(mainMotor.getPosition().getValue()));
+    // mainMotor.setControl(new PositionVoltage(mainMotor.getPosition().getValue()));
   }
 
   public void stopArm(){
@@ -212,23 +237,24 @@ public class Elevator extends SubsystemBase {
   }
 
   public boolean isArmAtLevel(ArmLevel level) {
-    boolean isWithinTolerance = Math.abs(level.getposition() - armMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+    boolean isWithinTolerance = Math.abs(level.getposition() - armMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.ARM_POSITION_ACCURACY;
     boolean isStopped = Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
     return isWithinTolerance && isStopped;
   }
 
-  public boolean isAtPosition(){
-    // if (Robot.isSimulation()){
-    //   return true;
-    // }
-    
+  public boolean isAtPosition(double position){
     boolean isWithinTolerance = Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.ELEVATOR_POSITION_ACCURACY;
     boolean isStopped = Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
     // boolean isGreaterThanPosition = mainMotor.getPosition().getValue().in(Rotations) > position; // Prevents overshoot on downward movements
 
     fLogger.log("isWithinTolerance: %s (%.1f), isStopped: %s (%.1f)", isWithinTolerance, Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)), isStopped, Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)));
+    fLogger.log("elevator target position: %.2f, current position: %.2f", position, mainMotor.getPosition().getValue().in(Rotations));
 
     return isWithinTolerance && isStopped;
+  }
+
+  public boolean isAtLevel(ElevationLevel level) {
+    return isAtPosition(level.getposition());
   }
 
   private void checkCurrentLimit(){
@@ -255,23 +281,23 @@ public class Elevator extends SubsystemBase {
 
     /* Configure gear ratio */
     FeedbackConfigs elevator_fdb = elevator_cfg.Feedback;
-    elevator_fdb.SensorToMechanismRatio = 1; // 12.8 rotor rotations per mechanism rotation
+    elevator_fdb.SensorToMechanismRatio = 7.75; // x rotor rotations per mechanism rotation
 
      /* Configure Motion Magic */
     MotionMagicConfigs elevator_mm = elevator_cfg.MotionMagic;
-    elevator_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(1)) // 5 (mechanism) rotations per second cruise
-      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(1)); // Take approximately 0.5 seconds to reach max vel
+    elevator_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(10)) // 5 (mechanism) rotations per second cruise
+      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(15)); // Take approximately 0.5 seconds to reach max vel
       // Take approximately 0.1 seconds to reach max accel 
       // .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
 
     Slot0Configs elevator_slot0 = elevator_cfg.Slot0;
-    elevator_slot0.kS = 0.25;
+    elevator_slot0.kS = 0;
     elevator_slot0.kV = 0.0;
     elevator_slot0.kA = 0.0;
-    elevator_slot0.kP = 0.5;
+    elevator_slot0.kP = 6;
     elevator_slot0.kI = 0;
-    elevator_slot0.kD = 0;
-    elevator_slot0.kG = 0.3;
+    elevator_slot0.kD = 0.0;
+    elevator_slot0.kG = 0;
 
     CurrentLimitsConfigs limits = elevator_cfg.CurrentLimits;
     limits.SupplyCurrentLimitEnable = true;
@@ -281,7 +307,7 @@ public class Elevator extends SubsystemBase {
 
     SoftwareLimitSwitchConfigs soft = elevator_cfg.SoftwareLimitSwitch;
     soft.ForwardSoftLimitEnable = true;
-    soft.ForwardSoftLimitThreshold = 37.0;  // mechanism rotations
+    soft.ForwardSoftLimitThreshold = 4.8;  // mechanism rotations (after gear ratio)
     soft.ReverseSoftLimitEnable = true;
     soft.ReverseSoftLimitThreshold = 0.0;
 
@@ -309,6 +335,8 @@ public class Elevator extends SubsystemBase {
 
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, false));
 
+    mainMotor.setPosition(0);
+
     //
     // Arm Motor Configuration
     //
@@ -317,19 +345,19 @@ public class Elevator extends SubsystemBase {
 
     /* Configure gear ratio */
     FeedbackConfigs arm_fdb = arm_cfg.Feedback;
-    arm_fdb.SensorToMechanismRatio = 1; // x rotor rotations per mechanism rotation
+    arm_fdb.SensorToMechanismRatio = 61.2; // x rotor rotations per mechanism rotation
 
      /* Configure Motion Magic */
     MotionMagicConfigs arm_mm = arm_cfg.MotionMagic;
     arm_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(5))
-      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(3));
+      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(5));
       // .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
 
     Slot0Configs arm_slot0 = arm_cfg.Slot0;
-    arm_slot0.kS = 0.25;
+    arm_slot0.kS = 0;
     arm_slot0.kV = 0.0;
     arm_slot0.kA = 0.0;
-    arm_slot0.kP = 5;
+    arm_slot0.kP = 100;
     arm_slot0.kI = 0;
     arm_slot0.kD = 0;
 
@@ -341,6 +369,8 @@ public class Elevator extends SubsystemBase {
     if (!arm_status.isOK()) {
       System.out.println("Could not configure Arm. Error: " + arm_status.toString());
     }
+
+    armMotor.setPosition(0);
   }
 
   @Override
@@ -378,11 +408,15 @@ public class Elevator extends SubsystemBase {
     updateElevatorMechanism();
 
     // System.out.println(String.format("Elevator position: %.2f, velocity: %.2f", mainMotor.getPosition().getValue().in(Rotations), Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond))));
-    // System.out.println(String.format("Arm position: %.2f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
+    System.out.println(String.format("Arm position: %.3f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
     elevator_motorSimMech.update(mainMotor.getPosition(), mainMotor.getVelocity());
     arm_motorSimMech.update(armMotor.getPosition(), armMotor.getVelocity());
     SmartDashboard.putNumber("Elevator/Position", getElevatorPos());
     SmartDashboard.putNumber("Elevator/Arm Position", getArmPosition());
+    SmartDashboard.putNumber("Elevator/Velocity", mainMotor.getVelocity().getValueAsDouble());
+    SmartDashboard.putNumber("Elevator/Arm Velocity", armMotor.getVelocity().getValueAsDouble());
+    SmartDashboard.putNumber("Elevator/Acceleration", mainMotor.getAcceleration().getValueAsDouble());
+    SmartDashboard.putNumber("Elevator/Arm Acceleration", armMotor.getAcceleration().getValueAsDouble());
   }
 
   public void simulationInit() {
@@ -412,9 +446,9 @@ public class Elevator extends SubsystemBase {
   private void initElevatorMechanism() {
     // Use the class-level root (already created with ROOT_Y_OFFSET).
     // Initialize elevator ligament so 0 maps to ROOT_Y_OFFSET and allow negative overshoot to be visible.
-    elavatorLigament = root.append(new MechanismLigament2d("Elavator", 0, 90, 10, new Color8Bit(Color.kYellow)));
+    elevatorLigament = root.append(new MechanismLigament2d("Elevator", 0, 90, 10, new Color8Bit(Color.kYellow)));
     // Create arm ligament attached to the elevator ligament. Angle maps to ArmLevel values (assumed degrees).
-    armMechanismLigament = elavatorLigament.append(new MechanismLigament2d("Arm", 1.5, (float)ArmLevel.Home.getposition() + 90, 10, new Color8Bit(Color.kDarkGreen)));
+    armMechanismLigament = elevatorLigament.append(new MechanismLigament2d("Arm", 1.5, (float)ArmLevel.Home.getposition() + 90, 10, new Color8Bit(Color.kDarkGreen)));
 
     // Add the elevator spine and the moving ligament
     // spine gives context for the ruler; elevator ligament shows current position
@@ -437,14 +471,14 @@ public class Elevator extends SubsystemBase {
     levelIndicators.put(ElevationLevel.Level_4_Auto, createLevelIndicator("Level_4_Auto", ElevationLevel.Level_4_Auto.getposition(), Color.kCyan));
     levelBaseColors.put(ElevationLevel.Level_4_Auto, Color.kCyan);
 
-    SmartDashboard.putData("Elavator/Mech2d", mechanism);
+    SmartDashboard.putData("Elevator/Mech2d", mechanism);
   }
 
   private void updateElevatorMechanism() {
     // Update visual bar length from motor position (assumes motor position units map to level units)
     double motorPos = mainMotor.getPosition().getValue().in(Rotations);
 
-    elavatorLigament.setLength(motorPos);
+    elevatorLigament.setLength(motorPos);
 
     // update indicators color when passed the current length
     for (Map.Entry<ElevationLevel, MechanismLigament2d> e : levelIndicators.entrySet()) {
@@ -461,7 +495,7 @@ public class Elevator extends SubsystemBase {
     // Update arm visual: map arm position/level to ligament angle.
     // Prefer using the real motor position (in degrees) if available; otherwise use configured levels.
     if (armMechanismLigament != null) {
-      double armAngleDeg = armMotor.getPosition().getValue().in(Rotations) + 90;
+      double armAngleDeg = (armMotor.getPosition().getValue().in(Rotations) / ArmLevel.Max_Value.getposition()) + 90;
       // If motor position is zero/invalid in simulation, fall back to configured level value
       // if (Double.isNaN(armAngleDeg) || Math.abs(armAngleDeg) < 1e-6) {
       //   armAngleDeg = ArmLevel.Home.getposition() + 90;
