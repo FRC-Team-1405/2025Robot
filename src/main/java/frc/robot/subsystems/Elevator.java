@@ -60,7 +60,7 @@ public class Elevator extends SubsystemBase {
     Level_1(0.0),
     Level_2(0.839),
     Level_3(2.323),
-    Level_4(5.071),
+    Level_4(4.710),
     Inverted_Low(1.626),
     Level_4_Auto(5.071);
 
