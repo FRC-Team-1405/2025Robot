@@ -15,13 +15,16 @@ import java.util.Map;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
@@ -41,11 +44,14 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanBus;
 import frc.robot.Constants.DigitalIO;
 import frc.robot.Robot;
+import frc.robot.lib.FinneyLogger;
 import frc.robot.lib.MotorSim.MotorSim_Mech;
 import frc.robot.lib.MotorSim.PhysicsSim;
 
 
 public class Elevator extends SubsystemBase {
+  private final FinneyLogger fLogger = new FinneyLogger(this.getClass().getSimpleName());
+
   public enum ElevationLevel {
     Home(0.0), Level_1(0.0), Level_2(6.5), Level_3(18.0), Level_4(36.5), Inverted_Low(12.6), Level_4_Auto(39.3);
 
@@ -146,6 +152,8 @@ public class Elevator extends SubsystemBase {
     targetLevel = level;
     moveTo(targetLevel.getposition());
 
+    fLogger.log("setLevel Elevator called with level: %s (%.1f), variables -- position: %.2f, targetLevel: %s", level.name(), level.getposition(), position, targetLevel.name());
+
     if(targetLevel == ElevationLevel.Home) {
       targetState = ElevationControl.Home;
     }
@@ -153,7 +161,7 @@ public class Elevator extends SubsystemBase {
 
 
   public double getElevatorPos(){
-      return mainMotor.getPosition().getValue().in(Rotations)/ElevationLevel.Level_4.getposition();
+      return mainMotor.getPosition().getValue().in(Rotations);
   }
 
 
@@ -163,11 +171,12 @@ public class Elevator extends SubsystemBase {
   }
 
   public void moveTo(double position) {
-      this.position = position;
-    
-      motorTorquewarning.set(false);
-      mainMotor.setNeutralMode(NeutralModeValue.Brake);
-      mainMotor.setControl(new MotionMagicVoltage(position));
+    this.position = position;
+  
+    motorTorquewarning.set(false);
+    mainMotor.setNeutralMode(NeutralModeValue.Brake);
+    slaveMotor.setNeutralMode(NeutralModeValue.Brake);
+    mainMotor.setControl(new MotionMagicVoltage(position));
     //   switch (targetState) {
     //   case Home:
     //     targetState = ElevationControl.Zeroizing;
@@ -187,11 +196,15 @@ public class Elevator extends SubsystemBase {
   }
 
   public void stopElevator(){
-    mainMotor.set(0);
+    fLogger.log("Stop Elevator called");
+
+    // hold current elevator position, set(0) or stopMotor() doesn't hold position
+    mainMotor.setControl(new PositionVoltage(mainMotor.getPosition().getValue()));
   }
 
   public void stopArm(){
-    armMotor.set(0);
+    // hold current arm position, set(0) or stopMotor() doesn't hold position
+    armMotor.setControl(new PositionVoltage(armMotor.getPosition().getValue()));
   }
 
   public void setArmlevel(ArmLevel level) {
@@ -209,15 +222,18 @@ public class Elevator extends SubsystemBase {
     //   return true;
     // }
     
-    boolean isWithinTolerance = Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.POSITIONACCURACY;
+    boolean isWithinTolerance = Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.ELEVATOR_POSITION_ACCURACY;
     boolean isStopped = Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
     // boolean isGreaterThanPosition = mainMotor.getPosition().getValue().in(Rotations) > position; // Prevents overshoot on downward movements
+
+    fLogger.log("isWithinTolerance: %s (%.1f), isStopped: %s (%.1f)", isWithinTolerance, Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)), isStopped, Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)));
 
     return isWithinTolerance && isStopped;
   }
 
   private void checkCurrentLimit(){
     if (!Utils.isSimulation() && Math.abs(mainMotor.getTorqueCurrent().getValueAsDouble()) > Constants.ElavationConstants.CURRENTLIMIT){
+      System.err.println("ALERT: ELEVATOR MOTOR CURRENT LIMIT EXCEEDED");
       mainMotor.stopMotor();
       mainMotor.setNeutralMode(NeutralModeValue.Coast);
       motorTorquewarning.set(true);
@@ -239,12 +255,12 @@ public class Elevator extends SubsystemBase {
 
     /* Configure gear ratio */
     FeedbackConfigs elevator_fdb = elevator_cfg.Feedback;
-    elevator_fdb.SensorToMechanismRatio = 12.8; // 12.8 rotor rotations per mechanism rotation
+    elevator_fdb.SensorToMechanismRatio = 1; // 12.8 rotor rotations per mechanism rotation
 
      /* Configure Motion Magic */
     MotionMagicConfigs elevator_mm = elevator_cfg.MotionMagic;
-    elevator_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(50)) // 5 (mechanism) rotations per second cruise
-      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(30)); // Take approximately 0.5 seconds to reach max vel
+    elevator_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(1)) // 5 (mechanism) rotations per second cruise
+      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(1)); // Take approximately 0.5 seconds to reach max vel
       // Take approximately 0.1 seconds to reach max accel 
       // .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
 
@@ -252,9 +268,23 @@ public class Elevator extends SubsystemBase {
     elevator_slot0.kS = 0.25;
     elevator_slot0.kV = 0.0;
     elevator_slot0.kA = 0.0;
-    elevator_slot0.kP = 60;
+    elevator_slot0.kP = 0.5;
     elevator_slot0.kI = 0;
-    elevator_slot0.kD = 5;
+    elevator_slot0.kD = 0;
+    elevator_slot0.kG = 0.3;
+
+    CurrentLimitsConfigs limits = elevator_cfg.CurrentLimits;
+    limits.SupplyCurrentLimitEnable = true;
+    limits.SupplyCurrentLimit = 30;   // continuous supply limit
+    limits.StatorCurrentLimitEnable = true;
+    limits.StatorCurrentLimit = 40;   // continuous stator limit
+
+    SoftwareLimitSwitchConfigs soft = elevator_cfg.SoftwareLimitSwitch;
+    soft.ForwardSoftLimitEnable = true;
+    soft.ForwardSoftLimitThreshold = 37.0;  // mechanism rotations
+    soft.ReverseSoftLimitEnable = true;
+    soft.ReverseSoftLimitThreshold = 0.0;
+
 
     StatusCode elevator_status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
@@ -262,8 +292,20 @@ public class Elevator extends SubsystemBase {
       if (elevator_status.isOK()) break;
     }
     if (!elevator_status.isOK()) {
-      System.out.println("Could not configure Elevator. Error: " + elevator_status.toString());
+      System.out.println("Could not configure Elevator mainMotor. Error: " + elevator_status.toString());
     }
+
+    StatusCode elevator_status_slave = StatusCode.StatusCodeNotInitialized;
+    for (int i = 0; i < 5; ++i) {
+      elevator_status_slave = slaveMotor.getConfigurator().apply(elevator_cfg);
+      if (elevator_status_slave.isOK()) break;
+    }
+    if (!elevator_status_slave.isOK()) {
+      System.out.println("Could not configure Elevator slaveMotor. Error: " + elevator_status_slave.toString());
+    }
+
+    mainMotor.setNeutralMode(NeutralModeValue.Brake);
+    slaveMotor.setNeutralMode(NeutralModeValue.Brake);
 
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, false));
 
@@ -275,19 +317,19 @@ public class Elevator extends SubsystemBase {
 
     /* Configure gear ratio */
     FeedbackConfigs arm_fdb = arm_cfg.Feedback;
-    arm_fdb.SensorToMechanismRatio = 12.8; // x rotor rotations per mechanism rotation
+    arm_fdb.SensorToMechanismRatio = 1; // x rotor rotations per mechanism rotation
 
      /* Configure Motion Magic */
     MotionMagicConfigs arm_mm = arm_cfg.MotionMagic;
-    arm_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(50))
-      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(30));
+    arm_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(5))
+      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(3));
       // .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
 
     Slot0Configs arm_slot0 = arm_cfg.Slot0;
     arm_slot0.kS = 0.25;
     arm_slot0.kV = 0.0;
     arm_slot0.kA = 0.0;
-    arm_slot0.kP = 30;
+    arm_slot0.kP = 5;
     arm_slot0.kI = 0;
     arm_slot0.kD = 0;
 
@@ -309,7 +351,7 @@ public class Elevator extends SubsystemBase {
 
      
     // This method will be called once per scheduler run
-    checkCurrentLimit();
+    // checkCurrentLimit();
 
     // switch (targetState) {
     //   case Home:
@@ -335,8 +377,8 @@ public class Elevator extends SubsystemBase {
 
     updateElevatorMechanism();
 
-    // System.out.println(String.format("Elevator targetState: %s, position: %.1f, velocity: %.2f", targetState, mainMotor.getPosition().getValue().in(Rotations), Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond))));
-    // System.out.println(String.format("Arm position: %.1f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
+    // System.out.println(String.format("Elevator position: %.2f, velocity: %.2f", mainMotor.getPosition().getValue().in(Rotations), Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond))));
+    // System.out.println(String.format("Arm position: %.2f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
     elevator_motorSimMech.update(mainMotor.getPosition(), mainMotor.getVelocity());
     arm_motorSimMech.update(armMotor.getPosition(), armMotor.getVelocity());
     SmartDashboard.putNumber("Elevator/Position", getElevatorPos());
