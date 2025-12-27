@@ -60,15 +60,15 @@ public class Elevator extends SubsystemBase {
     Level_1(0.0),
     Level_2(0.839),
     Level_3(2.323),
-    Level_4(4.710),
+    Level_4(5.071),
     Inverted_Low(1.626),
     Level_4_Auto(5.071);
 
 
     private double pos;
     private ElevationLevel(Double pos) {
-      Preferences.initDouble("Elevator/Position/" + this.name(), pos);
-      this.pos = Preferences.getDouble("Elevator/Position/" + this.name(), pos);
+      // Preferences.initDouble("Elevator/Position/" + this.name(), pos);
+      this.pos = pos;
     }
 
     public double getposition(){
@@ -95,7 +95,7 @@ public class Elevator extends SubsystemBase {
     Travel(0.0341),
     Low_Score(0.0),
     Middle_Score(0.0292),
-    High_Score(0.0731),
+    High_Score(0.0877),
     Max_Value(0.3000),
     Inverted_Low(0.2630),
     Climb(0.1461),
@@ -242,6 +242,16 @@ public class Elevator extends SubsystemBase {
     return isWithinTolerance && isStopped;
   }
 
+  /**
+   * Arm is at or past travel position and is safe to move elevator.
+   * @return
+   */
+  public boolean isArmSafeToTravel() {
+    boolean minThresholdSafe = armMotor.getPosition().getValue().in(Rotations) > (ArmLevel.Travel.getposition()-Constants.ElavationConstants.ARM_POSITION_ACCURACY);
+    boolean maxThresholdSafe = armMotor.getPosition().getValue().in(Rotations) < (ArmLevel.High_Score_Auto.getposition()+Constants.ElavationConstants.ARM_POSITION_ACCURACY);
+    return minThresholdSafe && maxThresholdSafe;
+  }
+
   public boolean isAtPosition(double position){
     boolean isWithinTolerance = Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.ELEVATOR_POSITION_ACCURACY;
     boolean isStopped = Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
@@ -307,7 +317,7 @@ public class Elevator extends SubsystemBase {
 
     SoftwareLimitSwitchConfigs soft = elevator_cfg.SoftwareLimitSwitch;
     soft.ForwardSoftLimitEnable = true;
-    soft.ForwardSoftLimitThreshold = 4.8;  // mechanism rotations (after gear ratio)
+    soft.ForwardSoftLimitThreshold = 5.1;  // mechanism rotations (after gear ratio)
     soft.ReverseSoftLimitEnable = true;
     soft.ReverseSoftLimitThreshold = 0.0;
 

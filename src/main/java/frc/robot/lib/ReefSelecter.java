@@ -203,7 +203,7 @@ public class ReefSelecter {
     private static Pose2d scorePositionForAprilTagPose(Pose2d aprilTagPose, boolean scoreLeft){
         // Create a translation pointing "forward" from the april tag, and "sideways" for the given amount (either +6.5in or -6.5in depending on the side)
         double sidewaysTransform = scoreLeft ? Units.inchesToMeters(-6.5) : Units.inchesToMeters(6.5);
-        Translation2d offset = new Translation2d(RobotConstants.HALF_ROBOT_WIDTH, sidewaysTransform);
+        Translation2d offset = new Translation2d(RobotConstants.HALF_ROBOT_WIDTH+Units.inchesToMeters(2), sidewaysTransform);
         Transform2d transform = new Transform2d(offset, new Rotation2d());
 
         // Apply the offset to the april tag pose

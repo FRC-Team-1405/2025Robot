@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Elevator.ArmLevel;
@@ -30,14 +31,23 @@ public class MoveCoral extends SequentialCommandGroup {
     
     BooleanSupplier alreadyAtLevel = () -> elevator.isAtLevel(level.get());
 
-    // Commands to run ONLY if we are NOT already at the target level
+    // TODO separate the arm from the elevator so you can move the arm at the same time as the elevator
+    // Fast Move is moving the elevator and the arm at the same time
+    // BooleanSupplier allowFastMove = () -> elevator.isArmSafeToTravel();
+
     Command moveToLevelSequence =
         new SequentialCommandGroup(
             new ArmPosition(elevator, () -> ArmLevel.Travel),
             new MoveElevator(elevator, level)
         );
 
-    // Conditional: skip the above if already at level
+    // Command moveToLevelSequence_fastMove =
+    // new ParallelCommandGroup(
+    //     new ArmPosition(elevator, () -> ArmLevel.Travel),
+    //     new MoveElevator(elevator, level)
+    // );
+
+    // if elevator needs to move do a normal move
     Command conditionalMove =
         new ConditionalCommand(
             new InstantCommand(),   // If true: do nothing
@@ -45,11 +55,21 @@ public class MoveCoral extends SequentialCommandGroup {
             alreadyAtLevel
         );
 
+    // if elevator needs to move do a fast move
+    // Command conditionalMove_fastMove =
+    // new ConditionalCommand(
+    //     new InstantCommand(),
+    //     moveToLevelSequence_fastMove,
+    //     alreadyAtLevel
+    // );
+
+    // Command conditionalElevatorMove_possibleFastMovement = new ConditionalCommand(conditionalMove_fastMove, conditionalMove, allowFastMove);
+
     Command finalArmMove = new ArmPosition(elevator, this::armLevel);
 
     // Build the full command sequence
     addCommands(
-        conditionalMove,
+      conditionalMove,
         finalArmMove
     );
 
