@@ -55,7 +55,7 @@ public class Elevator extends SubsystemBase {
   public enum ElevationLevel {
     // Home(0.0), Level_1(0.0), Level_2(6.5), Level_3(18.0), Level_4(36.5), Inverted_Low(12.6), Level_4_Auto(39.3); 1:1 gear ratio
 
-    // Gear ratio of 7.75
+    // Gear ratio of elevatorSensorToMechanismRatio
     Home(0.0),
     Level_1(0.0),
     Level_2(0.839),
@@ -119,6 +119,7 @@ public class Elevator extends SubsystemBase {
 
   private TalonFX mainMotor = new TalonFX(CanBus.ElevatorPrimaryID);
   private TalonFX slaveMotor = new TalonFX(CanBus.ElevatorSecondaryID);
+  private double elevatorSensorToMechanismRatio = 7.75; // Gear ratio
   // private final TalonFXSimState mainMotorSim = mainMotor.getSimState();
   // private final TalonFXSimState slaveMotorSim = slaveMotor.getSimState();
 
@@ -166,8 +167,8 @@ public class Elevator extends SubsystemBase {
   private double position = targetLevel.getposition();
   private StatusSignal<ReverseLimitValue> motorReverseLimit = mainMotor.getReverseLimit();
   private Alert motorTorquewarning = new Alert("Elevator motor is using more power than permiter (possible stall)", AlertType.kWarning);
-  private Mechanism2d mechanism = new Mechanism2d(3, ElevationLevel.Level_4_Auto.getposition() + ROOT_Y_OFFSET);
-  private static final double ROOT_Y_OFFSET = 4.0;
+  private Mechanism2d mechanism = new Mechanism2d(3, (ElevationLevel.Level_4_Auto.getposition() * elevatorSensorToMechanismRatio) + 2);
+  private static final double ROOT_Y_OFFSET = 1.0;
   private MechanismRoot2d root = mechanism.getRoot("ElevatorRoot", 1.5, ROOT_Y_OFFSET);
   private MechanismLigament2d elevatorLigament;
   private Map<ElevationLevel, MechanismLigament2d> levelIndicators = new HashMap<>();
@@ -257,8 +258,8 @@ public class Elevator extends SubsystemBase {
     boolean isStopped = Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
     // boolean isGreaterThanPosition = mainMotor.getPosition().getValue().in(Rotations) > position; // Prevents overshoot on downward movements
 
-    fLogger.log("isWithinTolerance: %s (%.1f), isStopped: %s (%.1f)", isWithinTolerance, Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)), isStopped, Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)));
-    fLogger.log("elevator target position: %.2f, current position: %.2f", position, mainMotor.getPosition().getValue().in(Rotations));
+    // fLogger.log("isWithinTolerance: %s (%.1f), isStopped: %s (%.1f)", isWithinTolerance, Math.abs(position - mainMotor.getPosition().getValue().in(Rotations)), isStopped, Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond)));
+    // fLogger.log("elevator target position: %.2f, current position: %.2f", position, mainMotor.getPosition().getValue().in(Rotations));
 
     return isWithinTolerance && isStopped;
   }
@@ -291,7 +292,7 @@ public class Elevator extends SubsystemBase {
 
     /* Configure gear ratio */
     FeedbackConfigs elevator_fdb = elevator_cfg.Feedback;
-    elevator_fdb.SensorToMechanismRatio = 7.75; // x rotor rotations per mechanism rotation
+    elevator_fdb.SensorToMechanismRatio = elevatorSensorToMechanismRatio; // x rotor rotations per mechanism rotation
 
      /* Configure Motion Magic */
     MotionMagicConfigs elevator_mm = elevator_cfg.MotionMagic;
@@ -418,7 +419,7 @@ public class Elevator extends SubsystemBase {
     updateElevatorMechanism();
 
     // System.out.println(String.format("Elevator position: %.2f, velocity: %.2f", mainMotor.getPosition().getValue().in(Rotations), Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond))));
-    System.out.println(String.format("Arm position: %.3f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
+    // System.out.println(String.format("Arm position: %.3f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
     elevator_motorSimMech.update(mainMotor.getPosition(), mainMotor.getVelocity());
     arm_motorSimMech.update(armMotor.getPosition(), armMotor.getVelocity());
     SmartDashboard.putNumber("Elevator/Position", getElevatorPos());
@@ -430,7 +431,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void simulationInit() {
-    PhysicsSim.getInstance().addTalonFX(mainMotor, 0.001);
+    PhysicsSim.getInstance().addTalonFX(mainMotor, 0.001);//, 0.0, 0.0, 0.0, 2, 1.0);
     PhysicsSim.getInstance().addTalonFX(armMotor, 0.001);
   }
 
@@ -445,9 +446,9 @@ public class Elevator extends SubsystemBase {
     MechanismLigament2d anchor = new MechanismLigament2d(name + "_anchor", position, 90, 0.1, new Color8Bit(Color.kGray));
     root.append(anchor);
     // small ticks left/right to look like ruler markings
-    MechanismLigament2d tickR = new MechanismLigament2d(name + "_tickR", 0.6, 0, 3, new Color8Bit(color));
+    MechanismLigament2d tickR = new MechanismLigament2d(name + "_tickR", 0.3, 0, 2, new Color8Bit(color));
     anchor.append(tickR);
-    MechanismLigament2d tickL = new MechanismLigament2d(name + "_tickL", 0.6, 180, 3, new Color8Bit(color));
+    MechanismLigament2d tickL = new MechanismLigament2d(name + "_tickL", 0.3, 180, 2, new Color8Bit(color));
     anchor.append(tickL);
     // return one of the visible tick ligaments so we can change its color later
     return tickR;
@@ -466,19 +467,20 @@ public class Elevator extends SubsystemBase {
     // root.append(spine);
 
     // create level indicators (ticks) with distinct colors
-    levelIndicators.put(ElevationLevel.Home, createLevelIndicator("Home", ElevationLevel.Home.getposition(), Color.kGreen));
+    double scaleFactor = elevatorSensorToMechanismRatio; // Scale geared positions back to rotor rotations
+    levelIndicators.put(ElevationLevel.Home, createLevelIndicator("Home", ElevationLevel.Home.getposition() * scaleFactor, Color.kGreen));
     levelBaseColors.put(ElevationLevel.Home, Color.kGreen);
-    levelIndicators.put(ElevationLevel.Level_1, createLevelIndicator("Level_1", ElevationLevel.Level_1.getposition(), Color.kBlue));
+    levelIndicators.put(ElevationLevel.Level_1, createLevelIndicator("Level_1", ElevationLevel.Level_1.getposition() * scaleFactor, Color.kBlue));
     levelBaseColors.put(ElevationLevel.Level_1, Color.kBlue);
-    levelIndicators.put(ElevationLevel.Level_2, createLevelIndicator("Level_2", ElevationLevel.Level_2.getposition(), Color.kYellow));
+    levelIndicators.put(ElevationLevel.Level_2, createLevelIndicator("Level_2", ElevationLevel.Level_2.getposition() * scaleFactor, Color.kYellow));
     levelBaseColors.put(ElevationLevel.Level_2, Color.kYellow);
-    levelIndicators.put(ElevationLevel.Level_3, createLevelIndicator("Level_3", ElevationLevel.Level_3.getposition(), Color.kOrange));
+    levelIndicators.put(ElevationLevel.Level_3, createLevelIndicator("Level_3", ElevationLevel.Level_3.getposition() * scaleFactor, Color.kOrange));
     levelBaseColors.put(ElevationLevel.Level_3, Color.kOrange);
-    levelIndicators.put(ElevationLevel.Level_4, createLevelIndicator("Level_4", ElevationLevel.Level_4.getposition(), Color.kRed));
+    levelIndicators.put(ElevationLevel.Level_4, createLevelIndicator("Level_4", ElevationLevel.Level_4.getposition() * scaleFactor, Color.kRed));
     levelBaseColors.put(ElevationLevel.Level_4, Color.kRed);
-    levelIndicators.put(ElevationLevel.Inverted_Low, createLevelIndicator("Inverted_Low", ElevationLevel.Inverted_Low.getposition(), Color.kPurple));
+    levelIndicators.put(ElevationLevel.Inverted_Low, createLevelIndicator("Inverted_Low", ElevationLevel.Inverted_Low.getposition() * scaleFactor, Color.kPurple));
     levelBaseColors.put(ElevationLevel.Inverted_Low, Color.kPurple);
-    levelIndicators.put(ElevationLevel.Level_4_Auto, createLevelIndicator("Level_4_Auto", ElevationLevel.Level_4_Auto.getposition(), Color.kCyan));
+    levelIndicators.put(ElevationLevel.Level_4_Auto, createLevelIndicator("Level_4_Auto", ElevationLevel.Level_4_Auto.getposition() * scaleFactor, Color.kCyan));
     levelBaseColors.put(ElevationLevel.Level_4_Auto, Color.kCyan);
 
     SmartDashboard.putData("Elevator/Mech2d", mechanism);
@@ -488,7 +490,7 @@ public class Elevator extends SubsystemBase {
     // Update visual bar length from motor position (assumes motor position units map to level units)
     double motorPos = mainMotor.getPosition().getValue().in(Rotations);
 
-    elevatorLigament.setLength(motorPos);
+    elevatorLigament.setLength(motorPos * elevatorSensorToMechanismRatio);
 
     // update indicators color when passed the current length
     for (Map.Entry<ElevationLevel, MechanismLigament2d> e : levelIndicators.entrySet()) {
@@ -505,7 +507,9 @@ public class Elevator extends SubsystemBase {
     // Update arm visual: map arm position/level to ligament angle.
     // Prefer using the real motor position (in degrees) if available; otherwise use configured levels.
     if (armMechanismLigament != null) {
-      double armAngleDeg = (armMotor.getPosition().getValue().in(Rotations) / ArmLevel.Max_Value.getposition()) + 90;
+      double ratioOfFullRotation = armMotor.getPosition().getValue().in(Rotations) / ( ArmLevel.Max_Value.getposition() * 4 );
+      double armAngleDeg = (ratioOfFullRotation * 360) + 90;
+      System.out.println("Arm Angle Deg: " + armAngleDeg + " from motor pos: " + armMotor.getPosition().getValue().in(Rotations));
       // If motor position is zero/invalid in simulation, fall back to configured level value
       // if (Double.isNaN(armAngleDeg) || Math.abs(armAngleDeg) < 1e-6) {
       //   armAngleDeg = ArmLevel.Home.getposition() + 90;

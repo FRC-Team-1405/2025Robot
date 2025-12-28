@@ -34,6 +34,16 @@ public class PhysicsSim {
     }
 
     /**
+     * Adds a TalonFX controller with a modeled load (gravity + viscous).
+     */
+    public void addTalonFX(TalonFX talonFX, final double rotorInertia, final double loadMassKg, final double armMeters, final double viscousCoeff, final int numberOfMotors, final double gearRatio) {
+        if (talonFX != null) {
+            TalonFXSimProfile simTalonFX = new TalonFXSimProfile(talonFX, rotorInertia, loadMassKg, armMeters, viscousCoeff, 0.018, numberOfMotors, gearRatio);
+            _simProfiles.add(simTalonFX);
+        }
+    }
+
+    /**
      * Runs the simulator:
      * - enable the robot
      * - simulate sensors
