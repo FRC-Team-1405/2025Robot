@@ -12,8 +12,9 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Arm.ArmLevel;
 import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.Elevator.ArmLevel;
 import frc.robot.subsystems.Intake;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -23,29 +24,29 @@ public class MoveCoral extends SequentialCommandGroup {
 
   private Supplier<Elevator.ElevationLevel> level;
 
-  public MoveCoral(Elevator elevator, Supplier<Elevator.ElevationLevel> level, Intake intake) {
+  public MoveCoral(Elevator elevator, Arm arm, Supplier<Elevator.ElevationLevel> level, Intake intake) {
     this.level = level;
 
-    addRequirements(elevator);
+    addRequirements(elevator, arm);
     // addCommands(IntakeCommands.stopIntake(intake)); TODO determine how to add this back in without error: IllegalArgumentException: Multiple commands in a parallel composition cannot require the same subsystems
     
     BooleanSupplier alreadyAtLevel = () -> elevator.isAtLevel(level.get());
 
     // TODO separate the arm from the elevator so you can move the arm at the same time as the elevator
     // Fast Move is moving the elevator and the arm at the same time
-    // BooleanSupplier allowFastMove = () -> elevator.isArmSafeToTravel();
+    BooleanSupplier allowFastMove = () -> arm.isArmSafeToTravel();
 
     Command moveToLevelSequence =
         new SequentialCommandGroup(
-            new ArmPosition(elevator, () -> ArmLevel.Travel),
+            new ArmPosition(arm, () -> ArmLevel.Travel),
             new MoveElevator(elevator, level)
         );
 
-    // Command moveToLevelSequence_fastMove =
-    // new ParallelCommandGroup(
-    //     new ArmPosition(elevator, () -> ArmLevel.Travel),
-    //     new MoveElevator(elevator, level)
-    // );
+    Command moveToLevelSequence_fastMove =
+    new ParallelCommandGroup(
+        new ArmPosition(arm, () -> ArmLevel.Travel),
+        new MoveElevator(elevator, level)
+    );
 
     // if elevator needs to move do a normal move
     Command conditionalMove =
@@ -56,21 +57,21 @@ public class MoveCoral extends SequentialCommandGroup {
         );
 
     // if elevator needs to move do a fast move
-    // Command conditionalMove_fastMove =
-    // new ConditionalCommand(
-    //     new InstantCommand(),
-    //     moveToLevelSequence_fastMove,
-    //     alreadyAtLevel
-    // );
+    Command conditionalMove_fastMove =
+    new ConditionalCommand(
+        new InstantCommand(),
+        moveToLevelSequence_fastMove,
+        alreadyAtLevel
+    );
 
-    // Command conditionalElevatorMove_possibleFastMovement = new ConditionalCommand(conditionalMove_fastMove, conditionalMove, allowFastMove);
+    Command conditionalElevatorMove_possibleFastMovement = new ConditionalCommand(conditionalMove_fastMove, conditionalMove, allowFastMove);
 
-    Command finalArmMove = new ArmPosition(elevator, this::armLevel);
+    Command finalArmMove = new ArmPosition(arm, this::armLevel);
 
     // Build the full command sequence
     addCommands(
-      conditionalMove,
-        finalArmMove
+      conditionalElevatorMove_possibleFastMovement,
+      finalArmMove
     );
 
     this.setName("MoveCoral");

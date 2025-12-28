@@ -476,37 +476,4 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Command driveToPose(Pose2d pose) {
         return driveToPose(() -> Optional.of(pose));
     }
-
-    public Command runAutoScore(Supplier<Optional<Pose2d>> targetPoseSupplier, Supplier<ElevationLevel> elevationLevelSupplier, Intake intake, Elevator elevator) {
-        return Commands.sequence(
-                Commands.runOnce(() -> {
-                    if (RobotContainer.DEBUG_CONSOLE_LOGGING) {
-                        System.out.println("runAutoAlign Called with targetPose: " + targetPoseSupplier.get());
-                    }
-                }),
-                Commands.defer(() -> {
-                    Optional<Pose2d> targetPose = targetPoseSupplier.get();
-
-                    if (targetPose.isEmpty()) {
-                        return Commands.none();
-                    }
-
-                    return new PidToPoseCommand(this, () -> targetPose.get(), 1.2, false, null)
-                    .alongWith(
-                                        Commands.sequence(
-                                                Commands.waitUntil(() -> this.getState().Pose.getTranslation()
-                                                        .getDistance(targetPose.get().getTranslation()) < 1)).andThen(
-                                                            () -> {
-                                                                System.out.println("PidToPose is within a meter of target, start moving elevator to level: " + elevationLevelSupplier.get());
-                                                            }
-                                                        ),
-                                        new MoveCoral(elevator, elevationLevelSupplier, intake))
-                                        .andThen(() -> {System.out.println("runAutoAlign is in position to score, deploying coral now.");})
-                                .andThen(
-                                        new ParallelRaceGroup(
-                                                IntakeCommands.expelCoral(intake),
-                                                new ArmPosition(elevator, () -> Elevator.ArmLevel.Travel)
-                                                        .beforeStarting(Commands.waitSeconds(0.25))));
-                }, Set.of(this)));
-    }
 }

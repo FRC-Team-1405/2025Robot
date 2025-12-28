@@ -47,6 +47,7 @@ import frc.robot.Robot;
 import frc.robot.lib.FinneyLogger;
 import frc.robot.lib.MotorSim.MotorSim_Mech;
 import frc.robot.lib.MotorSim.PhysicsSim;
+import frc.robot.subsystems.Arm.ArmLevel;
 
 
 public class Elevator extends SubsystemBase {
@@ -76,54 +77,12 @@ public class Elevator extends SubsystemBase {
     }
   };
 
-  public enum ArmLevel {
-    // gear ratio of 1:1
-    // Home(0.0), 
-    // Travel(3.5), 
-    // Low_Score(0.0), 
-    // Middle_Score(3.0), 
-    // High_Score(7.5),
-    // Max_Value(30.8),
-    // Inverted_Low(27.0),
-    // Climb(15.0),
-    // Algae(20.0),
-    // Algae_Output(20.0),
-    // High_Score_Auto(9.0);
-
-    // Gear ratio of 61.2
-    Home(0.0),
-    Travel(0.0341),
-    Low_Score(0.0),
-    Middle_Score(0.0292),
-    High_Score(0.0877),
-    Max_Value(0.3000),
-    Inverted_Low(0.2630),
-    Climb(0.1461),
-    Algae(0.1948),
-    Algae_Output(0.1948),
-    High_Score_Auto(0.0877);
-
-
-
-    private double pos;
-    private ArmLevel(Double pos) {
-      // Preferences.initDouble("Arm/Position/" + this.name(), pos);
-      // this.pos = Preferences.getDouble("Arm/Position/" + this.name(), pos);
-      this.pos = pos;
-    }
-
-    public double getposition(){
-      return this.pos;
-    }
-  };
-
   private TalonFX mainMotor = new TalonFX(CanBus.ElevatorPrimaryID);
   private TalonFX slaveMotor = new TalonFX(CanBus.ElevatorSecondaryID);
   private double elevatorSensorToMechanismRatio = 7.75; // Gear ratio
   // private final TalonFXSimState mainMotorSim = mainMotor.getSimState();
   // private final TalonFXSimState slaveMotorSim = slaveMotor.getSimState();
 
-  private TalonFX armMotor = new TalonFX(CanBus.ArmMotorPrimaryID);
   private final DigitalInput forwardLimit = new DigitalInput(DigitalIO.ElevatorForwardLimit);
   private final DigitalInput reverseLimit = new DigitalInput(DigitalIO.ElevatorReverseLimit);
   private final DutyCycleOut dutyCycle = new DutyCycleOut(0.0);
@@ -191,11 +150,6 @@ public class Elevator extends SubsystemBase {
       return mainMotor.getPosition().getValue().in(Rotations);
   }
 
-
-  public double getArmPosition(){
-   return armMotor.getPosition().getValue().in(Rotations);
-  }
-
   public void moveTo(double position) {
     this.position = position;
   
@@ -226,31 +180,6 @@ public class Elevator extends SubsystemBase {
 
     // hold current elevator position, set(0) or stopMotor() doesn't hold position
     // mainMotor.setControl(new PositionVoltage(mainMotor.getPosition().getValue()));
-  }
-
-  public void stopArm(){
-    // hold current arm position, set(0) or stopMotor() doesn't hold position
-    armMotor.setControl(new PositionVoltage(armMotor.getPosition().getValue()));
-  }
-
-  public void setArmlevel(ArmLevel level) {
-    armMotor.setControl(new MotionMagicVoltage(level.getposition()));
-  }
-
-  public boolean isArmAtLevel(ArmLevel level) {
-    boolean isWithinTolerance = Math.abs(level.getposition() - armMotor.getPosition().getValue().in(Rotations)) < Constants.ElavationConstants.ARM_POSITION_ACCURACY;
-    boolean isStopped = Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond)) < 0.1;
-    return isWithinTolerance && isStopped;
-  }
-
-  /**
-   * Arm is at or past travel position and is safe to move elevator.
-   * @return
-   */
-  public boolean isArmSafeToTravel() {
-    boolean minThresholdSafe = armMotor.getPosition().getValue().in(Rotations) > (ArmLevel.Travel.getposition()-Constants.ElavationConstants.ARM_POSITION_ACCURACY);
-    boolean maxThresholdSafe = armMotor.getPosition().getValue().in(Rotations) < (ArmLevel.High_Score_Auto.getposition()+Constants.ElavationConstants.ARM_POSITION_ACCURACY);
-    return minThresholdSafe && maxThresholdSafe;
   }
 
   public boolean isAtPosition(double position){
@@ -347,92 +276,21 @@ public class Elevator extends SubsystemBase {
     slaveMotor.setControl(new Follower(Constants.CanBus.ElevatorPrimaryID, false));
 
     mainMotor.setPosition(0);
-
-    //
-    // Arm Motor Configuration
-    //
-
-    TalonFXConfiguration arm_cfg = new TalonFXConfiguration();
-
-    /* Configure gear ratio */
-    FeedbackConfigs arm_fdb = arm_cfg.Feedback;
-    arm_fdb.SensorToMechanismRatio = 61.2; // x rotor rotations per mechanism rotation
-
-     /* Configure Motion Magic */
-    MotionMagicConfigs arm_mm = arm_cfg.MotionMagic;
-    arm_mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(5))
-      .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(5));
-      // .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
-
-    Slot0Configs arm_slot0 = arm_cfg.Slot0;
-    arm_slot0.kS = 0;
-    arm_slot0.kV = 0.0;
-    arm_slot0.kA = 0.0;
-    arm_slot0.kP = 100;
-    arm_slot0.kI = 0;
-    arm_slot0.kD = 0;
-
-    StatusCode arm_status = StatusCode.StatusCodeNotInitialized;
-    for (int i = 0; i < 5; ++i) {
-      arm_status = armMotor.getConfigurator().apply(arm_cfg);
-      if (arm_status.isOK()) break;
-    }
-    if (!arm_status.isOK()) {
-      System.out.println("Could not configure Arm. Error: " + arm_status.toString());
-    }
-
-    armMotor.setPosition(0);
   }
 
   @Override
   public void periodic() {
-    // mainMotor.setControl(dutyCycle.withOutput(0.5)
-    //                               .withLimitForwardMotion(forwardLimit.get())
-    //                               .withLimitReverseMotion(reverseLimit.get()));
-
-     
-    // This method will be called once per scheduler run
-    // checkCurrentLimit();
-
-    // switch (targetState) {
-    //   case Home:
-        
-    //     break;
-    //   case Zeroizing:
-    //     // motorReverseLimit.refresh();
-    //     // if(motorReverseLimit.getValue() == ReverseLimitValue.ClosedToGround){
-    //       mainMotor.setPosition(0);
-    //       targetState = ElevationControl.Moving;
-    //       moveTo(position);
-    //     // }
-    //     break;
-    //   case Stopped:
-
-    //     break;
-    //   case Moving:        
-    //     if (isAtPosition()){
-    //       targetState = ElevationControl.Stopped;
-    //     }
-    //     break;
-    // }
-
     updateElevatorMechanism();
 
     // System.out.println(String.format("Elevator position: %.2f, velocity: %.2f", mainMotor.getPosition().getValue().in(Rotations), Math.abs(mainMotor.getVelocity().getValue().in(RotationsPerSecond))));
-    // System.out.println(String.format("Arm position: %.3f, velocity: %.2f", armMotor.getPosition().getValue().in(Rotations), Math.abs(armMotor.getVelocity().getValue().in(RotationsPerSecond))));
     elevator_motorSimMech.update(mainMotor.getPosition(), mainMotor.getVelocity());
-    arm_motorSimMech.update(armMotor.getPosition(), armMotor.getVelocity());
     SmartDashboard.putNumber("Elevator/Position", getElevatorPos());
-    SmartDashboard.putNumber("Elevator/Arm Position", getArmPosition());
     SmartDashboard.putNumber("Elevator/Velocity", mainMotor.getVelocity().getValueAsDouble());
-    SmartDashboard.putNumber("Elevator/Arm Velocity", armMotor.getVelocity().getValueAsDouble());
     SmartDashboard.putNumber("Elevator/Acceleration", mainMotor.getAcceleration().getValueAsDouble());
-    SmartDashboard.putNumber("Elevator/Arm Acceleration", armMotor.getAcceleration().getValueAsDouble());
   }
 
   public void simulationInit() {
     PhysicsSim.getInstance().addTalonFX(mainMotor, 0.001);//, 0.0, 0.0, 0.0, 2, 1.0);
-    PhysicsSim.getInstance().addTalonFX(armMotor, 0.001);
   }
 
   @Override
@@ -507,9 +365,8 @@ public class Elevator extends SubsystemBase {
     // Update arm visual: map arm position/level to ligament angle.
     // Prefer using the real motor position (in degrees) if available; otherwise use configured levels.
     if (armMechanismLigament != null) {
-      double ratioOfFullRotation = armMotor.getPosition().getValue().in(Rotations) / ( ArmLevel.Max_Value.getposition() * 4 );
+      double ratioOfFullRotation = Arm.getArmPositionForElevator() / ( ArmLevel.Max_Value.getposition() * 4 );
       double armAngleDeg = (ratioOfFullRotation * 360) + 90;
-      System.out.println("Arm Angle Deg: " + armAngleDeg + " from motor pos: " + armMotor.getPosition().getValue().in(Rotations));
       // If motor position is zero/invalid in simulation, fall back to configured level value
       // if (Double.isNaN(armAngleDeg) || Math.abs(armAngleDeg) < 1e-6) {
       //   armAngleDeg = ArmLevel.Home.getposition() + 90;

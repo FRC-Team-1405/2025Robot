@@ -39,16 +39,18 @@ import frc.robot.commands.Climb;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveCoral;
 import frc.robot.commands.AutoPilot.AutoPilotCommands;
+import frc.robot.commands.PidToPose.PidToPoseAutoScore;
 import frc.robot.commands.PidToPose.PidToPoseCommands;
 import frc.robot.constants.AprilTags;
 import frc.robot.constants.FieldConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.lib.CommandTracker;
 import frc.robot.lib.ReefSelecter;
+import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Arm.ArmLevel;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.Elevator.ArmLevel;
 import frc.robot.subsystems.Elevator.ElevationLevel;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.vision.Vision;
@@ -93,6 +95,7 @@ public class RobotContainer {
   // SimSwerveDrivetrain simSwerveDrivetrain = new SimSwerveDrivetrain(null, null,
   // null);
   private final Elevator elevator = new Elevator();
+  private final Arm arm = new Arm();
   public static final ReefSelecter reefSelecter = new ReefSelecter();
   private final Climber climber = new Climber();
   public final Intake intake = new Intake();
@@ -177,14 +180,14 @@ public class RobotContainer {
     // driver.rightBumper().toggleOnTrue(IntakeCommands.toggleIntakeCoral(intake));
     driver.leftBumper()
         .onTrue(new SequentialCommandGroup(IntakeCommands.expelCoral(intake),
-            new ArmPosition(elevator, () -> ArmLevel.Travel)));
-    driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(elevator, () -> ArmLevel.Climb)));
+            new ArmPosition(arm, () -> ArmLevel.Travel)));
+    driver.a().onTrue(new SequentialCommandGroup(new ArmPosition(arm, () -> ArmLevel.Climb)));
 
     /* B Button: Auto Score */
     driver.b().whileTrue(
-        drivetrain.runAutoScore(() -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake,
-            elevator))
-        .onFalse(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+        PidToPoseAutoScore.runAutoScore(drivetrain, () -> reefSelecter.getRobotPositionForSelectedCoral(), reefSelecter::getLevel, intake,
+            elevator, arm))
+        .onFalse(new MoveCoral(elevator, arm, () -> ElevationLevel.Home, intake));
 
     driver.back().onTrue(
         Commands.runOnce(() -> {
@@ -208,8 +211,8 @@ public class RobotContainer {
     // return highAlgae;
     // }));
 
-    operator.y().onTrue(new MoveCoral(elevator, reefSelecter::getLevel, intake));
-    operator.a().onTrue(new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+    operator.y().onTrue(new MoveCoral(elevator, arm, reefSelecter::getLevel, intake));
+    operator.a().onTrue(new MoveCoral(elevator, arm, () -> ElevationLevel.Home, intake));
     operator.x().whileTrue(IntakeCommands.runVoltage(intake, 4.0));
 
     operator.povLeft().onTrue(Commands.runOnce(reefSelecter::selectLeft));
@@ -257,34 +260,34 @@ public class RobotContainer {
   void registerCommands() {
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4,
-        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)));
+        new SequentialCommandGroup(new MoveCoral(elevator, arm, () -> ElevationLevel.Level_4, intake)));
     NamedCommands.registerCommand(ELEVATOR_TO_SELECTED_LEVEL,
-        new SequentialCommandGroup(new MoveCoral(elevator, () -> reefSelecter.getLevel(), intake)));
+        new SequentialCommandGroup(new MoveCoral(elevator, arm, () -> reefSelecter.getLevel(), intake)));
 
     NamedCommands.registerCommand(ELEVATOR_TO_HOME,
-        new MoveCoral(elevator, () -> ElevationLevel.Home, intake));
+        new MoveCoral(elevator, arm, () -> ElevationLevel.Home, intake));
 
     NamedCommands.registerCommand(OUTPUT_CORAL,
         new ParallelRaceGroup(
             IntakeCommands.expelCoral(intake),
-            new ArmPosition(elevator, () -> ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))));
+            new ArmPosition(arm, () -> frc.robot.subsystems.Arm.ArmLevel.Travel).beforeStarting(Commands.waitSeconds(0.25))));
 
     NamedCommands.registerCommand(SCORE_LEVEL_4_CORAL,
-        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake),
-            IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
-            new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
+        new SequentialCommandGroup(new MoveCoral(elevator, arm, () -> ElevationLevel.Level_4, intake),
+            IntakeCommands.expelCoral(intake), new ArmPosition(arm, () -> ArmLevel.Travel),
+            new MoveCoral(elevator, arm, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Score Level3 Coral",
-        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_3, intake),
-            IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
-            new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
+        new SequentialCommandGroup(new MoveCoral(elevator, arm, () -> ElevationLevel.Level_3, intake),
+            IntakeCommands.expelCoral(intake), new ArmPosition(arm, () -> ArmLevel.Travel),
+            new MoveCoral(elevator, arm, () -> ElevationLevel.Home, intake)));
     NamedCommands.registerCommand("Score Level2 Coral",
-        new SequentialCommandGroup(new MoveCoral(elevator, () -> ElevationLevel.Level_2, intake),
-            IntakeCommands.expelCoral(intake), new ArmPosition(elevator, () -> ArmLevel.Travel),
-            new MoveCoral(elevator, () -> ElevationLevel.Home, intake)));
+        new SequentialCommandGroup(new MoveCoral(elevator, arm, () -> ElevationLevel.Level_2, intake),
+            IntakeCommands.expelCoral(intake), new ArmPosition(arm, () -> ArmLevel.Travel),
+            new MoveCoral(elevator, arm, () -> ElevationLevel.Home, intake)));
 
     NamedCommands.registerCommand(ELEVATOR_TO_LEVEL_4_AUTO,
         Commands.sequence(Commands.waitUntil(intake::hasCoral),
-            new MoveCoral(elevator, () -> ElevationLevel.Level_4, intake)).unless(() -> !intake.hasCoral()));
+            new MoveCoral(elevator, arm, () -> ElevationLevel.Level_4, intake)).unless(() -> !intake.hasCoral()));
 
     NamedCommands.registerCommand(IntakeCommands.INTAKE_CORAL, IntakeCommands.intakeCoral(intake));
 
